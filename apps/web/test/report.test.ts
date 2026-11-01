@@ -49,7 +49,7 @@ describe('Steckbrief', () => {
 });
 
 describe('Gesamtdokument', () => {
-  it('enthält Modellinformationen, Grafik, Elemente, Status, DEMI und Prüfung', async () => {
+  it('enthält Modellinformationen, Grafik, Elemente, Status und DEMI, ohne Hauptsprache und Prüfergebnis', async () => {
     const defs = await definitions(incident);
     const doc = parse(
       fullHtml({
@@ -68,8 +68,8 @@ describe('Gesamtdokument', () => {
       'Modellierungselemente',
       'Status',
       'Verantwortlichkeiten (DEMI)',
-      'Prüfergebnis',
     ]);
+    expect(doc.querySelector('.info-table')!.textContent).not.toContain('Hauptsprache');
     expect(doc.querySelector('.diagram svg')).not.toBeNull();
     const head = [...doc.querySelectorAll('table.elements thead th')].map((th) => th.textContent);
     expect(head).toEqual(['Nr.', 'Elementtyp', 'Elementart', 'Name', 'IT-System(e)', 'Beschreibung', 'Weiterführende Dokumentation']);

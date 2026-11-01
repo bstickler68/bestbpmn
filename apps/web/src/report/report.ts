@@ -33,11 +33,10 @@ export interface ReportInput {
   roles?: RoleDefinition[];
   /** Nur Gesamtdokument: Grafik des Diagramms. */
   svg?: string;
-  /** Nur Gesamtdokument: Status und Prüfergebnis. */
+  /** Nur Gesamtdokument: Status und Statuswechsel. */
   statusModels?: StatusModel[];
 }
 
-type El = ModdleElement & Record<string, any>;
 
 export const escape = (text: string) =>
   text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -253,19 +252,6 @@ function statusSection(models: StatusModel[], input: ReportInput): string {
     .join('');
 }
 
-function checkSection(models: StatusModel[], t: TFunction): string {
-  const issues = models.flatMap((m) => m.issues);
-  if (!issues.length) {
-    return `<p class="ok">${escape(t('status.ok'))}</p>`;
-  }
-  return `<ul class="issues">${issues
-    .map(
-      (i) =>
-        `<li class="${i.severity}">${escape(t(i.severity === 'error' ? 'status.error' : 'status.warning'))}: ${escape(t(`issue.${i.code}`, i.params))}</li>`,
-    )
-    .join('')}</ul>`;
-}
-
 /** Die DEMI-Matrix wie im Reiter, als HTML-Text. */
 function raciSection(input: ReportInput): string {
   const container = document.createElement('div');
@@ -279,16 +265,14 @@ function raciSection(input: ReportInput): string {
   return container.innerHTML;
 }
 
-/** Das Gesamtdokument: Modellinformationen, Grafik, Elemente, Status, DEMI-Matrix und Prüfergebnis. */
+/** Das Gesamtdokument: Modellinformationen, Grafik, Elemente, Status und DEMI-Matrix. */
 export function fullHtml(input: ReportInput): string {
   const { t } = input;
   const profile = deriveProfile(input.definitions);
-  const definitions = input.definitions as El;
   const models = input.statusModels ?? [];
   const info = [
     [t('report.name'), escape(profile.name ?? t('report.untitled'))],
     [t('report.description'), paragraphs(profile.description) || escape(t('report.none'))],
-    [t('report.language'), escape(definitions.language || '–')],
     ...(input.fileName ? [[t('report.fileLabel'), escape(input.fileName)]] : []),
   ];
   const body = `<main>
@@ -299,7 +283,6 @@ ${input.svg ? `<section class="graphic"><h2>${escape(t('report.graphic'))}</h2><
 <section class="elements-section"><h2>${escape(t('report.elements'))}</h2>${elementTables(input)}</section>
 <section class="status-section"><h2>${escape(t('report.statusTable'))}</h2>${statusSection(models, input)}</section>
 <section class="raci-section"><h2>${escape(t('report.raci'))}</h2>${raciSection(input)}</section>
-<section class="check-section"><h2>${escape(t('report.check'))}</h2>${checkSection(models, t)}</section>
 </main>`;
   return page(input, 'full', body);
 }

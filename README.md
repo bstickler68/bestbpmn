@@ -65,7 +65,7 @@ Browsers, dort auch „Als PDF speichern“:
   aus der DEMI-Matrix), Dokumente (Datenobjekte, die in Aktivitäten eingehen, und Links),
   Systeme (IT-Services).
 - **Gesamtdokument**: Modellinformationen, Grafik, alle Modellierungselemente als Tabelle,
-  Status und Statuswechsel, DEMI-Matrix und Prüfergebnis. Die Elementtabelle hat die Spalten
+  Status und Statuswechsel und DEMI-Matrix. Die Elementtabelle hat die Spalten
   Nr., Elementtyp, Elementart, Name, IT-System(e), Beschreibung und weiterführende
   Dokumentation. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
   weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
