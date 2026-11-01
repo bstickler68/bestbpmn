@@ -53,6 +53,27 @@ arbeitet, ist als Etappe 5 geplant. In allen Browsern lässt sich eine `.bpmn`-D
 Fenster ziehen, und „Exportieren“ bietet BPMN, SVG und PNG an. Modelle mit Erweiterungen
 anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 
+## Berichte
+
+Unter „Bericht“ gibt es das Modell in zwei Fassungen, jeweils als HTML-Datei (eine Datei,
+Grafik und Stil eingebettet, zum Ablegen und Verschicken) oder über den Druckdialog des
+Browsers, dort auch „Als PDF speichern“:
+
+- **Steckbrief** (ohne Grafik): Name, Zweck und Beschreibung, Auslöser (Startereignisse),
+  Endzustand (Endereignisse), erste und letzte Aktivität, Input (Datenobjekte an
+  Startereignissen), Output (an Endereignissen) und Ressourcen: Personell (Rollen und Gruppen
+  aus der DEMI-Matrix), Dokumente (Datenobjekte, die in Aktivitäten eingehen, und Links),
+  Systeme (IT-Services).
+- **Gesamtdokument**: Modellinformationen, Grafik, alle Modellierungselemente als Tabelle,
+  Status und Statuswechsel und DEMI-Matrix. Die Elementtabelle hat die Spalten
+  Nr., Elementtyp, Elementart, Name, IT-System(e), Beschreibung und weiterführende
+  Dokumentation. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
+  weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
+
+Alles kommt aus dem Modell; das Datenobjekt „Prozess“ trägt nur den Status und zählt nicht
+als Input, Output oder Dokument. Gedruckt wird auf A4; Grafik und Elementtabelle stehen im
+Querformat.
+
 ## Status, Rollen und Prüfregeln
 
 - **Freitext ist der Normalfall.** Status, Rollen und Gruppen werden im Eigenschaftenpanel
@@ -88,7 +109,7 @@ npm test        # Browser-Tests brauchen Chromium: npx playwright install chromi
 1. **Gerüst:** Modellierer mit Status, RACI/DEMI und Prüfregeln
 2. Freitext für Status und Rollen, optionaler eigener Katalog, Regelprofile
 3. Arbeiten mit Dateien: Arbeitsordner mit Sperrdateien, Drag & Drop, Export als SVG/PNG, leeres Diagramm
-   - 3b. Druckbare Berichte (Steckbrief und Gesamtdokument) als HTML und PDF
+   - 3b. **Druckbare Berichte:** Steckbrief und Gesamtdokument als HTML und PDF
 4. Auslieferung als einzelne HTML-Datei zum Doppelklicken, optional als installierbare Web-App (PWA)
 5. Windows-Programm (Tauri) mit Arbeitsordner auch für Firefox-Nutzer
 

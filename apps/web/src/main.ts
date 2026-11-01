@@ -32,6 +32,8 @@ import { loadCatalog, loadDisabledRules, saveCatalog, saveDisabledRules } from '
 import { download, svgToPng, withExtension } from './export';
 import { FilesController } from './files/controller';
 import { renderBanner, renderFilesPanel } from './files/filesPanel';
+import { fullHtml, profileHtml, type ReportInput } from './report/report';
+import { printHtml } from './report/print';
 
 const LANGUAGE_KEY = 'bestbpmn.language';
 const statusPanel = document.querySelector<HTMLElement>('#status')!;
@@ -272,6 +274,40 @@ document.querySelector('#export-png')!.addEventListener('click', async () => {
   const { svg } = await modeler.saveSVG();
   download(withExtension(files.fileName ?? currentName(), '.png'), await svgToPng(svg));
 });
+
+// Berichte: Steckbrief und Gesamtdokument, als HTML-Datei oder über den Druckdialog (PDF).
+async function reportInput(full: boolean): Promise<ReportInput> {
+  return {
+    t,
+    language,
+    definitions: modeler.getDefinitions(),
+    fileName: files.fileName,
+    roles: catalog.roles,
+    ...(full
+      ? {
+          svg: (await modeler.saveSVG()).svg as string,
+          statusModels: (modeler.get('bestbpmnStatusCheck') as StatusCheck).getModels(),
+        }
+      : {}),
+  };
+}
+
+async function report(kind: 'profile' | 'full', target: 'html' | 'print') {
+  const input = await reportInput(kind === 'full');
+  const html = kind === 'full' ? fullHtml(input) : profileHtml(input);
+  const suffix = t(kind === 'full' ? 'report.fileFull' : 'report.fileProfile');
+  const base = withExtension(files.fileName ?? currentName(), '');
+  if (target === 'html') {
+    download(`${base}-${suffix}.html`, new Blob([html], { type: 'text/html;charset=utf-8' }));
+  } else {
+    await printHtml(html, `${base}-${suffix}`);
+  }
+}
+
+document.querySelector('#report-profile-print')!.addEventListener('click', () => report('profile', 'print'));
+document.querySelector('#report-full-print')!.addEventListener('click', () => report('full', 'print'));
+document.querySelector('#report-profile-html')!.addEventListener('click', () => report('profile', 'html'));
+document.querySelector('#report-full-html')!.addEventListener('click', () => report('full', 'html'));
 
 // Strg+S speichert wie unter Windows gewohnt, statt die Seite herunterzuladen.
 document.addEventListener('keydown', (event) => {

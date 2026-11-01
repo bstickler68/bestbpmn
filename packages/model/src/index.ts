@@ -89,3 +89,14 @@ export {
 } from './raci/read.js';
 export { deriveRaciMatrices, type RaciMatrix, type RaciRow } from './raci/matrix.js';
 export { checkLanes, checkRaci, findParticipant, hasLanes, isMultiInstance, laneAssignee, laneMap, resolveRaci } from './raci/check.js';
+export {
+  classify,
+  deriveElementTables,
+  eventKind,
+  type ElementKind,
+  type ElementRow,
+  type ElementTable,
+  type ElementType,
+  type FlowReference,
+} from './report/elements.js';
+export { deriveProfile, type ProcessProfile, type ProfileData, type ProfileEntry } from './report/profile.js';
