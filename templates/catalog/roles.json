@@ -1,0 +1,10 @@
+[
+  { "id": "users", "name": "Users", "kind": "group", "translations": { "de": "Anwender" } },
+  { "id": "service_desk", "name": "Service desk", "kind": "group", "translations": { "de": "Service-Desk" } },
+  { "id": "second_level", "name": "2nd-level support", "kind": "group", "translations": { "de": "2nd-Level-Support" } },
+  { "id": "authors", "name": "Authors", "kind": "group", "translations": { "de": "Autoren" } },
+  { "id": "reviewers", "name": "Reviewers", "kind": "group", "translations": { "de": "Prüfer" } },
+  { "id": "quality_management", "name": "Quality management", "kind": "group", "translations": { "de": "Qualitätsmanagement" } },
+  { "id": "process_owner", "name": "Process owner", "kind": "role", "translations": { "de": "Prozessverantwortlicher" } },
+  { "id": "incident_manager", "name": "Incident manager", "kind": "role", "translations": { "de": "Incident-Manager" } }
+]

@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  typescript:
+    name: TypeScript-Pakete
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Build zuerst: der Modellierer nutzt die gebauten Typen von @bestbpmn/model.
+      - run: npm run build
+      - run: npm run typecheck
+      # Chromium für die Browser-Tests des Modellierers
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm test

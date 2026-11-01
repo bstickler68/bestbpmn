@@ -1,0 +1,7 @@
+[
+  { "id": "svc-dms", "name": "Dokumentenmanagement", "kind": "business", "description": "Ablage und Versionierung von Dokumenten" },
+  { "id": "svc-mail", "name": "E-Mail und Kalender", "kind": "business" },
+  { "id": "svc-erp", "name": "Warenwirtschaft (ERP)", "kind": "business" },
+  { "id": "svc-wiki", "name": "Wissensdatenbank", "kind": "business" },
+  { "id": "svc-db", "name": "Datenbankcluster", "kind": "technical" }
+]
