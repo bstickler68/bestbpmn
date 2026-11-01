@@ -1,0 +1,107 @@
+{
+  "language": {
+    "en": "English",
+    "de": "Deutsch",
+    "label": "Sprache"
+  },
+  "app": {
+    "title": "bestbpmn",
+    "untitled": "Ohne Namen",
+    "new": "Neu",
+    "template": "Vorlage Dokumentenfreigabe",
+    "open": "Öffnen",
+    "save": "Speichern",
+    "showServices": "IT-Services anzeigen",
+    "openError": "Die Datei konnte nicht gelesen werden: {{message}}",
+    "tabs": {
+      "properties": "Eigenschaften",
+      "status": "Status",
+      "raci": "DEMI"
+    },
+    "templateIncident": "Vorlage Incident"
+  },
+  "status": {
+    "noProcess": "Kein Prozess im Modell.",
+    "statesOf": "Status von „{{object}}“",
+    "states": "Status",
+    "start": "Start",
+    "noStates": "Noch keine Status modelliert.",
+    "changes": "Statuswechsel",
+    "or": "oder",
+    "noChanges": "Keine Aktivität setzt einen Status.",
+    "check": "Prüfung",
+    "error": "Fehler",
+    "warning": "Hinweis",
+    "ok": "Keine Verstöße gegen die Modellierregeln."
+  },
+  "issue": {
+    "multiple-process-objects": "Pro Prozess ist nur ein Datenobjekt „Prozess“ erlaubt. Zusätzlich gefunden: „{{element}}“.",
+    "reference-without-state": "„{{reference}}“ zeigt auf das Datenobjekt „Prozess“, hat aber keinen Status. Dort ist der Status Pflicht.",
+    "start-event-state": "„{{element}}“ ist ein Startereignis und setzt einen Status. Den Anfangsstatus setzt die erste Aktivität.",
+    "unknown-state": "Den Status „{{state}}“ gibt es in der Statustabelle nicht.",
+    "label-state-mismatch": "Die Beschriftung nennt „{{label}}“, der dataState ist „{{state}}“. Es gilt „{{state}}“.",
+    "state-only-in-label": "Der Status „{{state}}“ steht nur in der Beschriftung, nicht als dataState.",
+    "input-state-never-set": "„{{element}}“ dokumentiert den Status „{{state}}“, den kein Schritt setzt.",
+    "state-key-conflict": "Der Schlüssel „{{key}}“ steht hier für „{{state}}“ und an anderer Stelle für „{{other}}“.",
+    "raci-missing-responsible": "„{{element}}“ hat kein D. Jede Benutzeraufgabe braucht genau eins, an der Aufgabe oder über ihre Swimlane.",
+    "raci-multiple-responsible": "„{{element}}“ hat mehr als ein D: {{assignees}}. Erlaubt ist genau eins.",
+    "raci-multiple-accountable": "„{{element}}“ hat mehr als ein E: {{assignees}}. Erlaubt ist höchstens eins.",
+    "raci-unknown-assignee": "„{{element}}“: {{assignee}} gibt es in der Rollen- und Gruppentabelle nicht.",
+    "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine aus der Rollen- und Gruppentabelle."
+  },
+  "panel": {
+    "translations": "Übersetzungen",
+    "name": "Name ({{language}})",
+    "documentation": "Beschreibung ({{language}}, Markdown)",
+    "modelLanguage": "Hauptsprache des Modells",
+    "modelLanguageDescription": "Namen und Beschreibungen im Diagramm stehen in dieser Sprache.",
+    "linkTitle": "Titel",
+    "linkHref": "Web(URL)",
+    "link": "Web(URL)",
+    "notInCatalog": "{{name}} (nicht im Katalog)",
+    "emptyCatalog": "Der Service-Katalog ist leer.",
+    "status": "Status",
+    "statusDescription": "Aus der Statustabelle. Die ID steht in eckigen Klammern im Namen.",
+    "noStatus": "– kein Status –",
+    "statusOnlyProcess": "Nur das Datenobjekt „{{name}}“ hat einen Status. Dieses Datenobjekt dient der Dokumentation.",
+    "dataObjectId": "Datenobjekt-ID",
+    "dataObjectIdDescription": "Gleich für alle Referenzen auf dieses Datenobjekt. Die ID unter „Allgemein“ gehört zur einzelnen Referenz.",
+    "processName": "Name",
+    "processDocumentation": "Beschreibung des Prozesses (Markdown)"
+  },
+  "raci": {
+    "title": "Verantwortlichkeiten (DEMI)",
+    "responsible": "D – Durchführungsverantwortlich",
+    "accountable": "E – Entscheidungsverantwortlich",
+    "consulted": "M – Mitwirkend",
+    "informed": "I – Informiert",
+    "activity": "Aktivität",
+    "noActivities": "Keine Aktivitäten im Modell.",
+    "legend": "D = durchführungsverantwortlich, E = entscheidungsverantwortlich, M = mitwirkend, I = informiert",
+    "letter": {
+      "responsible": "D",
+      "accountable": "E",
+      "consulted": "M",
+      "informed": "I"
+    },
+    "fromLane": "Kommt aus der Swimlane. Ändern über die Rolle/Gruppe der Lane.",
+    "laneHint": "aus der Swimlane",
+    "multiInstance": "Multi-Instanz-Aufgabe: mehrere D erlaubt."
+  },
+  "lane": {
+    "title": "Rolle/Gruppe",
+    "role": "Rolle oder Gruppe",
+    "description": "Aus der Rollen- und Gruppentabelle. Gibt den Namen der Lane vor und ist D für alle Aufgaben darauf.",
+    "poolDescription": "Aus der Rollen- und Gruppentabelle. Gibt den Namen des Pools vor und ist D für alle Aufgaben, solange der Pool keine Lanes hat.",
+    "kind": {
+      "group": "Gruppe",
+      "role": "Rolle"
+    },
+    "poolHasLanes": "Der Pool hat Lanes. D kommt immer aus der Lane der Aufgabe."
+  },
+  "picker": {
+    "placeholder": "Rolle oder Gruppe suchen …",
+    "noResults": "Keine Treffer",
+    "remove": "{{name}} entfernen"
+  }
+}

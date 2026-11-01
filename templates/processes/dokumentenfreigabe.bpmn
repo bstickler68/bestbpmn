@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:raci="https://praxiq.org/schema/raci/1.0"
+                  xmlns:praxiq="https://praxiq.org/schema/praxiq/1.0"
+                  id="Definitions_Dokumentenfreigabe"
+                  praxiq:language="de"
+                  targetNamespace="https://praxiq.org/templates">
+  <bpmn:process id="Dokumentenfreigabe" name="Dokumentenfreigabe" isExecutable="true">
+    <bpmn:documentation textFormat="text/markdown">Ein Dokument wird erstellt, geprüft und freigegeben. Bei Mängeln geht es zur Überarbeitung zurück.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <praxiq:translations>
+        <praxiq:translation lang="en" name="Document approval">A document is created, reviewed and approved. If there are defects, it goes back for revision.</praxiq:translation>
+      </praxiq:translations>
+    </bpmn:extensionElements>
+    <bpmn:dataObject id="Prozess" name="Prozess" />
+    <bpmn:dataObject id="Dokument" name="Dokument" />
+    <bpmn:dataObjectReference id="Ref_Dokument" name="Dokument" dataObjectRef="Dokument" />
+    <bpmn:dataObjectReference id="Ref_InPruefung" name="Prozess [in_review]" dataObjectRef="Prozess">
+      <bpmn:dataState id="State_InPruefung" praxiq:key="in_review" name="in_review" />
+    </bpmn:dataObjectReference>
+    <bpmn:dataObjectReference id="Ref_Geprueft" name="Prozess [reviewed]" dataObjectRef="Prozess">
+      <bpmn:dataState id="State_Geprueft" praxiq:key="reviewed" name="reviewed" />
+    </bpmn:dataObjectReference>
+    <bpmn:dataObjectReference id="Ref_Freigegeben" name="Prozess [approved]" dataObjectRef="Prozess">
+      <bpmn:dataState id="State_Freigegeben" praxiq:key="approved" name="approved" />
+    </bpmn:dataObjectReference>
+
+    <bpmn:startEvent id="Start" name="Dokument angelegt">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Erstellen" name="Dokument erstellen">
+      <bpmn:documentation textFormat="text/markdown">Lege das Dokument mit der aktuellen Vorlage an und fülle alle Pflichtabschnitte aus. Hänge den Link zum Dokument an den Vorgang.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <raci:informed><raci:group ref="quality_management" /></raci:informed>
+        <praxiq:translations>
+          <praxiq:translation lang="en" name="Create document">Create the document from the current template and fill in all mandatory sections. Attach the link to the document to the case.</praxiq:translation>
+        </praxiq:translations>
+        <praxiq:attributes>
+          <praxiq:attribute key="links">
+            <praxiq:link href="https://example.org/wiki/dokumentvorlagen" title="Dokumentvorlagen" />
+          </praxiq:attribute>
+          <praxiq:attribute key="services">
+            <praxiq:serviceRef ref="svc-dms" name="Dokumentenmanagement" />
+          </praxiq:attribute>
+        </praxiq:attributes>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="Out_Erstellen_Dokument">
+        <bpmn:targetRef>Ref_Dokument</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="Out_Erstellen">
+        <bpmn:targetRef>Ref_InPruefung</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:potentialOwner id="Owner_Erstellen">
+        <bpmn:resourceAssignmentExpression id="Expr_Erstellen">
+          <bpmn:formalExpression id="Formal_Erstellen">group(authors)</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:potentialOwner>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Pruefen" name="Dokument prüfen">
+      <bpmn:extensionElements>
+        <raci:accountable><raci:group ref="quality_management" /></raci:accountable>
+        <raci:consulted><raci:dynamic field="autor" /></raci:consulted>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:property id="Prop_Pruefen" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="In_Pruefen">
+        <bpmn:sourceRef>Ref_InPruefung</bpmn:sourceRef>
+        <bpmn:targetRef>Prop_Pruefen</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="Out_Pruefen">
+        <bpmn:targetRef>Ref_Geprueft</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:potentialOwner id="Owner_Pruefen">
+        <bpmn:resourceAssignmentExpression id="Expr_Pruefen">
+          <bpmn:formalExpression id="Formal_Pruefen">group(reviewers)</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:potentialOwner>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Ok" name="In Ordnung?">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Freigeben" name="Dokument freigeben">
+      <bpmn:extensionElements>
+        <raci:informed><raci:dynamic initiator="true" /></raci:informed>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:property id="Prop_Freigeben" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="In_Freigeben">
+        <bpmn:sourceRef>Ref_Geprueft</bpmn:sourceRef>
+        <bpmn:targetRef>Prop_Freigeben</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="Out_Freigeben">
+        <bpmn:targetRef>Ref_Freigegeben</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:potentialOwner id="Owner_Freigeben">
+        <bpmn:resourceAssignmentExpression id="Expr_Freigeben">
+          <bpmn:formalExpression id="Formal_Freigeben">group(quality_management)</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:potentialOwner>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Ueberarbeiten" name="Dokument überarbeiten">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:property id="Prop_Ueberarbeiten" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="In_Ueberarbeiten">
+        <bpmn:sourceRef>Ref_Geprueft</bpmn:sourceRef>
+        <bpmn:targetRef>Prop_Ueberarbeiten</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="Out_Ueberarbeiten">
+        <bpmn:targetRef>Ref_InPruefung</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:potentialOwner id="Owner_Ueberarbeiten">
+        <bpmn:resourceAssignmentExpression id="Expr_Ueberarbeiten">
+          <bpmn:formalExpression id="Formal_Ueberarbeiten">group(authors)</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:potentialOwner>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="Ende" name="Dokument freigegeben">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start" targetRef="Erstellen" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Erstellen" targetRef="Pruefen" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Pruefen" targetRef="Ok" />
+    <bpmn:sequenceFlow id="Flow_4" name="ja" sourceRef="Ok" targetRef="Freigeben" />
+    <bpmn:sequenceFlow id="Flow_5" name="nein" sourceRef="Ok" targetRef="Ueberarbeiten" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Ueberarbeiten" targetRef="Pruefen" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Freigeben" targetRef="Ende" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_Dokumentenfreigabe">
+    <bpmndi:BPMNPlane id="Plane_Dokumentenfreigabe" bpmnElement="Dokumentenfreigabe">
+      <bpmndi:BPMNShape id="Start_di" bpmnElement="Start"><dc:Bounds x="152" y="222" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Erstellen_di" bpmnElement="Erstellen"><dc:Bounds x="240" y="200" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pruefen_di" bpmnElement="Pruefen"><dc:Bounds x="400" y="200" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ok_di" bpmnElement="Ok" isMarkerVisible="true"><dc:Bounds x="555" y="215" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Freigeben_di" bpmnElement="Freigeben"><dc:Bounds x="660" y="200" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ueberarbeiten_di" bpmnElement="Ueberarbeiten"><dc:Bounds x="530" y="340" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ende_di" bpmnElement="Ende"><dc:Bounds x="822" y="222" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_Dokument_di" bpmnElement="Ref_Dokument"><dc:Bounds x="202" y="75" width="36" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_InPruefung_di" bpmnElement="Ref_InPruefung"><dc:Bounds x="352" y="75" width="36" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_Geprueft_di" bpmnElement="Ref_Geprueft"><dc:Bounds x="562" y="75" width="36" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_Freigegeben_di" bpmnElement="Ref_Freigegeben"><dc:Bounds x="742" y="75" width="36" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="188" y="240" /><di:waypoint x="240" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="340" y="240" /><di:waypoint x="400" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="500" y="240" /><di:waypoint x="555" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4"><di:waypoint x="605" y="240" /><di:waypoint x="660" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="580" y="265" /><di:waypoint x="580" y="340" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="530" y="380" /><di:waypoint x="450" y="380" /><di:waypoint x="450" y="280" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="760" y="240" /><di:waypoint x="822" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Erstellen_Dokument_di" bpmnElement="Out_Erstellen_Dokument"><di:waypoint x="270" y="200" /><di:waypoint x="230" y="125" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Erstellen_di" bpmnElement="Out_Erstellen"><di:waypoint x="310" y="200" /><di:waypoint x="358" y="125" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="In_Pruefen_di" bpmnElement="In_Pruefen"><di:waypoint x="382" y="125" /><di:waypoint x="430" y="200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Pruefen_di" bpmnElement="Out_Pruefen"><di:waypoint x="480" y="200" /><di:waypoint x="562" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="In_Freigeben_di" bpmnElement="In_Freigeben"><di:waypoint x="598" y="110" /><di:waypoint x="690" y="200" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Freigeben_di" bpmnElement="Out_Freigeben"><di:waypoint x="730" y="200" /><di:waypoint x="752" y="125" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="In_Ueberarbeiten_di" bpmnElement="In_Ueberarbeiten"><di:waypoint x="598" y="120" /><di:waypoint x="640" y="160" /><di:waypoint x="640" y="380" /><di:waypoint x="630" y="380" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Ueberarbeiten_di" bpmnElement="Out_Ueberarbeiten"><di:waypoint x="530" y="400" /><di:waypoint x="370" y="400" /><di:waypoint x="370" y="125" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

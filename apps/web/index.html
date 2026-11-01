@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bestbpmn</title>
+  </head>
+  <body>
+    <header class="toolbar">
+      <strong data-i18n="app.title">bestbpmn</strong>
+      <span id="model-name" class="model-name"></span>
+      <button id="new" data-i18n="app.new">New</button>
+      <button id="template" data-i18n="app.template">Template</button>
+      <button id="template-incident" data-i18n="app.templateIncident">Incident template</button>
+      <label class="button" data-i18n="app.open">Open <input id="open" type="file" accept=".bpmn,.xml" hidden /></label>
+      <button id="save" data-i18n="app.save">Save</button>
+      <label class="toggle"><input id="show-services" type="checkbox" /><span data-i18n="app.showServices">Show IT services</span></label>
+      <label class="toggle"><span data-i18n="language.label">Language</span> <select id="language"></select></label>
+    </header>
+    <main class="layout">
+      <div id="canvas"></div>
+      <aside class="sidebar">
+        <nav class="tabs" role="tablist">
+          <button role="tab" data-tab="properties" aria-selected="true" data-i18n="app.tabs.properties">Properties</button>
+          <button role="tab" data-tab="status" aria-selected="false" data-i18n="app.tabs.status">Status</button>
+          <button role="tab" data-tab="raci" aria-selected="false" data-i18n="app.tabs.raci">RACI</button>
+        </nav>
+        <section id="properties" class="tab-panel"></section>
+        <section id="status" class="tab-panel" aria-live="polite" hidden></section>
+        <section id="raci" class="tab-panel" hidden></section>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

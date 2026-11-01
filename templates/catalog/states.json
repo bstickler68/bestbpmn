@@ -1,0 +1,11 @@
+[
+  { "id": "new", "name": "New", "translations": { "de": "Neu" }, "icon": "✳", "color": "#6b7280", "category": "todo" },
+  { "id": "in_progress", "name": "In progress", "translations": { "de": "In Arbeit" }, "icon": "▶", "color": "#2f80ed", "category": "in_progress" },
+  { "id": "waiting", "name": "Waiting", "translations": { "de": "Wartend" }, "icon": "⏸", "color": "#f2994a", "category": "in_progress" },
+  { "id": "in_review", "name": "In review", "translations": { "de": "In Prüfung" }, "icon": "🔍", "color": "#9b51e0", "category": "in_progress" },
+  { "id": "reviewed", "name": "Reviewed", "translations": { "de": "Geprüft" }, "icon": "☑", "color": "#56ccf2", "category": "in_progress" },
+  { "id": "approved", "name": "Approved", "translations": { "de": "Freigegeben" }, "icon": "✔", "color": "#27ae60", "category": "done" },
+  { "id": "rejected", "name": "Rejected", "translations": { "de": "Abgelehnt" }, "icon": "✖", "color": "#eb5757", "category": "done" },
+  { "id": "resolved", "name": "Resolved", "translations": { "de": "Gelöst" }, "icon": "✔", "color": "#27ae60", "category": "done" },
+  { "id": "closed", "name": "Closed", "translations": { "de": "Geschlossen" }, "icon": "■", "color": "#4f4f4f", "category": "done" }
+]

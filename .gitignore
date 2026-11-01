@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Java / Maven
+target/
+*.class
+
+# Umgebung und Geheimnisse
+.env
+!deploy/.env.example
+secrets/
+
+# Editor und System
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

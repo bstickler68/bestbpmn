@@ -1,0 +1,171 @@
+{
+  "name": "PRAXIQ",
+  "prefix": "praxiq",
+  "uri": "https://praxiq.org/schema/praxiq/1.0",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "Attributes",
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        {
+          "name": "attributes",
+          "type": "Attribute",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "Attribute",
+      "properties": [
+        {
+          "name": "key",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "value",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "items",
+          "type": "Item",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "Item",
+      "isAbstract": true
+    },
+    {
+      "name": "Link",
+      "superClass": [
+        "Item"
+      ],
+      "properties": [
+        {
+          "name": "href",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "title",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "ServiceRef",
+      "superClass": [
+        "Item"
+      ],
+      "properties": [
+        {
+          "name": "ref",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "name",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "DataStateKey",
+      "extends": [
+        "bpmn:DataState"
+      ],
+      "properties": [
+        {
+          "name": "key",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "DefinitionsLanguage",
+      "extends": [
+        "bpmn:Definitions"
+      ],
+      "properties": [
+        {
+          "name": "language",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "Translations",
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        {
+          "name": "translations",
+          "type": "Translation",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "Translation",
+      "properties": [
+        {
+          "name": "lang",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "name",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "documentation",
+          "isBody": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "States",
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        {
+          "name": "states",
+          "type": "State",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "State",
+      "properties": [
+        {
+          "name": "key",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "translations",
+          "type": "Translation",
+          "isMany": true
+        }
+      ]
+    }
+  ]
+}

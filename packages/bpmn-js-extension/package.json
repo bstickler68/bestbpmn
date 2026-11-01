@@ -1,0 +1,25 @@
+{
+  "name": "@bestbpmn/bpmn-js-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "bpmn-js-Module: Datenobjekt Prozess mit dataStates, RACI/DEMI, Eigenschaftenpanel, Live-Prüfung",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@bestbpmn/i18n": "0.1.0",
+    "@bestbpmn/model": "0.1.0",
+    "@bpmn-io/properties-panel": "3.57.1",
+    "bpmn-js": "18.31.1",
+    "bpmn-js-i18n": "2.4.0",
+    "bpmn-js-properties-panel": "5.65.2"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

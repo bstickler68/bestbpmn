@@ -1,0 +1,32 @@
+{
+  "name": "@bestbpmn/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Systemtexte von bestbpmn auf Englisch und Deutsch",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./locales/*": "./src/locales/*"
+  },
+  "files": [
+    "dist",
+    "src/locales"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "i18next": "26.4.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "name": "RACI",
+  "prefix": "raci",
+  "uri": "https://praxiq.org/schema/raci/1.0",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "Assignment",
+      "isAbstract": true,
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        {
+          "name": "assignees",
+          "type": "Assignee",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "Accountable",
+      "superClass": [
+        "Assignment"
+      ]
+    },
+    {
+      "name": "Consulted",
+      "superClass": [
+        "Assignment"
+      ]
+    },
+    {
+      "name": "Informed",
+      "superClass": [
+        "Assignment"
+      ]
+    },
+    {
+      "name": "Assignee",
+      "isAbstract": true
+    },
+    {
+      "name": "User",
+      "superClass": [
+        "Assignee"
+      ],
+      "properties": [
+        {
+          "name": "ref",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "Group",
+      "superClass": [
+        "Assignee"
+      ],
+      "properties": [
+        {
+          "name": "ref",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "Role",
+      "superClass": [
+        "Assignee"
+      ],
+      "properties": [
+        {
+          "name": "ref",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "Dynamic",
+      "superClass": [
+        "Assignee"
+      ],
+      "properties": [
+        {
+          "name": "field",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "initiator",
+          "isAttr": true,
+          "type": "Boolean"
+        },
+        {
+          "name": "performerOf",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "orgRole",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "of",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "excludePerformerOf",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "LaneAssignee",
+      "extends": [
+        "bpmn:Lane",
+        "bpmn:Participant"
+      ],
+      "properties": [
+        {
+          "name": "assignee",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}
