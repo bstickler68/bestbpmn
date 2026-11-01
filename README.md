@@ -40,9 +40,10 @@ npm run release -w @bestbpmn/web       # zusätzlich dist/release/bestbpmn-<Vers
 ```
 
 Das ZIP enthält `bestbpmn.html`, den Ordner `webserver` mit `web.config` und die
-Kurzanleitung `LIESMICH.txt`. Jeder CI-Lauf legt `bestbpmn.html` als Artefakt ab. Ein Tag wie
-`v0.2.0` baut das ZIP und legt es als GitHub-Release ab; die Version kommt aus
-`apps/web/package.json` und sollte vorher dazu passen.
+Kurzanleitung `LIESMICH.txt`. Jeder CI-Lauf legt `bestbpmn.html` als Artefakt ab (GitHub
+packt Artefakte immer als ZIP). Zum Verteilen auf GitHub unter „Releases“ ein neues Release mit
+einem Tag wie `v0.2.0` veröffentlichen: Der Workflow hängt dann `bestbpmn.html` und das ZIP
+direkt an. Die Version kommt aus `apps/web/package.json` und sollte vorher dazu passen.
 
 ## Arbeitsordner und Sperren
 
