@@ -1,4 +1,4 @@
-import { deriveFromDefinitions, type ModelIssue, type StatusModel } from '@bestbpmn/model';
+import { deriveFromDefinitions, type IssueCode, type ModelIssue, type StatusModel } from '@bestbpmn/model';
 import type { BestbpmnConfig } from './attributes';
 
 export const STATUS_CHANGED = 'bestbpmn.status.changed';
@@ -15,6 +15,7 @@ export default class StatusCheck {
 
   private models: StatusModel[] = [];
   private marked: string[] = [];
+  private disabledRules: IssueCode[];
 
   constructor(
     private eventBus: any,
@@ -23,6 +24,7 @@ export default class StatusCheck {
     private elementRegistry: any,
     private config: BestbpmnConfig | undefined,
   ) {
+    this.disabledRules = [...(config?.disabledRules ?? [])];
     // Kein Rückgabewert: diagram-js bricht sonst die Weitergabe an spätere Listener ab.
     eventBus.on(['import.done', 'commandStack.changed'], () => {
       this.check();
@@ -34,9 +36,19 @@ export default class StatusCheck {
     return this.models;
   }
 
+  /** Schaltet Prüfregeln ab oder wieder zu und prüft sofort neu. Rückgängig bleibt erhalten. */
+  setDisabledRules(rules: IssueCode[]): void {
+    this.disabledRules = [...rules];
+    this.check();
+  }
+
   check(): StatusModel[] {
     const definitions = this.bpmnjs.getDefinitions();
-    this.models = definitions ? deriveFromDefinitions(definitions, { states: this.config?.states, roles: this.config?.roles }) : [];
+    this.models = definitions ? deriveFromDefinitions(
+          definitions,
+          { states: this.config?.states?.length ? this.config.states : undefined, roles: this.config?.roles?.length ? this.config.roles : undefined },
+          { disabledRules: this.disabledRules },
+        ) : [];
     this.mark(this.models.flatMap((m) => m.issues));
     this.eventBus.fire(STATUS_CHANGED, { models: this.models });
     return this.models;

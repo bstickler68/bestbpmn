@@ -17,14 +17,14 @@ import type { BestbpmnConfig } from './attributes';
 import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { UPDATE_RACI } from './raci';
 import { RolePicker } from './RolePicker';
-import { pickerTexts, roleOptions } from './roleOptions';
-import { findProcess, is, type DiagramElement } from './util';
+import { customRoleOptions, pickerTexts, roleOptions } from './roleOptions';
+import { findProcess, is, usedAssignees, type DiagramElement } from './util';
 
 const LOW_PRIORITY = 500;
 
 /**
- * Bereich „Verantwortlichkeiten (DEMI)“ im Eigenschaftenpanel. Alle Rollen kommen aus der
- * Rollen- und Gruppentabelle, als Suchfeld wie in Jira: D und E mit einem Eintrag, M und I mit mehreren.
+ * Bereich „Verantwortlichkeiten (DEMI)“ im Eigenschaftenpanel. Rollen und Gruppen kommen aus dem Katalog,
+ * aus dem Modell oder werden frei eingegeben, als Suchfeld wie in Jira: D und E mit einem Eintrag, M und I mit mehreren.
  * Liegt die Aufgabe in einer Swimlane mit Rolle oder Gruppe, kommt D aus der Lane und ist gesperrt.
  * Multi-Instanz-Aufgaben dürfen mehrere D haben.
  */
@@ -94,13 +94,15 @@ function RoleEntry(props: RoleEntryProps) {
   const { element, id, role, roles, i18n, multiple, fromLane } = props;
   const { t } = i18n;
   const commandStack = useService('commandStack');
+  const bpmnjs = useService('bpmnjs');
   const { selected, restrictions } = split(role, readRaci(element.businessObject)[role]);
   const shown = fromLane ? [fromLane] : selected;
   return h(RolePicker, {
     id,
     label: t(`raci.${role}`),
     description: fromLane ? t('raci.fromLane') : role === 'responsible' && multiple ? t('raci.multiInstance') : undefined,
-    options: roleOptions(roles, shown, i18n),
+    options: roleOptions(roles, shown, i18n, usedAssignees(bpmnjs.getDefinitions())),
+    custom: customRoleOptions(i18n),
     values: shown.map(formatAssignee),
     multiple,
     disabled: !!fromLane,

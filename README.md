@@ -28,6 +28,17 @@ keine reservierten Namen wie `CON`). Ab Etappe 4 gibt es die App als einzelne Da
 Startmenü-Eintrag möchte, kann sie zusätzlich von einem internen Webserver als PWA
 installieren.
 
+## Status, Rollen und Prüfregeln
+
+- **Freitext ist der Normalfall.** Status, Rollen und Gruppen werden im Eigenschaftenpanel
+  einfach eingetippt. Was im Modell schon vorkommt, wird beim nächsten Mal vorgeschlagen.
+- **Eigener Katalog, freiwillig.** Unter „Einstellungen“ lassen sich Status, Rollen/Gruppen
+  und IT-Services als Tabellen pflegen, als `bestbpmn-katalog.json` exportieren und
+  importieren. Der Katalog liegt nur im Browser des jeweiligen PCs.
+- **Prüfregeln als Profil.** „Dokumentieren“ (Standard) verlangt kein D an jeder Aufgabe und
+  keine Rolle an jeder Lane, passend für Diagramme aus bpmn.io. „Vollständig“ prüft alles.
+  Jede Regel lässt sich auch einzeln ab- oder zuschalten.
+
 ## Aufbau
 
 | Ordner | Inhalt |

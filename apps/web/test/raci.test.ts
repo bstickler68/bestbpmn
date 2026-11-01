@@ -118,7 +118,8 @@ describe('RACI an Aktivitäten', () => {
     expect(entry('responsible').textContent).toContain('Prüfer (Gruppe)');
     expect(chips('accountable')).toEqual(['group(quality_management)']);
     expect(chips('consulted')).toEqual(['field(autor)']);
-    expect(entry('consulted').textContent).toContain('field(autor) (nicht im Katalog)');
+    expect(entry('consulted').textContent).toContain('field(autor)');
+    expect(entry('consulted').textContent).not.toContain('nicht im Katalog');
     // Einfachauswahl mit Wert: kein Suchfeld, erst nach dem Entfernen
     expect(entry('responsible').querySelector('input')).toBeNull();
 
@@ -127,10 +128,21 @@ describe('RACI an Aktivitäten', () => {
     expect(readRaci(element('Pruefen').businessObject).responsible).toEqual([]);
 
     await type(entry('responsible').querySelector('input')!, 'prozess');
-    const results = [...entry('responsible').querySelectorAll('.bestbpmn-picker-results li')].map((li) => li.textContent);
+    const results = [...entry('responsible').querySelectorAll('.bestbpmn-picker-results li:not([data-custom])')].map((li) => li.textContent);
     expect(results).toEqual(['Prozessverantwortlicher (Rolle)']);
     pick(entry('responsible'), 'role(process_owner)');
     expect(readRaci(element('Pruefen').businessObject).responsible).toEqual([{ kind: 'role', ref: 'process_owner' }]);
+
+    // Freitext neben dem Katalog: Eine neue Gruppe ist möglich, fällt aber als „nicht im Katalog“ auf.
+    entry('accountable').querySelector<HTMLButtonElement>('.bestbpmn-chip-remove')!.click();
+    await nextTick();
+    await type(entry('accountable').querySelector('input')!, 'Einkauf');
+    const custom = [...entry('accountable').querySelectorAll('.bestbpmn-picker-results li[data-custom]')].map((li) => li.textContent);
+    expect(custom).toEqual(['„Einkauf“ als neue Gruppe', '„Einkauf“ als neue Rolle']);
+    pick(entry('accountable'), 'group(Einkauf)');
+    await nextTick();
+    expect(readRaci(element('Pruefen').businessObject).accountable).toEqual([{ kind: 'group', ref: 'Einkauf' }]);
+    expect(entry('accountable').textContent).toContain('Einkauf (Gruppe) (nicht im Katalog)');
 
     // Mehrfachauswahl: nach der Auswahl weitersuchen
     await type(entry('informed').querySelector('input')!, 'desk');

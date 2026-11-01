@@ -16,7 +16,8 @@
     "tabs": {
       "properties": "Eigenschaften",
       "status": "Status",
-      "raci": "DEMI"
+      "raci": "DEMI",
+      "settings": "Einstellungen"
     },
     "templateIncident": "Vorlage Incident"
   },
@@ -38,7 +39,7 @@
     "multiple-process-objects": "Pro Prozess ist nur ein Datenobjekt „Prozess“ erlaubt. Zusätzlich gefunden: „{{element}}“.",
     "reference-without-state": "„{{reference}}“ zeigt auf das Datenobjekt „Prozess“, hat aber keinen Status. Dort ist der Status Pflicht.",
     "start-event-state": "„{{element}}“ ist ein Startereignis und setzt einen Status. Den Anfangsstatus setzt die erste Aktivität.",
-    "unknown-state": "Den Status „{{state}}“ gibt es in der Statustabelle nicht.",
+    "unknown-state": "Den Status „{{state}}“ gibt es im Katalog nicht.",
     "label-state-mismatch": "Die Beschriftung nennt „{{label}}“, der dataState ist „{{state}}“. Es gilt „{{state}}“.",
     "state-only-in-label": "Der Status „{{state}}“ steht nur in der Beschriftung, nicht als dataState.",
     "input-state-never-set": "„{{element}}“ dokumentiert den Status „{{state}}“, den kein Schritt setzt.",
@@ -46,8 +47,8 @@
     "raci-missing-responsible": "„{{element}}“ hat kein D. Jede Benutzeraufgabe braucht genau eins, an der Aufgabe oder über ihre Swimlane.",
     "raci-multiple-responsible": "„{{element}}“ hat mehr als ein D: {{assignees}}. Erlaubt ist genau eins.",
     "raci-multiple-accountable": "„{{element}}“ hat mehr als ein E: {{assignees}}. Erlaubt ist höchstens eins.",
-    "raci-unknown-assignee": "„{{element}}“: {{assignee}} gibt es in der Rollen- und Gruppentabelle nicht.",
-    "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine aus der Rollen- und Gruppentabelle."
+    "raci-unknown-assignee": "„{{element}}“: {{assignee}} gibt es im Katalog nicht.",
+    "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine."
   },
   "panel": {
     "translations": "Übersetzungen",
@@ -61,13 +62,14 @@
     "notInCatalog": "{{name}} (nicht im Katalog)",
     "emptyCatalog": "Der Service-Katalog ist leer.",
     "status": "Status",
-    "statusDescription": "Aus der Statustabelle. Die ID steht in eckigen Klammern im Namen.",
+    "statusDescription": "Aus dem Katalog. Die ID steht in eckigen Klammern im Namen.",
     "noStatus": "– kein Status –",
     "statusOnlyProcess": "Nur das Datenobjekt „{{name}}“ hat einen Status. Dieses Datenobjekt dient der Dokumentation.",
     "dataObjectId": "Datenobjekt-ID",
     "dataObjectIdDescription": "Gleich für alle Referenzen auf dieses Datenobjekt. Die ID unter „Allgemein“ gehört zur einzelnen Referenz.",
     "processName": "Name",
-    "processDocumentation": "Beschreibung des Prozesses (Markdown)"
+    "processDocumentation": "Beschreibung des Prozesses (Markdown)",
+    "statusDescriptionFree": "Status aus dem Modell wählen oder einen neuen eingeben. Er steht in eckigen Klammern im Namen."
   },
   "raci": {
     "title": "Verantwortlichkeiten (DEMI)",
@@ -91,8 +93,8 @@
   "lane": {
     "title": "Rolle/Gruppe",
     "role": "Rolle oder Gruppe",
-    "description": "Aus der Rollen- und Gruppentabelle. Gibt den Namen der Lane vor und ist D für alle Aufgaben darauf.",
-    "poolDescription": "Aus der Rollen- und Gruppentabelle. Gibt den Namen des Pools vor und ist D für alle Aufgaben, solange der Pool keine Lanes hat.",
+    "description": "Aus dem Katalog oder frei eingegeben. Ist D für alle Aufgaben auf der Lane.",
+    "poolDescription": "Aus dem Katalog oder frei eingegeben. Ist D für alle Aufgaben, solange der Pool keine Lanes hat.",
     "kind": {
       "group": "Gruppe",
       "role": "Rolle"
@@ -100,8 +102,80 @@
     "poolHasLanes": "Der Pool hat Lanes. D kommt immer aus der Lane der Aufgabe."
   },
   "picker": {
-    "placeholder": "Rolle oder Gruppe suchen …",
+    "placeholder": "Rolle oder Gruppe suchen oder eingeben …",
     "noResults": "Keine Treffer",
-    "remove": "{{name}} entfernen"
+    "remove": "{{name}} entfernen",
+    "statusPlaceholder": "Status suchen oder eingeben …",
+    "add": {
+      "group": "„{{name}}“ als neue Gruppe",
+      "role": "„{{name}}“ als neue Rolle",
+      "status": "„{{name}}“ als neuer Status"
+    }
+  },
+  "rules": {
+    "title": "Prüfregeln",
+    "profile": "Profil",
+    "profiles": {
+      "document": "Dokumentieren",
+      "complete": "Vollständig",
+      "custom": "Eigene Auswahl"
+    },
+    "profileHint": {
+      "document": "Für Diagramme, die nur dokumentieren, etwa aus bpmn.io: Aufgaben brauchen kein D und Lanes keine Rolle.",
+      "complete": "Alle Regeln. Jede Benutzeraufgabe braucht ein D, jede Lane eine Rolle oder Gruppe.",
+      "custom": "Einzelne Regeln sind ab- oder zugeschaltet."
+    },
+    "rule": {
+      "multiple-process-objects": "Nur ein Datenobjekt „Prozess“ je Prozess",
+      "reference-without-state": "Referenzen auf „Prozess“ brauchen einen Status",
+      "start-event-state": "Startereignisse setzen keinen Status",
+      "unknown-state": "Status muss im Katalog stehen (nur mit Katalog)",
+      "label-state-mismatch": "Beschriftung und dataState stimmen überein",
+      "state-only-in-label": "Status steht auch als dataState im Modell",
+      "input-state-never-set": "Dokumentierte Status werden irgendwo gesetzt",
+      "state-key-conflict": "Ein Schlüssel steht nur für einen Status",
+      "raci-missing-responsible": "Jede Benutzeraufgabe hat genau ein D",
+      "raci-multiple-responsible": "Höchstens ein D je Aufgabe (außer Multi-Instanz)",
+      "raci-multiple-accountable": "Höchstens ein E je Aufgabe",
+      "raci-unknown-assignee": "Rollen und Gruppen müssen im Katalog stehen (nur mit Katalog)",
+      "lane-without-role": "Jede Lane hat eine Rolle oder Gruppe"
+    }
+  },
+  "catalog": {
+    "title": "Katalog",
+    "hint": "Ohne Katalog gibst du Status, Rollen und Gruppen frei ein. Mit Katalog stehen sie zur Auswahl, und die Prüfung meldet, was dort fehlt. Der Katalog wird nur in diesem Browser gespeichert.",
+    "empty": "Kein Katalog: Status, Rollen und Gruppen sind Freitext.",
+    "import": "Importieren",
+    "export": "Exportieren",
+    "example": "Beispielkatalog laden",
+    "clear": "Katalog leeren",
+    "apply": "Übernehmen",
+    "applyHint": "Übernehmen baut den Modellierer neu auf. „Rückgängig“ beginnt danach von vorn.",
+    "applied": "Katalog übernommen.",
+    "addRow": "Zeile hinzufügen",
+    "removeRow": "Zeile entfernen",
+    "tables": {
+      "states": "Status",
+      "roles": "Rollen und Gruppen",
+      "services": "IT-Services"
+    },
+    "columns": {
+      "id": "ID",
+      "name": "Name",
+      "de": "Deutsch",
+      "kind": "Art"
+    },
+    "idHint": "Leer lassen: Die ID wird aus dem Namen gebildet.",
+    "serviceKind": {
+      "business": "fachlich",
+      "technical": "technisch"
+    },
+    "errors": {
+      "invalid-json": "Die Datei ist kein gültiges JSON: {{message}}",
+      "not-an-object": "Die Datei ist kein Katalog. Erwartet wird ein Objekt mit „states“, „roles“ und „services“.",
+      "not-a-list": "„{{table}}“ ist keine Liste und wurde übersprungen.",
+      "invalid-entry": "„{{table}}“, Eintrag {{index}}: ID oder Name fehlt, übersprungen.",
+      "duplicate-id": "„{{table}}“: Die ID „{{id}}“ kommt doppelt vor, übersprungen."
+    }
   }
 }

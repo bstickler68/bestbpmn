@@ -4,14 +4,14 @@ import { findRole, formatAssignee, hasLanes, parseAssignee, type RoleDefinition 
 import type { BestbpmnConfig } from './attributes';
 import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { RolePicker } from './RolePicker';
-import { pickerTexts, roleOptions } from './roleOptions';
-import { is, type BusinessObject, type DiagramElement } from './util';
+import { customRoleOptions, pickerTexts, roleOptions } from './roleOptions';
+import { is, usedAssignees, type BusinessObject, type DiagramElement } from './util';
 
 const LOW_PRIORITY = 600;
 
 /**
- * Rolle oder Gruppe einer Swimlane oder eines Pools aus der Rollen- und Gruppentabelle.
- * Der Name wird aus der Tabelle übernommen; das Namensfeld entfällt dann.
+ * Rolle oder Gruppe einer Swimlane oder eines Pools, aus dem Katalog oder frei eingegeben.
+ * Bei einem Eintrag aus dem Katalog wird der Name von dort übernommen; das Namensfeld entfällt dann.
  */
 export default class LanePropertiesProvider {
   static $inject = ['propertiesPanel', 'config.bestbpmn'];
@@ -53,13 +53,15 @@ export default class LanePropertiesProvider {
 function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: RoleDefinition[]; i18n: BestbpmnI18n }) {
   const { element, id, roles, i18n } = props;
   const modeling = useService('modeling');
+  const bpmnjs = useService('bpmnjs');
   const bo: BusinessObject = element.businessObject;
   const current = bo.assignee ? parseAssignee(bo.assignee) : undefined;
   return h(RolePicker, {
     id,
     label: i18n.t('lane.role'),
     description: i18n.t(is(bo, 'bpmn:Participant') ? 'lane.poolDescription' : 'lane.description'),
-    options: roleOptions(roles, current ? [current] : [], i18n),
+    options: roleOptions(roles, current ? [current] : [], i18n, usedAssignees(bpmnjs.getDefinitions())),
+    custom: customRoleOptions(i18n),
     values: current ? [formatAssignee(current)] : [],
     multiple: false,
     texts: pickerTexts(i18n),

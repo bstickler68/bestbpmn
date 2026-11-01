@@ -15,6 +15,11 @@ export interface RolePickerProps {
   multiple: boolean;
   disabled?: boolean;
   texts: { placeholder: string; noResults: string; remove: (label: string) => string };
+  /**
+   * Freitext: Einträge, die aus dem getippten Text entstehen, z. B. „Einkauf“ als Gruppe.
+   * Sie erscheinen nach den Treffern, sofern es den Wert nicht schon gibt.
+   */
+  custom?: (query: string) => RoleOption[];
   onChange: (values: string[]) => void;
 }
 
@@ -24,7 +29,7 @@ export interface RolePickerProps {
  * Hält auch Hunderte Rollen und Gruppen aus, weil nur die Treffer angezeigt werden.
  */
 export function RolePicker(props: RolePickerProps) {
-  const { id, label, description, options, values, multiple, disabled, texts, onChange } = props;
+  const { id, label, description, options, values, multiple, disabled, texts, custom, onChange } = props;
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -32,10 +37,15 @@ export function RolePicker(props: RolePickerProps) {
 
   const labelOf = (value: string) => options.find((o) => o.value === value)?.label ?? value;
   const needle = query.trim().toLowerCase();
-  const results = options
+  const matches = options
     .filter((o) => !values.includes(o.value))
     .filter((o) => !needle || o.label.toLowerCase().includes(needle) || o.value.toLowerCase().includes(needle))
     .slice(0, MAX_RESULTS);
+  const extra =
+    needle && custom
+      ? custom(query.trim()).filter((c) => !values.includes(c.value) && !options.some((o) => o.value === c.value))
+      : [];
+  const results = [...matches, ...extra];
   const canAdd = !disabled && (multiple || values.length === 0);
 
   const choose = (option: RoleOption) => {
@@ -138,6 +148,7 @@ export function RolePicker(props: RolePickerProps) {
                   class: index === active ? 'bestbpmn-picker-active' : undefined,
                   'aria-selected': String(index === active),
                   'data-value': option.value,
+                  'data-custom': extra.includes(option) ? 'true' : undefined,
                   // mousedown statt click, damit das Feld den Fokus nicht vorher verliert
                   onMouseDown: (event: Event) => {
                     event.preventDefault();

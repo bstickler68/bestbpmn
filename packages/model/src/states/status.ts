@@ -7,7 +7,14 @@ import { checkLanes, checkRaci, findParticipant, laneMap } from '../raci/check.j
 import { parseStateLabel } from './label.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
-import type { ModdleElement, Moddle, ModelIssue, StatusChange, StatusModel } from './types.js';
+import { filterIssues } from '../rules/profiles.js';
+import type { IssueCode, ModdleElement, Moddle, ModelIssue, StatusChange, StatusModel } from './types.js';
+
+/** Einstellungen der Prüfung. */
+export interface CheckOptions {
+  /** Abgeschaltete Prüfregeln, z. B. aus einem Regelprofil. */
+  disabledRules?: Iterable<IssueCode>;
+}
 
 type El = ModdleElement & Record<string, any>;
 
@@ -21,16 +28,16 @@ export function createModdle(): Moddle {
 }
 
 /** Liest BPMN-XML und leitet für jeden Prozess die Status seines Vorgangs ab. */
-export async function deriveStatusModels(xml: string, catalog: Catalog = {}): Promise<StatusModel[]> {
+export async function deriveStatusModels(xml: string, catalog: Catalog = {}, options: CheckOptions = {}): Promise<StatusModel[]> {
   const { rootElement } = await createModdle().fromXML(xml);
-  return deriveFromDefinitions(rootElement, catalog);
+  return deriveFromDefinitions(rootElement, catalog, options);
 }
 
 /**
  * Leitet die Statusmodelle aus bereits geparsten `bpmn:Definitions` ab: ein Vorgang je Kollaboration,
  * auch wenn sie mehrere Pools hat, und einer je Prozess außerhalb einer Kollaboration.
  */
-export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catalog = {}): StatusModel[] {
+export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catalog = {}, options: CheckOptions = {}): StatusModel[] {
   const roots = ((definitions as El).rootElements ?? []) as El[];
   const language = modelLanguage(definitions);
   const models: StatusModel[] = [];
@@ -60,6 +67,10 @@ export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catal
         catalog,
       ),
     );
+  }
+  if (options.disabledRules) {
+    const disabled = [...options.disabledRules];
+    return models.map((model) => ({ ...model, issues: filterIssues(model.issues, disabled) }));
   }
   return models;
 }

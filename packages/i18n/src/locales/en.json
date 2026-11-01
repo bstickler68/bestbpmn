@@ -16,7 +16,8 @@
     "tabs": {
       "properties": "Properties",
       "status": "Status",
-      "raci": "RACI"
+      "raci": "RACI",
+      "settings": "Settings"
     },
     "templateIncident": "Incident template"
   },
@@ -38,7 +39,7 @@
     "multiple-process-objects": "Only one data object “process” is allowed per process. Also found: “{{element}}”.",
     "reference-without-state": "“{{reference}}” points to the data object “process” but has no status. A status is required there.",
     "start-event-state": "“{{element}}” is a start event and sets a status. The initial status is set by the first activity.",
-    "unknown-state": "The status “{{state}}” is not in the status table.",
+    "unknown-state": "The status “{{state}}” is not in the catalog.",
     "label-state-mismatch": "The label says “{{label}}”, the dataState is “{{state}}”. “{{state}}” applies.",
     "state-only-in-label": "The status “{{state}}” is only in the label, not a dataState.",
     "input-state-never-set": "“{{element}}” documents the status “{{state}}”, which no step sets.",
@@ -46,8 +47,8 @@
     "raci-missing-responsible": "“{{element}}” has no R. Every user task needs exactly one, on the task or through its swimlane.",
     "raci-multiple-responsible": "“{{element}}” has more than one R: {{assignees}}. Exactly one is allowed.",
     "raci-multiple-accountable": "“{{element}}” has more than one A: {{assignees}}. At most one is allowed.",
-    "raci-unknown-assignee": "“{{element}}”: {{assignee}} is not in the roles and groups table.",
-    "lane-without-role": "The lane “{{element}}” has no role or group. Every lane needs one from the roles and groups table."
+    "raci-unknown-assignee": "“{{element}}”: {{assignee}} is not in the catalog.",
+    "lane-without-role": "The lane “{{element}}” has no role or group. Every lane needs one."
   },
   "panel": {
     "translations": "Translations",
@@ -61,13 +62,14 @@
     "notInCatalog": "{{name}} (not in catalog)",
     "emptyCatalog": "The service catalog is empty.",
     "status": "Status",
-    "statusDescription": "From the status table. The ID appears in square brackets in the name.",
+    "statusDescription": "From the catalog. The ID appears in square brackets in the name.",
     "noStatus": "– no status –",
     "statusOnlyProcess": "Only the data object “{{name}}” has a status. This data object is documentation only.",
     "dataObjectId": "Data object ID",
     "dataObjectIdDescription": "The same for all references to this data object. The ID under “General” belongs to the individual reference.",
     "processName": "Name",
-    "processDocumentation": "Process description (Markdown)"
+    "processDocumentation": "Process description (Markdown)",
+    "statusDescriptionFree": "Pick a status used in the model or type a new one. It appears in square brackets in the name."
   },
   "raci": {
     "title": "Responsibilities (RACI)",
@@ -91,8 +93,8 @@
   "lane": {
     "title": "Role/group",
     "role": "Role or group",
-    "description": "From the roles and groups table. Sets the lane name and is R for all tasks on it.",
-    "poolDescription": "From the roles and groups table. Sets the pool name and is R for all tasks as long as the pool has no lanes.",
+    "description": "From the catalog or typed freely. It is R for all tasks on the lane.",
+    "poolDescription": "From the catalog or typed freely. It is R for all tasks as long as the pool has no lanes.",
     "kind": {
       "group": "group",
       "role": "role"
@@ -100,8 +102,80 @@
     "poolHasLanes": "The pool has lanes. R always comes from the lane of the task."
   },
   "picker": {
-    "placeholder": "Search role or group …",
+    "placeholder": "Search or type a role or group …",
     "noResults": "No matches",
-    "remove": "Remove {{name}}"
+    "remove": "Remove {{name}}",
+    "statusPlaceholder": "Search or type a status …",
+    "add": {
+      "group": "“{{name}}” as a new group",
+      "role": "“{{name}}” as a new role",
+      "status": "“{{name}}” as a new status"
+    }
+  },
+  "rules": {
+    "title": "Checks",
+    "profile": "Profile",
+    "profiles": {
+      "document": "Document",
+      "complete": "Complete",
+      "custom": "Custom"
+    },
+    "profileHint": {
+      "document": "For diagrams that only document, for example from bpmn.io: tasks need no R and lanes no role.",
+      "complete": "All checks. Every user task needs an R, every lane a role or group.",
+      "custom": "Individual checks are switched on or off."
+    },
+    "rule": {
+      "multiple-process-objects": "Only one data object “process” per process",
+      "reference-without-state": "References to “process” need a status",
+      "start-event-state": "Start events set no status",
+      "unknown-state": "Status must be in the catalog (catalog only)",
+      "label-state-mismatch": "Label and dataState match",
+      "state-only-in-label": "Status is also stored as dataState",
+      "input-state-never-set": "Documented statuses are set somewhere",
+      "state-key-conflict": "A key stands for one status only",
+      "raci-missing-responsible": "Every user task has exactly one R",
+      "raci-multiple-responsible": "At most one R per task (except multi-instance)",
+      "raci-multiple-accountable": "At most one A per task",
+      "raci-unknown-assignee": "Roles and groups must be in the catalog (catalog only)",
+      "lane-without-role": "Every lane has a role or group"
+    }
+  },
+  "catalog": {
+    "title": "Catalog",
+    "hint": "Without a catalog you type statuses, roles and groups freely. With a catalog they are offered for selection, and the check reports what is missing there. The catalog is only stored in this browser.",
+    "empty": "No catalog: statuses, roles and groups are free text.",
+    "import": "Import",
+    "export": "Export",
+    "example": "Load example catalog",
+    "clear": "Clear catalog",
+    "apply": "Apply",
+    "applyHint": "Apply rebuilds the modeler. Undo starts over afterwards.",
+    "applied": "Catalog applied.",
+    "addRow": "Add row",
+    "removeRow": "Remove row",
+    "tables": {
+      "states": "Statuses",
+      "roles": "Roles and groups",
+      "services": "IT services"
+    },
+    "columns": {
+      "id": "ID",
+      "name": "Name",
+      "de": "German",
+      "kind": "Kind"
+    },
+    "idHint": "Leave empty: the ID is derived from the name.",
+    "serviceKind": {
+      "business": "business",
+      "technical": "technical"
+    },
+    "errors": {
+      "invalid-json": "The file is not valid JSON: {{message}}",
+      "not-an-object": "The file is not a catalog. Expected an object with “states”, “roles” and “services”.",
+      "not-a-list": "“{{table}}” is not a list and was skipped.",
+      "invalid-entry": "“{{table}}”, entry {{index}}: ID or name missing, skipped.",
+      "duplicate-id": "“{{table}}”: the ID “{{id}}” appears twice, skipped."
+    }
   }
 }

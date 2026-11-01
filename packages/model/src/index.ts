@@ -1,4 +1,23 @@
-export { createModdle, deriveStatusModels, deriveFromDefinitions } from './states/status.js';
+export { createModdle, deriveStatusModels, deriveFromDefinitions, type CheckOptions } from './states/status.js';
+export {
+  DEFAULT_RULE_PROFILE,
+  ISSUE_CODES,
+  RULE_PROFILES,
+  disabledRulesOf,
+  filterIssues,
+  isIssueCode,
+  matchRuleProfile,
+  type RuleProfile,
+} from './rules/profiles.js';
+export {
+  isEmptyCatalog,
+  normalizeCatalog,
+  parseCatalog,
+  serializeCatalog,
+  type CatalogError,
+  type CatalogFile,
+  type CatalogTable,
+} from './catalog/file.js';
 export { parseStateLabel, formatStateLabel, type StateLabel } from './states/label.js';
 export { stateKey } from './states/key.js';
 export {
