@@ -25,7 +25,11 @@
     "export": "Export",
     "exportBpmn": "Download BPMN file",
     "exportSvg": "Graphic (SVG)",
-    "exportPng": "Image (PNG)"
+    "exportPng": "Image (PNG)",
+    "update": {
+      "available": "A new version of bestbpmn is available.",
+      "reload": "Reload"
+    }
   },
   "status": {
     "noProcess": "No process in the model.",

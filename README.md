@@ -17,16 +17,32 @@ npm run dev -w @bestbpmn/web   # öffnet http://localhost:5173
 
 Voraussetzung ist Node.js 22 (siehe `.nvmrc`). Entwickelt wird unter Ubuntu.
 
-## Nutzung unter Windows
+## Auslieferung
 
-Kollegen arbeiten unter Windows mit Edge oder Chrome; eine Installation von Node.js
-oder anderen Programmen ist dafür nicht nötig. Die App läuft im Browser, Modelle
-werden lokal als `.bpmn`-Datei gespeichert. Der Dateiname kommt aus dem Modellnamen
-und ist unter Windows immer gültig (keine verbotenen Zeichen, kein Punkt am Ende,
-keine reservierten Namen wie `CON`). Ab Etappe 4 gibt es die App als einzelne Datei
-`bestbpmn.html`, die man ohne Server per Doppelklick öffnet. Wer einen
-Startmenü-Eintrag möchte, kann sie zusätzlich von einem internen Webserver als PWA
-installieren.
+Es gibt zwei Fassungen, beide ohne Installation und ohne Zugriffe ins Netz:
+
+- **`bestbpmn.html`**: die ganze App in einer Datei. Doppelklick öffnet sie im Browser,
+  ohne Server, unter Windows wie unter Linux. Den Arbeitsordner gibt es in Edge und Chrome
+  (unter Linux Google Chrome oder Chromium; das Snap-Paket erreicht Ordner außerhalb des
+  Home-Verzeichnisses nur mit Zusatzfreigabe). In Firefox laufen Öffnen und Speichern über
+  Hoch- und Herunterladen.
+- **Web-App für einen internen Webserver (PWA)**: lässt sich in Edge und Chrome „als App
+  installieren“, startet dann aus dem Startmenü, läuft auch ohne Verbindung zum Server und
+  öffnet `.bpmn`-Dateien per Doppelklick. Eine neue Version kündigt sich mit „Neu laden“ an.
+  Für IIS liegt eine `web.config` bei.
+
+Dateinamen sind unter Windows immer gültig (keine verbotenen Zeichen, kein Punkt am Ende,
+keine reservierten Namen wie `CON`).
+
+```sh
+npm run build                          # dist/web (PWA) und dist/single/bestbpmn.html
+npm run release -w @bestbpmn/web       # zusätzlich dist/release/bestbpmn-<Version>.zip
+```
+
+Das ZIP enthält `bestbpmn.html`, den Ordner `webserver` mit `web.config` und die
+Kurzanleitung `LIESMICH.txt`. Jeder CI-Lauf legt `bestbpmn.html` als Artefakt ab. Ein Tag wie
+`v0.2.0` baut das ZIP und legt es als GitHub-Release ab; die Version kommt aus
+`apps/web/package.json` und sollte vorher dazu passen.
 
 ## Arbeitsordner und Sperren
 

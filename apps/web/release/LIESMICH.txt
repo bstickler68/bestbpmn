@@ -1,0 +1,47 @@
+bestbpmn {{VERSION}} – Kurzanleitung
+===================================
+
+bestbpmn ist ein BPMN-Modellierer im Browser. Er braucht keine Installation und
+schickt keine Daten ins Netz. Modelle bleiben als .bpmn-Dateien bei dir.
+
+
+1. Einfach starten: bestbpmn.html
+---------------------------------
+
+- bestbpmn.html an einen beliebigen Ort kopieren, z. B. auf den Desktop oder in
+  einen Ordner auf dem Netzlaufwerk.
+- Doppelklick öffnet die Datei im Standardbrowser. Am besten Edge oder Chrome:
+  Nur dort gibt es den Arbeitsordner mit Sperrdateien (Reiter „Dateien“).
+- In Firefox geht alles andere auch; Öffnen und Speichern laufen dort über
+  Hochladen und Herunterladen.
+- Einstellungen (Sprache, Katalog, Prüfregeln, Name) merkt sich der Browser.
+
+
+2. Als App installieren (optional): Ordner „webserver“
+------------------------------------------------------
+
+Für einen Startmenü-Eintrag und den Offline-Betrieb legt die IT den Inhalt des
+Ordners „webserver“ auf einen internen Webserver (https). Für IIS liegt eine
+passende web.config bei.
+
+- Adresse in Edge oder Chrome öffnen.
+- In der Adressleiste auf „App installieren“ klicken.
+- Danach startet bestbpmn wie ein Programm, auch ohne Verbindung zum Server,
+  und öffnet .bpmn-Dateien per Doppelklick.
+- Gibt es eine neue Version, erscheint oben der Hinweis „Neu laden“.
+
+
+3. Arbeitsordner und Sperren
+----------------------------
+
+- Reiter „Dateien“: Ordner wählen, auch auf einem Netzlaufwerk.
+- Wer eine Datei öffnet, sperrt sie (Datei NAME.bpmn.lock daneben). Andere
+  sehen dann, wer gerade daran arbeitet, und können sie nur ansehen.
+- Strg+S speichert direkt in die Datei.
+
+
+4. Berichte
+-----------
+
+Menü „Bericht“: Steckbrief und Gesamtdokument als HTML-Datei oder zum Drucken.
+Im Druckdialog „Als PDF speichern“ wählen, um ein PDF zu erhalten.

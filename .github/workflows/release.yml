@@ -1,0 +1,35 @@
+name: Release
+
+# Ein Tag wie v0.2.0 baut die Auslieferung und legt sie als GitHub-Release ab.
+# Von Hand gestartet, gibt es das ZIP nur als Artefakt des Laufs.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Auslieferung bauen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: node scripts/release.mjs
+        working-directory: apps/web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bestbpmn
+          path: apps/web/dist/release/*.zip
+      - name: GitHub-Release anlegen
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" apps/web/dist/release/*.zip apps/web/dist/single/bestbpmn.html --title "bestbpmn $GITHUB_REF_NAME" --generate-notes

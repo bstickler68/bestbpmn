@@ -9,9 +9,11 @@
     "predev": "npm run build -w @bestbpmn/model -w @bestbpmn/i18n",
     "dev": "vite",
     "prebuild": "npm run build -w @bestbpmn/model -w @bestbpmn/i18n",
-    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "build": "tsc -p tsconfig.json --noEmit && vite build && vite build --mode single",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:single": "vite build --mode single",
+    "release": "npm run build && node scripts/release.mjs"
   },
   "dependencies": {
     "@bestbpmn/bpmn-js-extension": "0.1.0",

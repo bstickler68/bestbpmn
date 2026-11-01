@@ -34,6 +34,7 @@ import { FilesController } from './files/controller';
 import { renderBanner, renderFilesPanel } from './files/filesPanel';
 import { fullHtml, profileHtml, type ReportInput } from './report/report';
 import { printHtml } from './report/print';
+import { handleLaunchedFiles, registerServiceWorker } from './pwa';
 
 const LANGUAGE_KEY = 'bestbpmn.language';
 const statusPanel = document.querySelector<HTMLElement>('#status')!;
@@ -118,6 +119,9 @@ function showModelName() {
   nameLabel.classList.toggle('untitled', !name);
   document.title = `${name ?? t('app.untitled')} – ${t('app.title')}`;
 }
+
+// Die Version steht als Hinweis am Namen links oben, für Rückfragen.
+document.querySelector<HTMLElement>('.toolbar strong')!.title = `bestbpmn ${__BESTBPMN_VERSION__}`;
 
 /** Setzt alle festen Texte der Seite mit `data-i18n`. */
 function applyStaticTexts(language: string) {
@@ -340,4 +344,8 @@ window.addEventListener('beforeunload', (event) => {
 });
 window.addEventListener('pagehide', () => files.release());
 
-void createModeler(storedLanguage() ?? matchLanguage(navigator.languages), EMPTY_DIAGRAM).then(() => files.restore());
+void createModeler(storedLanguage() ?? matchLanguage(navigator.languages), EMPTY_DIAGRAM).then(() => {
+  handleLaunchedFiles((text) => void openDetached(text));
+  registerServiceWorker(document.querySelector<HTMLElement>('#update')!, () => t);
+  return files.restore();
+});

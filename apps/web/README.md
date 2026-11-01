@@ -13,6 +13,10 @@ Die Seite startet mit einem leeren Diagramm. Unter „Neu“ gibt es die Vorlage
 
 Die Oberfläche gibt es auf Englisch und Deutsch. Beim ersten Aufruf gilt die Browsersprache, die Auswahl rechts oben wird im Browser gespeichert. Ein Sprachwechsel baut den Modellierer neu auf; Rückgängig beginnt danach von vorn.
 
+## Bauen
+
+`npm run build` erzeugt zwei Fassungen: `dist/web` (Web-App mit Service Worker und Manifest für einen Webserver) und `dist/single/bestbpmn.html` (alles in einer Datei, Skript, Stil, Schriften und Grafiken eingebettet). Die Plugins dafür liegen in `build/` und kommen ohne zusätzliche Abhängigkeiten aus. `npm run release` packt beides mit `release/web.config` und `release/LIESMICH.txt` in ein ZIP (`scripts/release.mjs`).
+
 ## Tests
 
 ```sh
