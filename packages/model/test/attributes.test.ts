@@ -12,7 +12,7 @@ async function element(xml: string, id: string) {
   return { rootElement, element: (elementsById as Record<string, any>)[id] };
 }
 
-describe('Zusatzattribute (ADR 0009)', () => {
+describe('Zusatzattribute', () => {
   it('liest Links und Services aus der Vorlage', async () => {
     const { element: task } = await element(template, 'Erstellen');
     expect(readAttributes(task)).toEqual([
@@ -46,13 +46,13 @@ describe('Zusatzattribute (ADR 0009)', () => {
 
   it('behält unbekannte Attribute beim Speichern', async () => {
     const xml = template.replace(
-      '<praxiq:attribute key="links">',
-      '<praxiq:attribute key="dauer" value="2 Stunden" />\n          <praxiq:attribute key="links">',
+      '<bestadd:attribute key="links">',
+      '<bestadd:attribute key="dauer" value="2 Stunden" />\n          <bestadd:attribute key="links">',
     );
     const moddle = createModdle();
     const { rootElement } = await moddle.fromXML(xml);
     const { xml: saved } = await moddle.toXML(rootElement);
-    expect(saved).toContain('<praxiq:attribute key="dauer" value="2 Stunden" />');
+    expect(saved).toContain('<bestadd:attribute key="dauer" value="2 Stunden" />');
     const { element: task } = await element(saved, 'Erstellen');
     expect(readAttributes(task).map((a) => a.key)).toEqual(['dauer', 'links', 'services']);
   });

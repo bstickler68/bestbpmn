@@ -1,10 +1,10 @@
 import { is, type BusinessObject } from './util';
 
-export const RENAME_PROCESS = 'praxiq.process.rename';
+export const RENAME_PROCESS = 'bestbpmn.process.rename';
 
 /**
  * Lanes gibt es in BPMN nur in einem Pool, und ein Pool steht immer in einer Collaboration.
- * PRAXIQ nutzt davon nur den einfachen Fall: genau ein Pool, der den Prozess darstellt (ADR 0013).
+ * bestbpmn nutzt davon nur den einfachen Fall: genau ein Pool, der den Prozess darstellt.
  * Dann ist die Collaboration nur die Hülle, und der Prozess wird genauso behandelt wie ohne Lanes.
  */
 export function singleParticipant(collaboration: BusinessObject | undefined): BusinessObject | undefined {
@@ -21,7 +21,7 @@ export function processOfRoot(bo: BusinessObject | undefined): BusinessObject | 
 }
 
 /**
- * Benennt das Modell um. Der Name der Kollaboration ist der des Haupttasks (ADR 0014). Bei nur einem Pool
+ * Benennt das Modell um. Der Name der Kollaboration ist der des Vorgangs. Bei nur einem Pool
  * heißt der Prozess gleich. Pools behalten ihren eigenen Namen, z. B. die Organisation oder Abteilung.
  */
 export class RenameProcessHandler {

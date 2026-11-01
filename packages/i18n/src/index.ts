@@ -3,8 +3,8 @@ import de from './locales/de.json' with { type: 'json' };
 import en from './locales/en.json' with { type: 'json' };
 
 /**
- * Systemtexte von bestbpmn (PRAXIQ-ADR 0010). Die JSON-Dateien unter `locales/` sind die einzige Quelle;
- * Modellierer, Backend und Oberfläche lesen dieselben Dateien.
+ * Systemtexte von bestbpmn. Die JSON-Dateien unter `locales/` sind die einzige Quelle;
+ * Modellierer und Oberfläche lesen dieselben Dateien.
  */
 export const resources = {
   en: { translation: en },

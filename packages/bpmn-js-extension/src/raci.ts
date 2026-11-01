@@ -1,7 +1,7 @@
 import { formatAssignees, fromAssignee, raciElementType, type Assignee, type RaciRole } from '@bestbpmn/model';
 import { is, type BusinessObject, type DiagramElement } from './util';
 
-export const UPDATE_RACI = 'praxiq.raci.update';
+export const UPDATE_RACI = 'bestbpmn.raci.update';
 
 export interface UpdateRaciContext {
   element: DiagramElement;
@@ -11,7 +11,7 @@ export interface UpdateRaciContext {
 
 /**
  * Setzt eine RACI-Rolle einer Aktivität in einem Schritt, der sich als Ganzes rückgängig machen lässt.
- * R landet im BPMN-Standard `potentialOwner`, A/C/I im `raci`-Namensraum (ADR 0003).
+ * R landet im BPMN-Standard `potentialOwner`, A/C/I im `raci`-Namensraum.
  */
 export class UpdateRaciHandler {
   static $inject = ['modeling', 'bpmnFactory'];

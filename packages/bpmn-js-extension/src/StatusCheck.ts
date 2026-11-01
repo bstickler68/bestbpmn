@@ -1,17 +1,17 @@
 import { deriveFromDefinitions, type ModelIssue, type StatusModel } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
+import type { BestbpmnConfig } from './attributes';
 
-export const STATUS_CHANGED = 'praxiq.status.changed';
-const ERROR_MARKER = 'praxiq-error';
-const WARNING_MARKER = 'praxiq-warning';
+export const STATUS_CHANGED = 'bestbpmn.status.changed';
+const ERROR_MARKER = 'bestbpmn-error';
+const WARNING_MARKER = 'bestbpmn-warning';
 
 /**
  * Prüft das Modell nach jeder Änderung mit denselben Regeln wie später das Deployment
- * und markiert betroffene Elemente. Ergebnis: Event `praxiq.status.changed` mit den
+ * und markiert betroffene Elemente. Ergebnis: Event `bestbpmn.status.changed` mit den
  * Statusmodellen aller Prozesse.
  */
 export default class StatusCheck {
-  static $inject = ['eventBus', 'bpmnjs', 'canvas', 'elementRegistry', 'config.praxiq'];
+  static $inject = ['eventBus', 'bpmnjs', 'canvas', 'elementRegistry', 'config.bestbpmn'];
 
   private models: StatusModel[] = [];
   private marked: string[] = [];
@@ -21,7 +21,7 @@ export default class StatusCheck {
     private bpmnjs: any,
     private canvas: any,
     private elementRegistry: any,
-    private config: PraxiqConfig | undefined,
+    private config: BestbpmnConfig | undefined,
   ) {
     // Kein Rückgabewert: diagram-js bricht sonst die Weitergabe an spätere Listener ab.
     eventBus.on(['import.done', 'commandStack.changed'], () => {

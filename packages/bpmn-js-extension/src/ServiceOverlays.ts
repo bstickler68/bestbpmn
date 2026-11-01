@@ -1,8 +1,8 @@
-import { findAttribute, resolveDefinitions, type PraxiqConfig } from './attributes';
+import { findAttribute, resolveDefinitions, type BestbpmnConfig } from './attributes';
 import type { BusinessObject, DiagramElement } from './util';
 
-const OVERLAY_TYPE = 'praxiq-services';
-export const SERVICES_TOGGLED = 'praxiq.services.toggled';
+const OVERLAY_TYPE = 'bestbpmn-services';
+export const SERVICES_TOGGLED = 'bestbpmn.services.toggled';
 
 /**
  * Zeigt an Aktivitäten, mit welchen IT-Services sie durchgeführt werden.
@@ -10,7 +10,7 @@ export const SERVICES_TOGGLED = 'praxiq.services.toggled';
  * Gespeichert wird dabei nichts, das Diagramm selbst bleibt unverändert.
  */
 export default class ServiceOverlays {
-  static $inject = ['eventBus', 'overlays', 'elementRegistry', 'config.praxiq'];
+  static $inject = ['eventBus', 'overlays', 'elementRegistry', 'config.bestbpmn'];
 
   private keys: string[];
   private showNames = false;
@@ -19,7 +19,7 @@ export default class ServiceOverlays {
     eventBus: any,
     private overlays: any,
     private elementRegistry: any,
-    config: PraxiqConfig | undefined,
+    config: BestbpmnConfig | undefined,
   ) {
     this.keys = resolveDefinitions(config)
       .filter((d) => d.type === 'services')
@@ -44,7 +44,7 @@ export default class ServiceOverlays {
   servicesOf(element: DiagramElement): string[] {
     return this.keys.flatMap((key) =>
       ((findAttribute(element.businessObject, key)?.items ?? []) as BusinessObject[])
-        .filter((item) => item.$type === 'praxiq:ServiceRef')
+        .filter((item) => item.$type === 'bestadd:ServiceRef')
         .map((item) => item.name ?? item.ref),
     );
   }
@@ -68,10 +68,10 @@ export default class ServiceOverlays {
 
   private render(names: string[]) {
     const node = document.createElement('div');
-    node.className = 'praxiq-services';
+    node.className = 'bestbpmn-services';
     node.title = names.join(', ');
     if (this.showNames) {
-      node.classList.add('praxiq-services--names');
+      node.classList.add('bestbpmn-services--names');
       node.textContent = names.join(' · ');
     } else {
       node.textContent = `⚙ ${names.length}`;

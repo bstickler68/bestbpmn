@@ -4,7 +4,7 @@ import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import states from '../../../templates/catalog/states.json';
 import type { StatusDefinition } from '@bestbpmn/model';
 import { EMPTY_DIAGRAM } from '../src/emptyDiagram';
-import { praxiqModdleExtensions, praxiqModule, type StatusCheck } from '@bestbpmn/bpmn-js-extension';
+import { bestbpmnModdleExtensions, bestbpmnModule, type StatusCheck } from '@bestbpmn/bpmn-js-extension';
 
 let container: HTMLDivElement;
 let modeler: any;
@@ -18,9 +18,9 @@ async function setup(xml = EMPTY_DIAGRAM) {
   document.body.appendChild(container);
   modeler = new Modeler({
     container,
-    additionalModules: [praxiqModule],
-    moddleExtensions: praxiqModdleExtensions,
-    praxiq: { states: states as StatusDefinition[] },
+    additionalModules: [bestbpmnModule],
+    moddleExtensions: bestbpmnModdleExtensions,
+    bestbpmn: { states: states as StatusDefinition[] },
   });
   await modeler.importXML(xml);
 }
@@ -43,7 +43,7 @@ afterEach(() => {
   container?.remove();
 });
 
-describe('Datenobjekt „Prozess“ (ADR 0012)', () => {
+describe('Datenobjekt „Prozess“', () => {
   beforeEach(() => setup());
 
   it('hängt jede Referenz „Prozess“ an dasselbe Datenobjekt', () => {
@@ -162,14 +162,14 @@ describe('Status aus der Beschriftung', () => {
     const ref = createReference(200);
     get('modeling').updateLabel(ref, 'Prozess [approved]');
     const { xml } = await modeler.saveXML();
-    expect(xml).toContain('<bpmn:dataState name="approved" praxiq:key="approved" />');
+    expect(xml).toContain('<bpmn:dataState name="approved" bestadd:key="approved" />');
   });
 });
 
 describe('Live-Prüfung', () => {
   it('liefert das Statusmodell der Vorlage ohne Meldungen', async () => {
     await setup(template);
-    const [model] = get<StatusCheck>('praxiqStatusCheck').getModels();
+    const [model] = get<StatusCheck>('bestbpmnStatusCheck').getModels();
     expect(model?.statuses).toEqual(['in_review', 'reviewed', 'approved']);
     expect(model?.initialStatuses).toEqual(['in_review']);
     expect(model?.statusNames.in_review).toBe('In Prüfung');
@@ -180,18 +180,18 @@ describe('Live-Prüfung', () => {
     await setup(template);
     get('modeling').updateLabel(get('elementRegistry').get('Ref_Freigegeben'), 'Prozess');
 
-    const issues = get<StatusCheck>('praxiqStatusCheck').getModels()[0]!.issues;
+    const issues = get<StatusCheck>('bestbpmnStatusCheck').getModels()[0]!.issues;
     expect(issues).toContainEqual(expect.objectContaining({ code: 'reference-without-state', elementId: 'Ref_Freigegeben' }));
-    expect(get('canvas').hasMarker('Ref_Freigegeben', 'praxiq-error')).toBe(true);
+    expect(get('canvas').hasMarker('Ref_Freigegeben', 'bestbpmn-error')).toBe(true);
 
     get('commandStack').undo();
-    expect(get('canvas').hasMarker('Ref_Freigegeben', 'praxiq-error')).toBe(false);
+    expect(get('canvas').hasMarker('Ref_Freigegeben', 'bestbpmn-error')).toBe(false);
   });
 
   it('meldet das Statusmodell über ein Event', async () => {
     await setup();
     const seen: unknown[] = [];
-    modeler.on('praxiq.status.changed', (e: any) => seen.push(e.models));
+    modeler.on('bestbpmn.status.changed', (e: any) => seen.push(e.models));
     createReference(200);
     expect(seen.length).toBeGreaterThan(0);
   });

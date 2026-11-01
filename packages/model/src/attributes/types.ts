@@ -1,17 +1,17 @@
 /** Text je Sprache; ein einfacher String gilt für alle Sprachen. */
 export type LocalizedText = string | Record<string, string>;
 
-/** Art eines Zusatzattributs. Bestimmt Eingabefeld und Speicherform (ADR 0009). */
+/** Art eines Zusatzattributs. Bestimmt Eingabefeld und Speicherform. */
 export type AttributeType = 'text' | 'markdown' | 'links' | 'services';
 
 /**
- * Definition eines Zusatzattributs. Der Administrator pflegt die Definitionen;
- * die Werte stehen im BPMN-Modell unter `praxiq:attributes`.
+ * Definition eines Zusatzattributs. Die Definitionen kommen aus der Konfiguration;
+ * die Werte stehen im BPMN-Modell unter `bestadd:attributes`.
  */
 export interface AttributeDefinition {
   /** Schlüssel, unter dem der Wert im Modell steht. Nach dem ersten Einsatz nicht mehr ändern. */
   key: string;
-  /** Bezeichnung je Sprache, z. B. `{ en: 'IT services', de: 'IT-Services' }` (ADR 0010). */
+  /** Bezeichnung je Sprache, z. B. `{ en: 'IT services', de: 'IT-Services' }`. */
   label: LocalizedText;
   type: AttributeType;
   description?: LocalizedText;
@@ -21,7 +21,7 @@ export interface AttributeDefinition {
   serviceKinds?: string[];
 }
 
-/** Ein Eintrag aus dem Service-Katalog (später CMDB in PRAXIQ). */
+/** Ein Eintrag aus dem Service-Katalog. */
 export interface Service {
   id: string;
   name: string;

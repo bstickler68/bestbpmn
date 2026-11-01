@@ -1,8 +1,8 @@
 import type { AttributeDefinition } from './types.js';
 
 /**
- * Attribute, die PRAXIQ ohne weitere Konfiguration anbietet.
- * Der Administrator kann weitere ergänzen (ADR 0009).
+ * Attribute, die bestbpmn ohne weitere Konfiguration anbietet.
+ * Weitere lassen sich über die Konfiguration ergänzen.
  */
 export const DEFAULT_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
   {

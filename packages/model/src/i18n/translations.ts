@@ -2,7 +2,7 @@ import type { ModdleElement } from '../states/types.js';
 
 type El = ModdleElement & Record<string, any>;
 
-/** Sprachen, die PRAXIQ von Anfang an unterstützt. Englisch ist die Standardsprache. */
+/** Sprachen, die bestbpmn von Anfang an unterstützt. Englisch ist die Standardsprache. */
 export const SUPPORTED_LANGUAGES = ['en', 'de'] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number] | (string & {});
 export const DEFAULT_LANGUAGE: Language = 'en';
@@ -13,7 +13,7 @@ export interface TranslatedText {
   documentation?: string;
 }
 
-/** Hauptsprache eines Modells (`praxiq:language` an `bpmn:definitions`), sonst Englisch. */
+/** Hauptsprache eines Modells (`bestadd:language` an `bpmn:definitions`), sonst Englisch. */
 export function modelLanguage(definitions: ModdleElement | undefined): Language {
   return ((definitions as El | undefined)?.language as string | undefined) || DEFAULT_LANGUAGE;
 }
@@ -24,16 +24,16 @@ function extensionValues(element: ModdleElement | undefined): El[] {
 
 /** Übersetzungen eines Elements je Sprache, ohne die Hauptsprache (die steht in `name` und `documentation`). */
 export function readTranslations(element: ModdleElement): Record<string, TranslatedText> {
-  const container = extensionValues(element).find((v) => v.$type === 'praxiq:Translations');
+  const container = extensionValues(element).find((v) => v.$type === 'bestadd:Translations');
   return toRecord((container?.translations ?? []) as El[]);
 }
 
 /**
- * Übersetzte Statusnamen je Schlüssel, gepflegt einmal am DataObject (`praxiq:states`).
+ * Übersetzte Statusnamen je Schlüssel, gepflegt einmal am DataObject (`bestadd:states`).
  * Ergebnis: `{ in_review: { en: 'In review' } }`.
  */
 export function readStateTranslations(dataObject: ModdleElement | undefined): Record<string, Record<string, string>> {
-  const container = extensionValues(dataObject).find((v) => v.$type === 'praxiq:States');
+  const container = extensionValues(dataObject).find((v) => v.$type === 'bestadd:States');
   const result: Record<string, Record<string, string>> = {};
   for (const state of (container?.states ?? []) as El[]) {
     if (!state.key) {

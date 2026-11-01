@@ -10,9 +10,9 @@ import { EMPTY_DIAGRAM } from '../src/emptyDiagram';
 import {
   fileNameFor,
   modelName,
-  praxiqModdleExtensions,
-  praxiqModule,
-  praxiqPropertiesProviderModule,
+  bestbpmnModdleExtensions,
+  bestbpmnModule,
+  bestbpmnPropertiesProviderModule,
   translateModule,
   UPDATE_TRANSLATION,
 } from '@bestbpmn/bpmn-js-extension';
@@ -33,13 +33,13 @@ async function setup(xml = template, language = 'en') {
     additionalModules: [
       BpmnPropertiesPanelModule,
       BpmnPropertiesProviderModule,
-      praxiqModule,
-      praxiqPropertiesProviderModule,
+      bestbpmnModule,
+      bestbpmnPropertiesProviderModule,
       translateModule(language),
     ],
-    moddleExtensions: praxiqModdleExtensions,
+    moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: container.querySelector('#p') },
-    praxiq: { language, states: states as StatusDefinition[] },
+    bestbpmn: { language, states: states as StatusDefinition[] },
   });
   await modeler.importXML(xml);
 }
@@ -76,7 +76,7 @@ describe('Oberfläche in zwei Sprachen', () => {
     await nextTick();
 
     const panel = container.querySelector('#p')!;
-    const group = panel.querySelector('[data-group-id="group-praxiq-translations"]')!;
+    const group = panel.querySelector('[data-group-id="group-bestbpmn-translations"]')!;
     expect(group.textContent).toContain('Übersetzungen');
     expect(group.textContent).toContain('Name (English)');
     expect(panel.textContent).toContain('Allgemein');
@@ -89,11 +89,11 @@ describe('Oberfläche in zwei Sprachen', () => {
     get('selection').select(element('Ref_Freigegeben'));
     await nextTick();
 
-    const group = container.querySelector('[data-group-id="group-praxiq-status"]')!;
+    const group = container.querySelector('[data-group-id="group-bestbpmn-status"]')!;
     const select = group.querySelector<HTMLSelectElement>('select')!;
     expect(select.value).toBe('approved');
     expect(group.textContent).toContain('Datenobjekt-ID');
-    expect(group.querySelector<HTMLInputElement>('input[name="praxiq-status-data-object"]')?.value).toBe('Prozess');
+    expect(group.querySelector<HTMLInputElement>('input[name="bestbpmn-status-data-object"]')?.value).toBe('Prozess');
     expect([...select.options].map((o) => o.textContent)).toContain('In Arbeit (in_progress)');
 
     select.value = 'rejected';
@@ -110,7 +110,7 @@ describe('Oberfläche in zwei Sprachen', () => {
     get('selection').select(element('Ref_Dokument'));
     await nextTick();
 
-    const group = container.querySelector('[data-group-id="group-praxiq-status"]')!;
+    const group = container.querySelector('[data-group-id="group-bestbpmn-status"]')!;
     expect(group.querySelector('select')).toBeNull();
     expect(group.textContent).toContain('Nur das Datenobjekt „Prozess“ hat einen Status');
     get('selection').select(null);
@@ -119,7 +119,7 @@ describe('Oberfläche in zwei Sprachen', () => {
 
   it('zeigt Status und Meldungen in der gewählten Sprache', async () => {
     await setup();
-    const models = get('praxiqStatusCheck').getModels();
+    const models = get('bestbpmnStatusCheck').getModels();
     const panel = document.createElement('div');
 
     renderStatusPanel(panel, models, { language: 'en', t: createI18n('en').t });
@@ -136,7 +136,7 @@ describe('Oberfläche in zwei Sprachen', () => {
   });
 });
 
-describe('Kollaboration mit einem Pool (ADR 0013)', () => {
+describe('Kollaboration mit einem Pool', () => {
   it('zeigt die Kollaboration mit Name und Beschreibung des Prozesses', async () => {
     await setup(incident, 'de');
     await nextTick();
@@ -145,9 +145,9 @@ describe('Kollaboration mit einem Pool (ADR 0013)', () => {
 
     const panel = container.querySelector('#p')!;
     expect(panel.querySelector('.bio-properties-panel-header-type')?.textContent).toBe('Kollaboration');
-    const name = panel.querySelector<HTMLInputElement>('input[name="praxiq-process-name"]')!;
+    const name = panel.querySelector<HTMLInputElement>('input[name="bestbpmn-process-name"]')!;
     expect(name.value).toBe('Incident bearbeiten');
-    expect(panel.querySelector<HTMLTextAreaElement>('textarea[name="praxiq-process-documentation"]')?.value).toMatch(/^Ein Incident/);
+    expect(panel.querySelector<HTMLTextAreaElement>('textarea[name="bestbpmn-process-documentation"]')?.value).toMatch(/^Ein Incident/);
     get('selection').select(null);
     await nextTick();
   });
@@ -156,7 +156,7 @@ describe('Kollaboration mit einem Pool (ADR 0013)', () => {
     await setup(incident, 'de');
     const root = get('canvas').getRootElement();
     const pool = element('Pool_Incident');
-    get('commandStack').execute('praxiq.process.rename', { element: root, name: 'Störung beheben' });
+    get('commandStack').execute('bestbpmn.process.rename', { element: root, name: 'Störung beheben' });
     expect(pool.businessObject.processRef.name).toBe('Störung beheben');
     expect(root.businessObject.name).toBe('Störung beheben');
     expect(pool.businessObject.name).toBe('IT-Service');
@@ -170,13 +170,13 @@ describe('Kollaboration mit einem Pool (ADR 0013)', () => {
     expect(root.businessObject.name).toBe('Incident bearbeiten');
   });
 
-  it('benennt bei mehreren Pools nur die Kollaboration um (ADR 0014)', async () => {
+  it('benennt bei mehreren Pools nur die Kollaboration um', async () => {
     await setup(incident, 'de');
     const root = get('canvas').getRootElement();
     const pool = get('elementFactory').createParticipantShape({ type: 'bpmn:Participant', isExpanded: true });
     const second = get('modeling').createShape(pool, { x: 600, y: 900 }, root);
     expect(second.businessObject.processRef).toBeTruthy();
-    get('commandStack').execute('praxiq.process.rename', { element: root, name: 'Störung beheben' });
+    get('commandStack').execute('bestbpmn.process.rename', { element: root, name: 'Störung beheben' });
     expect(root.businessObject.name).toBe('Störung beheben');
     expect(element('Pool_Incident').businessObject.processRef.name).toBe('Incident bearbeiten');
     expect(second.businessObject.processRef.name).toBeUndefined();

@@ -28,7 +28,7 @@ export function readPotentialOwnerText(element: ModdleElement): string | undefin
   return texts.length ? texts.join(', ') : undefined;
 }
 
-/** Liest R aus `potentialOwner` und A, C, I aus dem `raci`-Namensraum (ADR 0003). */
+/** Liest R aus `potentialOwner` und A, C, I aus dem `raci`-Namensraum. */
 export function readRaci(element: ModdleElement): Raci {
   const values = ((element as El).extensionElements?.values ?? []) as El[];
   const fromExtension = (type: string) =>

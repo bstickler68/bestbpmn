@@ -13,8 +13,8 @@ import {
   type RaciRole,
   type RoleDefinition,
 } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
-import { resolveI18n, type PraxiqI18n } from './i18n';
+import type { BestbpmnConfig } from './attributes';
+import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { UPDATE_RACI } from './raci';
 import { RolePicker } from './RolePicker';
 import { pickerTexts, roleOptions } from './roleOptions';
@@ -23,18 +23,18 @@ import { findProcess, is, type DiagramElement } from './util';
 const LOW_PRIORITY = 500;
 
 /**
- * Bereich „Verantwortlichkeiten (DEMI)“ im Eigenschaftenpanel (ADR 0011, 0013). Alle Rollen kommen aus der
+ * Bereich „Verantwortlichkeiten (DEMI)“ im Eigenschaftenpanel. Alle Rollen kommen aus der
  * Rollen- und Gruppentabelle, als Suchfeld wie in Jira: D und E mit einem Eintrag, M und I mit mehreren.
  * Liegt die Aufgabe in einer Swimlane mit Rolle oder Gruppe, kommt D aus der Lane und ist gesperrt.
- * Multi-Instanz-Aufgaben dürfen mehrere D haben; je D entsteht im Ablauf ein Subtask.
+ * Multi-Instanz-Aufgaben dürfen mehrere D haben.
  */
 export default class RaciPropertiesProvider {
-  static $inject = ['propertiesPanel', 'config.praxiq', 'bpmnjs'];
+  static $inject = ['propertiesPanel', 'config.bestbpmn', 'bpmnjs'];
 
-  private i18n: PraxiqI18n;
+  private i18n: BestbpmnI18n;
   private roles: RoleDefinition[];
 
-  constructor(propertiesPanel: any, config: PraxiqConfig | undefined, private bpmnjs: any) {
+  constructor(propertiesPanel: any, config: BestbpmnConfig | undefined, private bpmnjs: any) {
     this.i18n = resolveI18n(config);
     this.roles = config?.roles ?? [];
     propertiesPanel.registerProvider(LOW_PRIORITY, this);
@@ -53,7 +53,7 @@ export default class RaciPropertiesProvider {
       const multi = isMultiInstance(bo as any);
 
       const entries = RACI_ROLES.map((role) => ({
-        id: `praxiq-raci-${role}`,
+        id: `bestbpmn-raci-${role}`,
         component: RoleEntry,
         role,
         roles: this.roles,
@@ -64,7 +64,7 @@ export default class RaciPropertiesProvider {
       // Direkt nach „Allgemein“ und „Beschreibung“, vor Übersetzungen und Zusatzattributen.
       const index = groups.findIndex((g) => g.id === 'documentation');
       groups.splice(index >= 0 ? index + 1 : groups.length, 0, {
-        id: 'praxiq-raci',
+        id: 'bestbpmn-raci',
         label: this.i18n.t('raci.title'),
         entries,
       });
@@ -78,7 +78,7 @@ interface RoleEntryProps {
   id: string;
   role: RaciRole;
   roles: RoleDefinition[];
-  i18n: PraxiqI18n;
+  i18n: BestbpmnI18n;
   multiple: boolean;
   fromLane?: Assignee;
 }

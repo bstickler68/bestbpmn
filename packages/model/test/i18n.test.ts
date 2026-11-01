@@ -15,7 +15,7 @@ const template = readFileSync(
   'utf8',
 );
 
-describe('Mehrsprachigkeit im Modell (ADR 0010)', () => {
+describe('Mehrsprachigkeit im Modell', () => {
   it('bildet sprachneutrale Schlüssel aus Namen', () => {
     expect(stateKey('In Prüfung')).toBe('in_pruefung');
     expect(stateKey('  Größe ändern! ')).toBe('groesse_aendern');
@@ -32,7 +32,7 @@ describe('Mehrsprachigkeit im Modell (ADR 0010)', () => {
         documentation: expect.stringMatching(/^Create the document/),
       },
     });
-    // Statusübersetzungen stehen in der Statustabelle (ADR 0012); ältere Modelle mit praxiq:states bleiben lesbar.
+    // Statusübersetzungen stehen in der Statustabelle; ältere Modelle mit bestadd:states bleiben lesbar.
     expect(readStateTranslations(elementsById['Prozess'])).toEqual({});
   });
 
@@ -48,8 +48,8 @@ describe('Mehrsprachigkeit im Modell (ADR 0010)', () => {
     const moddle = createModdle();
     const { rootElement } = await moddle.fromXML(template);
     const { xml } = await moddle.toXML(rootElement);
-    expect(xml).toContain('praxiq:language="de"');
-    expect(xml).toContain('praxiq:key="in_review"');
-    expect(xml).toContain('<praxiq:translation lang="en" name="Create document">');
+    expect(xml).toContain('bestadd:language="de"');
+    expect(xml).toContain('bestadd:key="in_review"');
+    expect(xml).toContain('<bestadd:translation lang="en" name="Create document">');
   });
 });

@@ -15,25 +15,25 @@ import {
   findAttribute,
   resolveDefinitions,
   UPDATE_ATTRIBUTE,
-  type PraxiqConfig,
+  type BestbpmnConfig,
 } from './attributes';
-import { resolveI18n, type PraxiqI18n } from './i18n';
+import { resolveI18n, type BestbpmnI18n } from './i18n';
 import type { BusinessObject, DiagramElement } from './util';
 
 const LOW_PRIORITY = 400;
 
 /**
- * Ergänzt das Eigenschaftenpanel um die Zusatzattribute von PRAXIQ (ADR 0009).
+ * Ergänzt das Eigenschaftenpanel um die Zusatzattribute.
  * Jede Attributdefinition wird zu einer eigenen Gruppe.
  */
 export default class AttributesPropertiesProvider {
-  static $inject = ['propertiesPanel', 'config.praxiq', 'injector'];
+  static $inject = ['propertiesPanel', 'config.bestbpmn', 'injector'];
 
   private definitions: AttributeDefinition[];
   private services: Service[];
-  private i18n: PraxiqI18n;
+  private i18n: BestbpmnI18n;
 
-  constructor(propertiesPanel: any, config: PraxiqConfig | undefined, private injector: any) {
+  constructor(propertiesPanel: any, config: BestbpmnConfig | undefined, private injector: any) {
     this.definitions = resolveDefinitions(config);
     this.services = config?.services ?? [];
     this.i18n = resolveI18n(config);
@@ -60,7 +60,7 @@ export default class AttributesPropertiesProvider {
   }
 
   private groupFor(element: DiagramElement, definition: AttributeDefinition) {
-    const id = `praxiq-${definition.key}`;
+    const id = `bestbpmn-${definition.key}`;
     const { language } = this.i18n;
     switch (definition.type) {
       case 'text':
@@ -90,7 +90,7 @@ export default class AttributesPropertiesProvider {
 
 function findAttributeKeys(bo: BusinessObject): string[] | undefined {
   return bo.extensionElements?.values
-    ?.find((v: BusinessObject) => v.$type === 'praxiq:Attributes')
+    ?.find((v: BusinessObject) => v.$type === 'bestadd:Attributes')
     ?.attributes?.map((a: BusinessObject) => a.key);
 }
 
@@ -119,35 +119,35 @@ function itemsOf(element: DiagramElement, key: string, type: string): BusinessOb
   return (findAttribute(element.businessObject, key)?.items ?? []).filter((i: BusinessObject) => i.$type === type);
 }
 
-function linksGroup(element: DiagramElement, definition: AttributeDefinition, injector: any, i18n: PraxiqI18n) {
+function linksGroup(element: DiagramElement, definition: AttributeDefinition, injector: any, i18n: BestbpmnI18n) {
   const { t, language } = i18n;
   const { key } = definition;
   const commandStack = injector.get('commandStack');
   const bpmnFactory = injector.get('bpmnFactory');
   const attribute = findAttribute(element.businessObject, key);
-  const links = itemsOf(element, key, 'praxiq:Link');
-  const others = (attribute?.items ?? []).filter((i: BusinessObject) => i.$type !== 'praxiq:Link');
+  const links = itemsOf(element, key, 'bestadd:Link');
+  const others = (attribute?.items ?? []).filter((i: BusinessObject) => i.$type !== 'bestadd:Link');
 
   const save = (next: BusinessObject[]) =>
     commandStack.execute(UPDATE_ATTRIBUTE, { element, key, value: attribute?.value, items: [...others, ...next] });
 
   return {
-    id: `praxiq-${key}`,
+    id: `bestbpmn-${key}`,
     label: pickText(definition.label, language),
     component: ListGroup,
     add: (event: Event) => {
       event.stopPropagation();
-      save([...links, bpmnFactory.create('praxiq:Link', { href: '', title: '' })]);
+      save([...links, bpmnFactory.create('bestadd:Link', { href: '', title: '' })]);
     },
     items: links.map((link, index) => ({
-      id: `praxiq-${key}-${index}`,
+      id: `bestbpmn-${key}-${index}`,
       label: link.title || link.href || t('panel.link'),
       remove: () => save(links.filter((l) => l !== link)),
-      autoFocusEntry: `praxiq-${key}-${index}-title`,
+      autoFocusEntry: `bestbpmn-${key}-${index}-title`,
       entries: [
-        { id: `praxiq-${key}-${index}-title`, component: LinkField, link, property: 'title', label: t('panel.linkTitle') },
+        { id: `bestbpmn-${key}-${index}-title`, component: LinkField, link, property: 'title', label: t('panel.linkTitle') },
         {
-          id: `praxiq-${key}-${index}-href`,
+          id: `bestbpmn-${key}-${index}-href`,
           component: LinkField,
           link,
           property: 'href',
@@ -181,16 +181,16 @@ function LinkField(props: {
   });
 }
 
-function servicesGroup(element: DiagramElement, definition: AttributeDefinition, catalog: Service[], i18n: PraxiqI18n) {
+function servicesGroup(element: DiagramElement, definition: AttributeDefinition, catalog: Service[], i18n: BestbpmnI18n) {
   const { key, serviceKinds } = definition;
   const { t, language } = i18n;
   const offered = catalog.filter((s) => !serviceKinds?.length || serviceKinds.includes(s.kind));
-  const selected = itemsOf(element, key, 'praxiq:ServiceRef');
+  const selected = itemsOf(element, key, 'bestadd:ServiceRef');
   const missing = selected.filter((ref) => !offered.some((s) => s.id === ref.ref));
 
   const entries = [
     ...offered.map((service) => ({
-      id: `praxiq-${key}-${service.id}`,
+      id: `bestbpmn-${key}-${service.id}`,
       component: ServiceCheckbox,
       isEdited: isCheckboxEntryEdited,
       attributeKey: key,
@@ -199,7 +199,7 @@ function servicesGroup(element: DiagramElement, definition: AttributeDefinition,
       description: service.description,
     })),
     ...missing.map((ref) => ({
-      id: `praxiq-${key}-${ref.ref}`,
+      id: `bestbpmn-${key}-${ref.ref}`,
       component: ServiceCheckbox,
       isEdited: isCheckboxEntryEdited,
       attributeKey: key,
@@ -210,13 +210,13 @@ function servicesGroup(element: DiagramElement, definition: AttributeDefinition,
 
   if (!entries.length) {
     entries.push({
-      id: `praxiq-${key}-empty`,
+      id: `bestbpmn-${key}-empty`,
       component: EmptyCatalog,
       text: t('panel.emptyCatalog'),
     } as any);
   }
 
-  return { id: `praxiq-${key}`, label: pickText(definition.label, language), entries };
+  return { id: `bestbpmn-${key}`, label: pickText(definition.label, language), entries };
 }
 
 function ServiceCheckbox(props: {
@@ -235,18 +235,18 @@ function ServiceCheckbox(props: {
     id,
     label,
     description,
-    getValue: () => itemsOf(element, attributeKey, 'praxiq:ServiceRef').some((r) => r.ref === serviceId),
+    getValue: () => itemsOf(element, attributeKey, 'bestadd:ServiceRef').some((r) => r.ref === serviceId),
     setValue: (checked: boolean) => {
       const attribute = findAttribute(element.businessObject, attributeKey);
       const items: BusinessObject[] = attribute?.items ?? [];
       const next = checked
-        ? [...items, bpmnFactory.create('praxiq:ServiceRef', { ref: serviceId, name: label })]
-        : items.filter((i) => !(i.$type === 'praxiq:ServiceRef' && i.ref === serviceId));
+        ? [...items, bpmnFactory.create('bestadd:ServiceRef', { ref: serviceId, name: label })]
+        : items.filter((i) => !(i.$type === 'bestadd:ServiceRef' && i.ref === serviceId));
       commandStack.execute(UPDATE_ATTRIBUTE, { element, key: attributeKey, value: attribute?.value, items: next });
     },
   });
 }
 
 function EmptyCatalog(props: { text: string }) {
-  return h('div', { class: 'bio-properties-panel-description praxiq-empty' }, props.text);
+  return h('div', { class: 'bio-properties-panel-description bestbpmn-empty' }, props.text);
 }

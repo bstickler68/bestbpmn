@@ -16,9 +16,9 @@ import { EMPTY_DIAGRAM } from './emptyDiagram';
 import {
   fileNameFor,
   modelName,
-  praxiqModdleExtensions,
-  praxiqModule,
-  praxiqPropertiesProviderModule,
+  bestbpmnModdleExtensions,
+  bestbpmnModule,
+  bestbpmnPropertiesProviderModule,
   STATUS_CHANGED,
   translateModule,
   type ServiceOverlays,
@@ -77,14 +77,14 @@ async function createModeler(language: string, xml: string) {
     additionalModules: [
       BpmnPropertiesPanelModule,
       BpmnPropertiesProviderModule,
-      praxiqModule,
-      praxiqPropertiesProviderModule,
+      bestbpmnModule,
+      bestbpmnPropertiesProviderModule,
       translateModule(language),
     ],
-    moddleExtensions: praxiqModdleExtensions,
+    moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: '#properties' },
-    // Bis zum Backend kommen Service-Katalog, Status-, Rollen- und Gruppentabelle aus Dateien im Repo (ADR 0009, 0012, 0013).
-    praxiq: { services, states: states as StatusDefinition[], roles: roles as RoleDefinition[], language, t },
+    // Service-Katalog, Status-, Rollen- und Gruppentabelle kommen bis Etappe 2 aus den Beispieldateien.
+    bestbpmn: { services, states: states as StatusDefinition[], roles: roles as RoleDefinition[], language, t },
   });
   modeler.on(STATUS_CHANGED, ({ models }: { models: StatusModel[] }) => {
     renderStatusPanel(statusPanel, models, { language, t });
@@ -95,7 +95,7 @@ async function createModeler(language: string, xml: string) {
     showModelName();
   });
   await open(xml);
-  (modeler.get('praxiqServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
+  (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
 }
 
 async function open(xml: string) {
@@ -118,7 +118,7 @@ document.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((tab) =>
 );
 
 showServices.addEventListener('change', () => {
-  (modeler.get('praxiqServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
+  (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
 });
 
 languageSelect.addEventListener('change', async () => {

@@ -2,7 +2,7 @@ export const EMPTY_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                  id="Definitions_1" targetNamespace="https://praxiq.org/processes">
+                  id="Definitions_1" targetNamespace="urn:bestadd:processes">
   <bpmn:process id="Prozess_1" isExecutable="true">
     <bpmn:startEvent id="Start_1" />
   </bpmn:process>

@@ -5,9 +5,9 @@ import { readAttributes } from '@bestbpmn/model';
 import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import services from '../../../templates/catalog/services.json';
 import {
-  praxiqModdleExtensions,
-  praxiqModule,
-  praxiqPropertiesProviderModule,
+  bestbpmnModdleExtensions,
+  bestbpmnModule,
+  bestbpmnPropertiesProviderModule,
   UPDATE_ATTRIBUTE,
   type ServiceOverlays,
 } from '@bestbpmn/bpmn-js-extension';
@@ -25,12 +25,12 @@ async function setup(xml = template) {
     additionalModules: [
       BpmnPropertiesPanelModule,
       BpmnPropertiesProviderModule,
-      praxiqModule,
-      praxiqPropertiesProviderModule,
+      bestbpmnModule,
+      bestbpmnPropertiesProviderModule,
     ],
-    moddleExtensions: praxiqModdleExtensions,
+    moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: container.querySelector('#p') },
-    praxiq: { services },
+    bestbpmn: { services },
   });
   await modeler.importXML(xml);
 }
@@ -43,7 +43,7 @@ afterEach(() => {
   container?.remove();
 });
 
-describe('Zusatzattribute an Aktivitäten (ADR 0009)', () => {
+describe('Zusatzattribute an Aktivitäten', () => {
   it('setzt einen Wert und legt dabei alle Container an', async () => {
     await setup();
     const task = element('Pruefen');
@@ -53,7 +53,7 @@ describe('Zusatzattribute an Aktivitäten (ADR 0009)', () => {
       { key: 'hinweis', value: 'Vier-Augen-Prinzip', links: [], services: [] },
     ]);
     const { xml } = await modeler.saveXML();
-    expect(xml).toContain('<praxiq:attribute key="hinweis" value="Vier-Augen-Prinzip" />');
+    expect(xml).toContain('<bestadd:attribute key="hinweis" value="Vier-Augen-Prinzip" />');
   });
 
   it('macht das Setzen in einem Schritt rückgängig', async () => {
@@ -81,7 +81,7 @@ describe('Zusatzattribute an Aktivitäten (ADR 0009)', () => {
   it('ordnet Services über den Katalog zu', async () => {
     await setup();
     const task = element('Pruefen');
-    const ref = get('bpmnFactory').create('praxiq:ServiceRef', { ref: 'svc-wiki', name: 'Wissensdatenbank' });
+    const ref = get('bpmnFactory').create('bestadd:ServiceRef', { ref: 'svc-wiki', name: 'Wissensdatenbank' });
     get('commandStack').execute(UPDATE_ATTRIBUTE, { element: task, key: 'services', items: [ref] });
 
     expect(readAttributes(task.businessObject)[0]?.services).toEqual([{ ref: 'svc-wiki', name: 'Wissensdatenbank' }]);
@@ -96,8 +96,8 @@ describe('Eigenschaftenpanel', () => {
     await nextTick();
 
     const panel = container.querySelector('#p')!;
-    expect(panel.querySelector('[data-group-id="group-praxiq-links"]')).not.toBeNull();
-    const servicesGroup = panel.querySelector('[data-group-id="group-praxiq-services"]')!;
+    expect(panel.querySelector('[data-group-id="group-bestbpmn-links"]')).not.toBeNull();
+    const servicesGroup = panel.querySelector('[data-group-id="group-bestbpmn-services"]')!;
     expect(servicesGroup.textContent).toContain('Dokumentenmanagement');
     expect(servicesGroup.textContent).not.toContain('Datenbankcluster');
     expect(panel.textContent).toContain('Dokumentvorlagen');
@@ -109,7 +109,7 @@ describe('Eigenschaftenpanel', () => {
     get('selection').select(element('Pruefen'));
     await nextTick();
 
-    const group = container.querySelector('[data-group-id="group-praxiq-links"]')!;
+    const group = container.querySelector('[data-group-id="group-bestbpmn-links"]')!;
     group.querySelector<HTMLButtonElement>('.bio-properties-panel-add-entry')!.click();
     await nextTick();
 
@@ -126,28 +126,28 @@ describe('Eigenschaftenpanel', () => {
     await nextTick();
     get('selection').select(element('Start'));
     await nextTick();
-    expect(container.querySelector('[data-group-id="group-praxiq-services"]')).toBeNull();
+    expect(container.querySelector('[data-group-id="group-bestbpmn-services"]')).toBeNull();
   });
 });
 
 describe('Services am Diagramm', () => {
   it('zeigt die Anzahl und auf Wunsch die Namen', async () => {
     await setup();
-    const overlays = get('overlays').get({ element: 'Erstellen', type: 'praxiq-services' });
+    const overlays = get('overlays').get({ element: 'Erstellen', type: 'bestbpmn-services' });
     expect(overlays).toHaveLength(1);
     expect(overlays[0].html.textContent).toBe('⚙ 1');
 
-    get<ServiceOverlays>('praxiqServiceOverlays').toggleNames(true);
-    const named = get('overlays').get({ element: 'Erstellen', type: 'praxiq-services' });
+    get<ServiceOverlays>('bestbpmnServiceOverlays').toggleNames(true);
+    const named = get('overlays').get({ element: 'Erstellen', type: 'bestbpmn-services' });
     expect(named[0].html.textContent).toBe('Dokumentenmanagement');
   });
 
   it('aktualisiert die Anzeige nach einer Änderung', async () => {
     await setup();
     const task = element('Pruefen');
-    expect(get('overlays').get({ element: 'Pruefen', type: 'praxiq-services' })).toHaveLength(0);
-    const ref = get('bpmnFactory').create('praxiq:ServiceRef', { ref: 'svc-mail', name: 'E-Mail und Kalender' });
+    expect(get('overlays').get({ element: 'Pruefen', type: 'bestbpmn-services' })).toHaveLength(0);
+    const ref = get('bpmnFactory').create('bestadd:ServiceRef', { ref: 'svc-mail', name: 'E-Mail und Kalender' });
     get('commandStack').execute(UPDATE_ATTRIBUTE, { element: task, key: 'services', items: [ref] });
-    expect(get('overlays').get({ element: 'Pruefen', type: 'praxiq-services' })).toHaveLength(1);
+    expect(get('overlays').get({ element: 'Pruefen', type: 'bestbpmn-services' })).toHaveLength(1);
   });
 });

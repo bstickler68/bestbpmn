@@ -1,8 +1,8 @@
 import type { Language } from '../i18n/translations.js';
 
 /**
- * Ein Eintrag der Statustabelle. Der Administrator pflegt ID, englischen Namen und Übersetzungen;
- * im Modell steht nur die ID (ADR 0012). Symbol, Farbe und Kategorie braucht erst der Ablauf.
+ * Ein Eintrag der Statustabelle. Der Katalog enthält ID, englischen Namen und Übersetzungen;
+ * im Modell steht nur die ID. Symbol, Farbe und Kategorie braucht erst der Ablauf.
  */
 export interface StatusDefinition {
   /** Technische ID, z. B. `in_review`. Steht im Modell in eckigen Klammern: `Prozess [in_review]`. */
@@ -20,7 +20,7 @@ export interface StatusDefinition {
 }
 
 /**
- * Ein Eintrag der Rollen- und Gruppentabelle (ADR 0013). Im Modell steht nur die ID,
+ * Ein Eintrag der Rollen- und Gruppentabelle. Im Modell steht nur die ID,
  * geschrieben als `group(id)` oder `role(id)`.
  */
 export interface RoleDefinition {
@@ -49,8 +49,8 @@ export function findRole(
 }
 
 /**
- * Die zentralen Tabellen, die der Modellierer und die Modellprüfung kennen. Bis zum Backend
- * kommen sie aus `templates/catalog/`, danach aus der API (ADR 0012, 0013).
+ * Die zentralen Tabellen, die der Modellierer und die Modellprüfung kennen. Beispiele liegen
+ * unter `templates/catalog/`.
  */
 export interface Catalog {
   states?: StatusDefinition[];

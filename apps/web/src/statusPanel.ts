@@ -11,7 +11,7 @@ export interface PanelI18n {
 
 /**
  * Zeigt Status, Statuswechsel und Meldungen der Modellprüfung an. Status erscheinen in der
- * Sprache der Oberfläche, falls übersetzt, sonst in der Hauptsprache des Modells (ADR 0010).
+ * Sprache der Oberfläche, falls übersetzt, sonst in der Hauptsprache des Modells.
  */
 export function renderStatusPanel(container: HTMLElement, models: StatusModel[], i18n: PanelI18n): void {
   container.innerHTML = models.map((m) => renderModel(m, i18n)).join('') || `<p>${escape(i18n.t('status.noProcess'))}</p>`;

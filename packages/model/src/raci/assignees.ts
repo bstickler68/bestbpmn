@@ -1,12 +1,12 @@
 /**
- * Eine Zuordnung in RACI (ADR 0003). Geschrieben wird sie in einer kurzen Schreibweise,
+ * Eine Zuordnung in RACI. Geschrieben wird sie in einer kurzen Schreibweise,
  * die im Modellierer und im `potentialOwner` gleich aussieht:
  *
  * | Schreibweise | Bedeutung |
  * | --- | --- |
  * | `user(mmeier)` | eine Person |
  * | `group(Autoren)` | eine Gruppe |
- * | `role(process_owner)` | eine Rolle aus der Rollen- und Gruppentabelle (ADR 0013) |
+ * | `role(process_owner)` | eine Rolle aus der Rollen- und Gruppentabelle |
  * | `field(autor)` | die Person aus einem Feld des Vorgangs |
  * | `initiator()` | wer den Vorgang gestartet hat |
  * | `performerOf(Erstellen)` | wer eine frühere Aktivität bearbeitet hat |

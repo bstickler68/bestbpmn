@@ -2,7 +2,7 @@
   "name": "@bestbpmn/model",
   "version": "0.1.0",
   "private": true,
-  "description": "Namensräume raci und praxiq für BPMN, Statusmodell aus dataStates, RACI/DEMI und Prüfregeln",
+  "description": "Namensräume raci und bestbpmn für BPMN, Statusmodell aus dataStates, RACI/DEMI und Prüfregeln",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -10,7 +10,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./moddle/praxiq.json": "./src/moddle/praxiq.json"
+    "./moddle/bestadd.json": "./src/moddle/bestadd.json"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

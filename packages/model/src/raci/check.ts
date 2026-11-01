@@ -6,7 +6,7 @@ import { readRaci, type Raci } from './read.js';
 type El = ModdleElement & Record<string, any>;
 
 /**
- * D aus einer Swimlane oder einem Pool (ADR 0013):
+ * D aus einer Swimlane oder einem Pool:
  * - Ist eine Rolle oder Gruppe ausgewählt, steht sie in `raci:assignee`, z. B. `group(service_desk)`.
  * - Sonst gilt bei Lanes der Name als Gruppe (`Autoren` → `group(Autoren)`) oder er steht selbst in der
  *   RACI-Schreibweise, z. B. `field(autor)`. Das hält Modelle aus anderen Werkzeugen lesbar.
@@ -46,7 +46,7 @@ export function hasLanes(process: El): boolean {
 }
 
 /**
- * Ordnet jedem Element die Swimlane zu, aus der sein D kommt (ADR 0013):
+ * Ordnet jedem Element die Swimlane zu, aus der sein D kommt:
  * - Gibt es Lanes im Pool, gilt immer die innerste Lane der Aufgabe. Der Pool zählt dann nicht.
  * - Nur ein Pool ohne Lanes (der Pool ist dann selbst die einzige Lane) gibt seine Rolle oder Gruppe weiter.
  */
@@ -76,7 +76,7 @@ export function laneMap(process: El, participant?: El): Map<El, El> {
 }
 
 /**
- * Jede Swimlane braucht eine Rolle oder Gruppe aus der Tabelle (`raci:assignee`, ADR 0013). Geprüft werden
+ * Jede Swimlane braucht eine Rolle oder Gruppe aus der Tabelle (`raci:assignee`). Geprüft werden
  * die innersten Lanes, denn aus ihnen kommt D; eine Lane, die nur weitere Lanes enthält, braucht keine.
  */
 export function checkLanes(process: El): ModelIssue[] {
@@ -102,13 +102,13 @@ export function checkLanes(process: El): ModelIssue[] {
   return issues;
 }
 
-/** Multi-Instanz-Aufgabe (parallel oder sequenziell): Hier darf es mehrere D geben, je D ein Subtask. */
+/** Multi-Instanz-Aufgabe (parallel oder sequenziell): Hier darf es mehrere D geben, je D eine eigene Bearbeitung. */
 export function isMultiInstance(element: ModdleElement): boolean {
   return (element as El).loopCharacteristics?.$type === 'bpmn:MultiInstanceLoopCharacteristics';
 }
 
 /**
- * RACI eines Elements mit D aus der Swimlane (ADR 0013). Liegt die Aktivität in einer Lane mit Zuordnung,
+ * RACI eines Elements mit D aus der Swimlane. Liegt die Aktivität in einer Lane mit Zuordnung,
  * ist das ihr D; `notPerformerOf(…)` an der Aktivität bleibt als Einschränkung erhalten.
  * Ausnahme Multi-Instanz-Aufgaben: Sie behalten ihre eigenen D, die Lane gilt nur, wenn keins eingetragen ist.
  */
@@ -128,7 +128,7 @@ export function resolveRaci(element: El, lanes: Map<El, El>): Raci & { responsib
 }
 
 /**
- * Prüfregeln für RACI/DEMI (ADR 0011, 0013):
+ * Prüfregeln für RACI/DEMI:
  * - Jede Benutzeraufgabe hat genau ein D, an der Aufgabe oder über ihre Swimlane.
  *   Multi-Instanz-Aufgaben dürfen mehrere D haben. `notPerformerOf(…)` schränkt nur ein und zählt nicht mit.
  * - Höchstens ein E je Aktivität. M und I dürfen mehrfach vorkommen.

@@ -1,6 +1,6 @@
 import { is, type BusinessObject, type DiagramElement } from './util';
 
-export const UPDATE_TRANSLATION = 'praxiq.translation.update';
+export const UPDATE_TRANSLATION = 'bestbpmn.translation.update';
 
 export interface UpdateTranslationContext {
   element: DiagramElement;
@@ -14,7 +14,7 @@ export interface UpdateTranslationContext {
 const extensionValue = (bo: BusinessObject | undefined, type: string): BusinessObject | undefined =>
   (bo?.extensionElements?.values ?? []).find((v: BusinessObject) => is(v, type));
 
-export const findTranslations = (bo: BusinessObject) => extensionValue(bo, 'praxiq:Translations');
+export const findTranslations = (bo: BusinessObject) => extensionValue(bo, 'bestadd:Translations');
 
 export function findTranslation(list: BusinessObject[] | undefined, lang: string): BusinessObject | undefined {
   return (list ?? []).find((t) => t.lang === lang);
@@ -68,7 +68,7 @@ class Base {
   ) {
     let translation = findTranslation(owner[listProperty], lang);
     if (!translation) {
-      translation = this.bpmnFactory.create('praxiq:Translation', { lang }) as BusinessObject;
+      translation = this.bpmnFactory.create('bestadd:Translation', { lang }) as BusinessObject;
       translation.$parent = owner;
       this.modeling.updateModdleProperties(element, owner, { [listProperty]: [...(owner[listProperty] ?? []), translation] });
     }
@@ -95,7 +95,7 @@ class Base {
 /** Übersetzt Name und Beschreibung eines Elements in eine weitere Sprache. */
 export class UpdateTranslationHandler extends Base {
   preExecute({ element, target, lang, name, documentation }: UpdateTranslationContext) {
-    const container = this.ensureExtension(element, target, 'praxiq:Translations', 'translations');
+    const container = this.ensureExtension(element, target, 'bestadd:Translations', 'translations');
     const values: { name?: string; documentation?: string } = {};
     if (name !== undefined) values.name = name;
     if (documentation !== undefined) values.documentation = documentation;

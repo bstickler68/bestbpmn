@@ -37,7 +37,7 @@ export type {
   StatusModel,
 } from './states/types.js';
 export { default as raciModdle } from './moddle/raci.json' with { type: 'json' };
-export { default as praxiqModdle } from './moddle/praxiq.json' with { type: 'json' };
+export { default as bestaddModdle } from './moddle/bestadd.json' with { type: 'json' };
 export { readAttributes, readDescription, findAttributesContainer } from './attributes/read.js';
 export { DEFAULT_ATTRIBUTE_DEFINITIONS } from './attributes/defaults.js';
 export type {

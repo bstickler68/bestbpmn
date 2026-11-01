@@ -1,5 +1,5 @@
 /// <reference path="./properties-panel.d.ts" />
-import { praxiqModdle, raciModdle } from '@bestbpmn/model';
+import { bestaddModdle, raciModdle } from '@bestbpmn/model';
 import { AttributeCommands } from './attributes';
 import AttributesPropertiesProvider from './AttributesPropertiesProvider';
 import LaneBehavior from './LaneBehavior';
@@ -15,47 +15,47 @@ import RaciPropertiesProvider from './RaciPropertiesProvider';
 import { TranslationCommands } from './translations';
 import TranslationsPropertiesProvider from './TranslationsPropertiesProvider';
 
-/** bpmn-js-Erweiterung von PRAXIQ. Einbinden über `additionalModules`. */
-export const praxiqModule = {
+/** bpmn-js-Erweiterung von bestbpmn. Einbinden über `additionalModules`. */
+export const bestbpmnModule = {
   __init__: [
-    'praxiqProcessObject',
-    'praxiqLane',
-    'praxiqProcessName',
-    'praxiqStatusCheck',
-    'praxiqAttributeCommands',
-    'praxiqTranslationCommands',
-    'praxiqRaciCommands',
-    'praxiqServiceOverlays',
+    'bestbpmnProcessObject',
+    'bestbpmnLane',
+    'bestbpmnProcessName',
+    'bestbpmnStatusCheck',
+    'bestbpmnAttributeCommands',
+    'bestbpmnTranslationCommands',
+    'bestbpmnRaciCommands',
+    'bestbpmnServiceOverlays',
   ],
-  praxiqProcessObject: ['type', ProcessObjectBehavior],
-  praxiqLane: ['type', LaneBehavior],
-  praxiqProcessName: ['type', ProcessNameBehavior],
-  praxiqStatusCheck: ['type', StatusCheck],
-  praxiqAttributeCommands: ['type', AttributeCommands],
-  praxiqTranslationCommands: ['type', TranslationCommands],
-  praxiqRaciCommands: ['type', RaciCommands],
-  praxiqServiceOverlays: ['type', ServiceOverlays],
+  bestbpmnProcessObject: ['type', ProcessObjectBehavior],
+  bestbpmnLane: ['type', LaneBehavior],
+  bestbpmnProcessName: ['type', ProcessNameBehavior],
+  bestbpmnStatusCheck: ['type', StatusCheck],
+  bestbpmnAttributeCommands: ['type', AttributeCommands],
+  bestbpmnTranslationCommands: ['type', TranslationCommands],
+  bestbpmnRaciCommands: ['type', RaciCommands],
+  bestbpmnServiceOverlays: ['type', ServiceOverlays],
 };
 
 /**
- * Status (ADR 0012), Lanes und RACI (ADR 0003, 0011, 0013), Übersetzungen (ADR 0010) und Zusatzattribute (ADR 0009) im Eigenschaftenpanel.
+ * Status, Lanes und RACI, Übersetzungen und Zusatzattribute im Eigenschaftenpanel.
  * Setzt `BpmnPropertiesPanelModule` aus bpmn-js-properties-panel voraus.
  */
-export const praxiqPropertiesProviderModule = {
-  __init__: ['praxiqStatusProvider', 'praxiqLaneProvider', 'praxiqProcessRootProvider', 'praxiqRaciProvider', 'praxiqTranslationsProvider', 'praxiqAttributesProvider'],
-  praxiqStatusProvider: ['type', StatusPropertiesProvider],
-  praxiqLaneProvider: ['type', LanePropertiesProvider],
-  praxiqProcessRootProvider: ['type', ProcessRootPropertiesProvider],
-  praxiqRaciProvider: ['type', RaciPropertiesProvider],
-  praxiqTranslationsProvider: ['type', TranslationsPropertiesProvider],
-  praxiqAttributesProvider: ['type', AttributesPropertiesProvider],
+export const bestbpmnPropertiesProviderModule = {
+  __init__: ['bestbpmnStatusProvider', 'bestbpmnLaneProvider', 'bestbpmnProcessRootProvider', 'bestbpmnRaciProvider', 'bestbpmnTranslationsProvider', 'bestbpmnAttributesProvider'],
+  bestbpmnStatusProvider: ['type', StatusPropertiesProvider],
+  bestbpmnLaneProvider: ['type', LanePropertiesProvider],
+  bestbpmnProcessRootProvider: ['type', ProcessRootPropertiesProvider],
+  bestbpmnRaciProvider: ['type', RaciPropertiesProvider],
+  bestbpmnTranslationsProvider: ['type', TranslationsPropertiesProvider],
+  bestbpmnAttributesProvider: ['type', AttributesPropertiesProvider],
 };
 
 /** moddle-Erweiterungen, die der Modellierer kennen muss. */
-export const praxiqModdleExtensions = { raci: raciModdle, praxiq: praxiqModdle };
+export const bestbpmnModdleExtensions = { raci: raciModdle, bestadd: bestaddModdle };
 
 export { STATUS_CHANGED } from './StatusCheck';
-export { UPDATE_ATTRIBUTE, type PraxiqConfig } from './attributes';
+export { UPDATE_ATTRIBUTE, type BestbpmnConfig } from './attributes';
 export { translateModule, resolveI18n } from './i18n';
 export { UPDATE_RACI } from './raci';
 export { UPDATE_TRANSLATION } from './translations';

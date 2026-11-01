@@ -3,9 +3,9 @@ import type { AttributeValue } from './types.js';
 
 type El = ModdleElement & Record<string, any>;
 
-export const ATTRIBUTES_TYPE = 'praxiq:Attributes';
+export const ATTRIBUTES_TYPE = 'bestadd:Attributes';
 
-/** Liefert den `praxiq:attributes`-Container eines Elements, falls vorhanden. */
+/** Liefert den `bestadd:attributes`-Container eines Elements, falls vorhanden. */
 export function findAttributesContainer(element: ModdleElement): El | undefined {
   const values = ((element as El).extensionElements?.values ?? []) as El[];
   return values.find((value) => value.$type === ATTRIBUTES_TYPE);
@@ -20,10 +20,10 @@ export function readAttributes(element: ModdleElement): AttributeValue[] {
       key: attribute.key,
       value: attribute.value,
       links: items
-        .filter((item) => item.$type === 'praxiq:Link')
+        .filter((item) => item.$type === 'bestadd:Link')
         .map((item) => ({ href: item.href, title: item.title })),
       services: items
-        .filter((item) => item.$type === 'praxiq:ServiceRef')
+        .filter((item) => item.$type === 'bestadd:ServiceRef')
         .map((item) => ({ ref: item.ref, name: item.name })),
     };
   });

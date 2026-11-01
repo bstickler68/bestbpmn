@@ -1,23 +1,23 @@
 import { h } from '@bpmn-io/properties-panel/preact';
 import { TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
 import { useService } from 'bpmn-js-properties-panel';
-import type { PraxiqConfig } from './attributes';
-import { resolveI18n, type PraxiqI18n } from './i18n';
+import type { BestbpmnConfig } from './attributes';
+import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { processOfRoot, RENAME_PROCESS } from './processRoot';
 import { is, type BusinessObject, type DiagramElement } from './util';
 
 const LOW_PRIORITY = 300;
 
 /**
- * Die Kollaboration ist der Haupttask (ADR 0013, 0014). Das Panel zeigt Name und Beschreibung wie bei
+ * Die Kollaboration steht für den ganzen Vorgang. Das Panel zeigt Name und Beschreibung wie bei
  * einem Prozess. Bei einem Pool gehören sie zum Prozess, bei mehreren zur Kollaboration.
  */
 export default class ProcessRootPropertiesProvider {
-  static $inject = ['propertiesPanel', 'config.praxiq'];
+  static $inject = ['propertiesPanel', 'config.bestbpmn'];
 
-  private i18n: PraxiqI18n;
+  private i18n: BestbpmnI18n;
 
-  constructor(propertiesPanel: any, config: PraxiqConfig | undefined) {
+  constructor(propertiesPanel: any, config: BestbpmnConfig | undefined) {
     this.i18n = resolveI18n(config);
     propertiesPanel.registerProvider(LOW_PRIORITY, this);
   }
@@ -30,17 +30,17 @@ export default class ProcessRootPropertiesProvider {
       }
       const process = processOfRoot(bo) ?? bo;
       const general = groups.find((g) => g.id === 'general');
-      general?.entries.unshift({ id: 'praxiq-process-name', component: ProcessNameEntry, process: bo, i18n: this.i18n });
+      general?.entries.unshift({ id: 'bestbpmn-process-name', component: ProcessNameEntry, process: bo, i18n: this.i18n });
       const documentation = groups.find((g) => g.id === 'documentation');
       if (documentation) {
-        documentation.entries = [{ id: 'praxiq-process-documentation', component: ProcessDocumentationEntry, process, i18n: this.i18n }];
+        documentation.entries = [{ id: 'bestbpmn-process-documentation', component: ProcessDocumentationEntry, process, i18n: this.i18n }];
       }
       return groups;
     };
   }
 }
 
-function ProcessNameEntry(props: { element: DiagramElement; id: string; process: BusinessObject; i18n: PraxiqI18n }) {
+function ProcessNameEntry(props: { element: DiagramElement; id: string; process: BusinessObject; i18n: BestbpmnI18n }) {
   const { element, id, process, i18n } = props;
   const commandStack = useService('commandStack');
   const debounce = useService('debounceInput');
@@ -54,7 +54,7 @@ function ProcessNameEntry(props: { element: DiagramElement; id: string; process:
   });
 }
 
-function ProcessDocumentationEntry(props: { element: DiagramElement; id: string; process: BusinessObject; i18n: PraxiqI18n }) {
+function ProcessDocumentationEntry(props: { element: DiagramElement; id: string; process: BusinessObject; i18n: BestbpmnI18n }) {
   const { element, id, process, i18n } = props;
   const modeling = useService('modeling');
   const bpmnFactory = useService('bpmnFactory');

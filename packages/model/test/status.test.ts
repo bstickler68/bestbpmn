@@ -93,7 +93,7 @@ describe('deriveStatusModels – Vorlage Dokumentenfreigabe', () => {
     const { rootElement } = await moddle.fromXML(template('dokumentenfreigabe.bpmn'));
     const { xml } = await moddle.toXML(rootElement);
     expect(xml).toContain('<raci:consulted><raci:dynamic field="autor" /></raci:consulted>');
-    expect(xml).toContain('xmlns:raci="https://praxiq.org/schema/raci/1.0"');
+    expect(xml).toContain('xmlns:raci="urn:bestadd:raci:1.0"');
   });
 });
 
@@ -253,11 +253,11 @@ describe('deriveStatusModels – Modellierregeln', () => {
     expect(statusIssues(m!)).toContainEqual(expect.objectContaining({ code: 'label-state-mismatch', elementId: 'R1' }));
   });
 
-  it('nimmt den Schlüssel aus praxiq:key und bleibt beim Umbenennen stabil', async () => {
+  it('nimmt den Schlüssel aus bestadd:key und bleibt beim Umbenennen stabil', async () => {
     const keyed = (id: string, name: string, key: string) =>
-      `<bpmn:dataObjectReference id="${id}" name="Prozess" dataObjectRef="Vorgang"><bpmn:dataState id="${id}_s" name="${name}" praxiq:key="${key}" /></bpmn:dataObjectReference>`;
+      `<bpmn:dataObjectReference id="${id}" name="Prozess" dataObjectRef="Vorgang"><bpmn:dataState id="${id}_s" name="${name}" bestadd:key="${key}" /></bpmn:dataObjectReference>`;
     const xml = model(`<bpmn:dataObject id="Vorgang" name="Prozess" />${keyed('R1', 'Wird geprüft', 'in_review')}${task('A', [], ['R1'])}`)
-      .replace('<bpmn:definitions ', '<bpmn:definitions xmlns:praxiq="https://praxiq.org/schema/praxiq/1.0" ');
+      .replace('<bpmn:definitions ', '<bpmn:definitions xmlns:bestadd="urn:bestadd:schema:1.0" ');
     const [m] = await deriveStatusModels(xml);
     expect(m!.statuses).toEqual(['in_review']);
     expect(m!.statusNames).toEqual({ in_review: 'Wird geprüft' });
@@ -266,9 +266,9 @@ describe('deriveStatusModels – Modellierregeln', () => {
 
   it('warnt, wenn ein Schlüssel für verschiedene Namen steht', async () => {
     const keyed = (id: string, name: string) =>
-      `<bpmn:dataObjectReference id="${id}" name="Prozess" dataObjectRef="Vorgang"><bpmn:dataState id="${id}_s" name="${name}" praxiq:key="done" /></bpmn:dataObjectReference>`;
+      `<bpmn:dataObjectReference id="${id}" name="Prozess" dataObjectRef="Vorgang"><bpmn:dataState id="${id}_s" name="${name}" bestadd:key="done" /></bpmn:dataObjectReference>`;
     const xml = model(`<bpmn:dataObject id="Vorgang" name="Prozess" />${keyed('R1', 'Erledigt')}${keyed('R2', 'Fertig')}${task('A', [], ['R1', 'R2'])}`)
-      .replace('<bpmn:definitions ', '<bpmn:definitions xmlns:praxiq="https://praxiq.org/schema/praxiq/1.0" ');
+      .replace('<bpmn:definitions ', '<bpmn:definitions xmlns:bestadd="urn:bestadd:schema:1.0" ');
     const [m] = await deriveStatusModels(xml);
     expect(statusIssues(m!)).toEqual([
       expect.objectContaining({ code: 'state-key-conflict', elementId: 'R2', params: { key: 'done', state: 'Fertig', other: 'Erledigt' } }),
@@ -287,7 +287,7 @@ describe('deriveStatusModels – Modellierregeln', () => {
   });
 });
 
-describe('Kollaboration mit mehreren Pools (ADR 0014)', () => {
+describe('Kollaboration mit mehreren Pools', () => {
   /** Zwei Pools: Service-Desk startet und schickt eine Nachricht an den Fachbereich. */
   const collaboration = (messageTarget: string) => `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="D" targetNamespace="t">
@@ -311,7 +311,7 @@ describe('Kollaboration mit mehreren Pools (ADR 0014)', () => {
   </bpmn:process>
 </bpmn:definitions>`;
 
-  it('liefert einen Haupttask für die ganze Kollaboration', async () => {
+  it('liefert einen Vorgang für die ganze Kollaboration', async () => {
     const models = await deriveStatusModels(collaboration('StartB'), { states });
     expect(models).toHaveLength(1);
     expect(models[0]).toMatchObject({ processId: 'C', processName: 'Antrag bearbeiten', processIds: ['A', 'B'] });

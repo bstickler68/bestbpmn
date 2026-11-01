@@ -1,8 +1,8 @@
 import { h } from '@bpmn-io/properties-panel/preact';
 import { useService } from 'bpmn-js-properties-panel';
 import { findRole, formatAssignee, hasLanes, parseAssignee, type RoleDefinition } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
-import { resolveI18n, type PraxiqI18n } from './i18n';
+import type { BestbpmnConfig } from './attributes';
+import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { RolePicker } from './RolePicker';
 import { pickerTexts, roleOptions } from './roleOptions';
 import { is, type BusinessObject, type DiagramElement } from './util';
@@ -10,16 +10,16 @@ import { is, type BusinessObject, type DiagramElement } from './util';
 const LOW_PRIORITY = 600;
 
 /**
- * Rolle oder Gruppe einer Swimlane oder eines Pools aus der Rollen- und Gruppentabelle (ADR 0013).
+ * Rolle oder Gruppe einer Swimlane oder eines Pools aus der Rollen- und Gruppentabelle.
  * Der Name wird aus der Tabelle übernommen; das Namensfeld entfällt dann.
  */
 export default class LanePropertiesProvider {
-  static $inject = ['propertiesPanel', 'config.praxiq'];
+  static $inject = ['propertiesPanel', 'config.bestbpmn'];
 
-  private i18n: PraxiqI18n;
+  private i18n: BestbpmnI18n;
   private roles: RoleDefinition[];
 
-  constructor(propertiesPanel: any, config: PraxiqConfig | undefined) {
+  constructor(propertiesPanel: any, config: BestbpmnConfig | undefined) {
     this.i18n = resolveI18n(config);
     this.roles = config?.roles ?? [];
     propertiesPanel.registerProvider(LOW_PRIORITY, this);
@@ -37,20 +37,20 @@ export default class LanePropertiesProvider {
       }
       const index = groups.indexOf(general);
       groups.splice(index >= 0 ? index + 1 : groups.length, 0, {
-        id: 'praxiq-lane',
+        id: 'bestbpmn-lane',
         label: this.i18n.t('lane.title'),
-        // Hat der Pool Lanes, kommt D immer aus den Lanes; der Pool braucht dann keine Zuordnung (ADR 0013).
+        // Hat der Pool Lanes, kommt D immer aus den Lanes; der Pool braucht dann keine Zuordnung.
         entries:
           is(bo, 'bpmn:Participant') && bo.processRef && hasLanes(bo.processRef) && !bo.assignee
-            ? [{ id: 'praxiq-lane-hint', component: Hint, text: this.i18n.t('lane.poolHasLanes') }]
-            : [{ id: 'praxiq-lane-role', component: LaneRoleEntry, roles: this.roles, i18n: this.i18n }],
+            ? [{ id: 'bestbpmn-lane-hint', component: Hint, text: this.i18n.t('lane.poolHasLanes') }]
+            : [{ id: 'bestbpmn-lane-role', component: LaneRoleEntry, roles: this.roles, i18n: this.i18n }],
       });
       return groups;
     };
   }
 }
 
-function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: RoleDefinition[]; i18n: PraxiqI18n }) {
+function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: RoleDefinition[]; i18n: BestbpmnI18n }) {
   const { element, id, roles, i18n } = props;
   const modeling = useService('modeling');
   const bo: BusinessObject = element.businessObject;
@@ -69,5 +69,5 @@ function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: Role
 }
 
 function Hint(props: { text: string }) {
-  return h('div', { class: 'bio-properties-panel-description praxiq-empty' }, props.text);
+  return h('div', { class: 'bio-properties-panel-description bestbpmn-empty' }, props.text);
 }

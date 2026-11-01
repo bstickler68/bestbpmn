@@ -16,8 +16,8 @@ export type IssueCode =
   | 'lane-without-role';
 
 /**
- * Ein Verstoß gegen die PRAXIQ-Modellierregeln (ADR 0008, 0012, RACI: ADR 0011, 0013). Enthält nur Code und Parameter;
- * den Text in der Sprache der Person erzeugt die Anzeige (ADR 0010).
+ * Ein Verstoß gegen die Modellierregeln. Enthält nur Code und Parameter;
+ * den Text in der Sprache der Person erzeugt die Anzeige.
  */
 export interface ModelIssue {
   code: IssueCode;
@@ -28,7 +28,7 @@ export interface ModelIssue {
 }
 
 /**
- * Ein Schritt, nach dessen Abschluss sich der Status des Haupttasks ändert
+ * Ein Schritt, nach dessen Abschluss sich der Status des Vorgangs ändert
  * oder an dem ein Status dokumentiert ist.
  */
 export interface StatusChange {
@@ -46,17 +46,17 @@ export interface StatusChange {
 }
 
 /**
- * Die abgeleiteten Status eines Haupttasks. Er gehört zu einer Kollaboration (auch mit mehreren Pools,
- * ADR 0014) oder zu einem Prozess ohne Pool.
+ * Die abgeleiteten Status eines Vorgangs. Er gehört zu einer Kollaboration (auch mit mehreren Pools)
+ * oder zu einem Prozess ohne Pool.
  */
 export interface StatusModel {
   /** ID der Kollaboration, sonst des Prozesses. */
   processId: string;
   /** Name der Kollaboration (bei einem Pool ersatzweise des Prozesses), sonst des Prozesses. */
   processName?: string;
-  /** IDs der Prozesse (Pools), die zu diesem Haupttask gehören. */
+  /** IDs der Prozesse (Pools), die zu diesem Vorgang gehören. */
   processIds: string[];
-  /** Das Datenobjekt „Prozess“, das den Status trägt (ADR 0012). */
+  /** Das Datenobjekt „Prozess“, das den Status trägt. */
   dataObjectId?: string;
   dataObjectName?: string;
   /** Hauptsprache des Modells; in ihr stehen `name` und `documentation`. */
@@ -68,7 +68,7 @@ export interface StatusModel {
   /** Übersetzte Namen je Schlüssel und Sprache, z. B. `{ in_review: { en: 'In review' } }`. */
   statusTranslations: Record<string, Record<string, string>>;
   /**
-   * Mögliche Anfangsstatus: je Startereignis die Status der ersten Aktivität mit Output auf „Prozess“ (ADR 0012).
+   * Mögliche Anfangsstatus: je Startereignis die Status der ersten Aktivität mit Output auf „Prozess“.
    * Bis sie abgeschlossen ist, hat der Vorgang keinen Status.
    */
   initialStatuses: string[];
@@ -84,7 +84,7 @@ export interface ModdleElement {
   [key: string]: unknown;
 }
 
-/** Der Teil der bpmn-moddle-Schnittstelle, den PRAXIQ nutzt. */
+/** Der Teil der bpmn-moddle-Schnittstelle, den bestbpmn nutzt. */
 export interface Moddle {
   fromXML(
     xml: string,

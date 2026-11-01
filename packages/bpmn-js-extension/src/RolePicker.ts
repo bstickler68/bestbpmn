@@ -72,25 +72,25 @@ export function RolePicker(props: RolePickerProps) {
   };
 
   const inputId = `bio-properties-panel-${id}`;
-  return h('div', { class: 'bio-properties-panel-entry praxiq-picker', 'data-entry-id': id }, [
+  return h('div', { class: 'bio-properties-panel-entry bestbpmn-picker', 'data-entry-id': id }, [
     h('label', { class: 'bio-properties-panel-label', for: inputId }, label),
     h(
       'div',
       {
-        class: `praxiq-picker-field${disabled ? ' praxiq-picker-disabled' : ''}`,
+        class: `bestbpmn-picker-field${disabled ? ' bestbpmn-picker-disabled' : ''}`,
         onClick: () => input.current?.focus(),
       },
       [
         ...values.map((value) =>
-          h('span', { class: 'praxiq-chip', 'data-value': value }, [
-            h('span', { class: 'praxiq-chip-label' }, labelOf(value)),
+          h('span', { class: 'bestbpmn-chip', 'data-value': value }, [
+            h('span', { class: 'bestbpmn-chip-label' }, labelOf(value)),
             disabled
               ? null
               : h(
                   'button',
                   {
                     type: 'button',
-                    class: 'praxiq-chip-remove',
+                    class: 'bestbpmn-chip-remove',
                     title: texts.remove(labelOf(value)),
                     'aria-label': texts.remove(labelOf(value)),
                     onClick: (event: Event) => {
@@ -106,7 +106,7 @@ export function RolePicker(props: RolePickerProps) {
           ? h('input', {
               id: inputId,
               ref: input,
-              class: 'praxiq-picker-input',
+              class: 'bestbpmn-picker-input',
               type: 'text',
               autocomplete: 'off',
               role: 'combobox',
@@ -129,13 +129,13 @@ export function RolePicker(props: RolePickerProps) {
       ? results.length
         ? h(
             'ul',
-            { class: 'praxiq-picker-results', role: 'listbox' },
+            { class: 'bestbpmn-picker-results', role: 'listbox' },
             results.map((option, index) =>
               h(
                 'li',
                 {
                   role: 'option',
-                  class: index === active ? 'praxiq-picker-active' : undefined,
+                  class: index === active ? 'bestbpmn-picker-active' : undefined,
                   'aria-selected': String(index === active),
                   'data-value': option.value,
                   // mousedown statt click, damit das Feld den Fokus nicht vorher verliert
@@ -149,7 +149,7 @@ export function RolePicker(props: RolePickerProps) {
               ),
             ),
           )
-        : h('div', { class: 'praxiq-picker-empty' }, texts.noResults)
+        : h('div', { class: 'bestbpmn-picker-empty' }, texts.noResults)
       : null,
     description ? h('div', { class: 'bio-properties-panel-description' }, description) : null,
   ]);

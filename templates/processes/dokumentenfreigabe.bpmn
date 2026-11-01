@@ -3,29 +3,29 @@
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  xmlns:raci="https://praxiq.org/schema/raci/1.0"
-                  xmlns:praxiq="https://praxiq.org/schema/praxiq/1.0"
+                  xmlns:raci="urn:bestadd:raci:1.0"
+                  xmlns:bestadd="urn:bestadd:schema:1.0"
                   id="Definitions_Dokumentenfreigabe"
-                  praxiq:language="de"
-                  targetNamespace="https://praxiq.org/templates">
+                  bestadd:language="de"
+                  targetNamespace="urn:bestadd:templates">
   <bpmn:process id="Dokumentenfreigabe" name="Dokumentenfreigabe" isExecutable="true">
     <bpmn:documentation textFormat="text/markdown">Ein Dokument wird erstellt, geprüft und freigegeben. Bei Mängeln geht es zur Überarbeitung zurück.</bpmn:documentation>
     <bpmn:extensionElements>
-      <praxiq:translations>
-        <praxiq:translation lang="en" name="Document approval">A document is created, reviewed and approved. If there are defects, it goes back for revision.</praxiq:translation>
-      </praxiq:translations>
+      <bestadd:translations>
+        <bestadd:translation lang="en" name="Document approval">A document is created, reviewed and approved. If there are defects, it goes back for revision.</bestadd:translation>
+      </bestadd:translations>
     </bpmn:extensionElements>
     <bpmn:dataObject id="Prozess" name="Prozess" />
     <bpmn:dataObject id="Dokument" name="Dokument" />
     <bpmn:dataObjectReference id="Ref_Dokument" name="Dokument" dataObjectRef="Dokument" />
     <bpmn:dataObjectReference id="Ref_InPruefung" name="Prozess [in_review]" dataObjectRef="Prozess">
-      <bpmn:dataState id="State_InPruefung" praxiq:key="in_review" name="in_review" />
+      <bpmn:dataState id="State_InPruefung" bestadd:key="in_review" name="in_review" />
     </bpmn:dataObjectReference>
     <bpmn:dataObjectReference id="Ref_Geprueft" name="Prozess [reviewed]" dataObjectRef="Prozess">
-      <bpmn:dataState id="State_Geprueft" praxiq:key="reviewed" name="reviewed" />
+      <bpmn:dataState id="State_Geprueft" bestadd:key="reviewed" name="reviewed" />
     </bpmn:dataObjectReference>
     <bpmn:dataObjectReference id="Ref_Freigegeben" name="Prozess [approved]" dataObjectRef="Prozess">
-      <bpmn:dataState id="State_Freigegeben" praxiq:key="approved" name="approved" />
+      <bpmn:dataState id="State_Freigegeben" bestadd:key="approved" name="approved" />
     </bpmn:dataObjectReference>
 
     <bpmn:startEvent id="Start" name="Dokument angelegt">
@@ -36,17 +36,17 @@
       <bpmn:documentation textFormat="text/markdown">Lege das Dokument mit der aktuellen Vorlage an und fülle alle Pflichtabschnitte aus. Hänge den Link zum Dokument an den Vorgang.</bpmn:documentation>
       <bpmn:extensionElements>
         <raci:informed><raci:group ref="quality_management" /></raci:informed>
-        <praxiq:translations>
-          <praxiq:translation lang="en" name="Create document">Create the document from the current template and fill in all mandatory sections. Attach the link to the document to the case.</praxiq:translation>
-        </praxiq:translations>
-        <praxiq:attributes>
-          <praxiq:attribute key="links">
-            <praxiq:link href="https://example.org/wiki/dokumentvorlagen" title="Dokumentvorlagen" />
-          </praxiq:attribute>
-          <praxiq:attribute key="services">
-            <praxiq:serviceRef ref="svc-dms" name="Dokumentenmanagement" />
-          </praxiq:attribute>
-        </praxiq:attributes>
+        <bestadd:translations>
+          <bestadd:translation lang="en" name="Create document">Create the document from the current template and fill in all mandatory sections. Attach the link to the document to the case.</bestadd:translation>
+        </bestadd:translations>
+        <bestadd:attributes>
+          <bestadd:attribute key="links">
+            <bestadd:link href="https://example.org/wiki/dokumentvorlagen" title="Dokumentvorlagen" />
+          </bestadd:attribute>
+          <bestadd:attribute key="services">
+            <bestadd:serviceRef ref="svc-dms" name="Dokumentenmanagement" />
+          </bestadd:attribute>
+        </bestadd:attributes>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1</bpmn:incoming>
       <bpmn:outgoing>Flow_2</bpmn:outgoing>

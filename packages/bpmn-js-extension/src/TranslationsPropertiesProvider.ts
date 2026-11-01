@@ -9,8 +9,8 @@ import {
 } from '@bpmn-io/properties-panel';
 import { useService } from 'bpmn-js-properties-panel';
 import { modelLanguage, SUPPORTED_LANGUAGES } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
-import { resolveI18n, type PraxiqI18n } from './i18n';
+import type { BestbpmnConfig } from './attributes';
+import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { findTranslation, findTranslations, UPDATE_TRANSLATION } from './translations';
 import { processOfRoot } from './processRoot';
 import { is, type BusinessObject, type DiagramElement } from './util';
@@ -18,16 +18,16 @@ import { is, type BusinessObject, type DiagramElement } from './util';
 const LOW_PRIORITY = 450;
 
 /**
- * Übersetzungen im Eigenschaftenpanel (ADR 0010). Namen und Beschreibungen stehen in der
+ * Übersetzungen im Eigenschaftenpanel. Namen und Beschreibungen stehen in der
  * Hauptsprache des Modells in BPMN selbst; hier werden die übrigen Sprachen gepflegt.
- * Status werden in der Statustabelle übersetzt, nicht im Modell (ADR 0012).
+ * Status werden in der Statustabelle übersetzt, nicht im Modell.
  */
 export default class TranslationsPropertiesProvider {
-  static $inject = ['propertiesPanel', 'config.praxiq', 'bpmnjs'];
+  static $inject = ['propertiesPanel', 'config.bestbpmn', 'bpmnjs'];
 
-  private i18n: PraxiqI18n;
+  private i18n: BestbpmnI18n;
 
-  constructor(propertiesPanel: any, config: PraxiqConfig | undefined, private bpmnjs: any) {
+  constructor(propertiesPanel: any, config: BestbpmnConfig | undefined, private bpmnjs: any) {
     this.i18n = resolveI18n(config);
     propertiesPanel.registerProvider(LOW_PRIORITY, this);
   }
@@ -43,7 +43,7 @@ export default class TranslationsPropertiesProvider {
       const entries: any[] = [];
       if (is(bo, 'bpmn:Process') || is(bo, 'bpmn:Collaboration')) {
         entries.push({
-          id: 'praxiq-model-language',
+          id: 'bestbpmn-model-language',
           component: ModelLanguageEntry,
           definitions,
           i18n: this.i18n,
@@ -57,7 +57,7 @@ export default class TranslationsPropertiesProvider {
           const language = t(`language.${lang}`);
           entries.push(
             {
-              id: `praxiq-translation-${lang}-name`,
+              id: `bestbpmn-translation-${lang}-name`,
               component: TranslationEntry,
               target,
               lang,
@@ -66,7 +66,7 @@ export default class TranslationsPropertiesProvider {
               isEdited: isTextFieldEntryEdited,
             },
             {
-              id: `praxiq-translation-${lang}-documentation`,
+              id: `bestbpmn-translation-${lang}-documentation`,
               component: TranslationEntry,
               target,
               lang,
@@ -78,7 +78,7 @@ export default class TranslationsPropertiesProvider {
         }
       }
       if (entries.length) {
-        groups.push({ id: 'praxiq-translations', label: t('panel.translations'), entries });
+        groups.push({ id: 'bestbpmn-translations', label: t('panel.translations'), entries });
       }
       return groups;
     };
@@ -108,7 +108,7 @@ function TranslationEntry(props: {
   return field === 'documentation' ? h(TextAreaEntry, { ...entry, rows: 4 }) : h(TextFieldEntry, entry);
 }
 
-function ModelLanguageEntry(props: { element: DiagramElement; id: string; definitions: BusinessObject; i18n: PraxiqI18n }) {
+function ModelLanguageEntry(props: { element: DiagramElement; id: string; definitions: BusinessObject; i18n: BestbpmnI18n }) {
   const { element, id, definitions, i18n } = props;
   const modeling = useService('modeling');
   return h(SelectEntry, {

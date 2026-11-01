@@ -1,6 +1,6 @@
 import { BpmnModdle } from 'bpmn-moddle';
 import raci from '../moddle/raci.json' with { type: 'json' };
-import praxiq from '../moddle/praxiq.json' with { type: 'json' };
+import bestadd from '../moddle/bestadd.json' with { type: 'json' };
 import { modelLanguage, readStateTranslations } from '../i18n/translations.js';
 import { stateKey } from './key.js';
 import { checkLanes, checkRaci, findParticipant, laneMap } from '../raci/check.js';
@@ -15,20 +15,20 @@ const START_EVENT = 'bpmn:StartEvent';
 const DATA_OBJECT = 'bpmn:DataObject';
 const DATA_OBJECT_REFERENCE = 'bpmn:DataObjectReference';
 
-/** Erzeugt einen BPMN-Parser, der den PRAXIQ-Namensraum kennt. */
+/** Erzeugt einen BPMN-Parser, der die Namensräume raci und bestadd kennt. */
 export function createModdle(): Moddle {
-  return new BpmnModdle({ raci, praxiq });
+  return new BpmnModdle({ raci, bestadd });
 }
 
-/** Liest BPMN-XML und leitet für jeden Prozess die Status seines Haupttasks ab. */
+/** Liest BPMN-XML und leitet für jeden Prozess die Status seines Vorgangs ab. */
 export async function deriveStatusModels(xml: string, catalog: Catalog = {}): Promise<StatusModel[]> {
   const { rootElement } = await createModdle().fromXML(xml);
   return deriveFromDefinitions(rootElement, catalog);
 }
 
 /**
- * Leitet die Statusmodelle aus bereits geparsten `bpmn:Definitions` ab: ein Haupttask je Kollaboration,
- * auch wenn sie mehrere Pools hat (ADR 0014), und einer je Prozess außerhalb einer Kollaboration.
+ * Leitet die Statusmodelle aus bereits geparsten `bpmn:Definitions` ab: ein Vorgang je Kollaboration,
+ * auch wenn sie mehrere Pools hat, und einer je Prozess außerhalb einer Kollaboration.
  */
 export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catalog = {}): StatusModel[] {
   const roots = ((definitions as El).rootElements ?? []) as El[];
@@ -71,9 +71,9 @@ interface PoolProcess {
 
 /**
  * Der Ablauf kommt allein aus dem Prozess. Der Status ist eine Zusatzinformation am
- * Haupttask: Output-Verknüpfungen setzen ihn, Input-Verknüpfungen dokumentieren nur (ADR 0008).
- * Nur das Datenobjekt „Prozess“ trägt den Status; den Anfangsstatus setzt die erste Aktivität (ADR 0012).
- * Mehrere Pools einer Kollaboration bilden zusammen einen Haupttask; Nachrichtenflüsse verbinden sie (ADR 0014).
+ * Vorgang: Output-Verknüpfungen setzen ihn, Input-Verknüpfungen dokumentieren nur.
+ * Nur das Datenobjekt „Prozess“ trägt den Status; den Anfangsstatus setzt die erste Aktivität.
+ * Mehrere Pools einer Kollaboration bilden zusammen einen Vorgang; Nachrichtenflüsse verbinden sie.
  */
 function deriveModel(
   root: { id: string; name?: string; collaboration?: El },
@@ -87,8 +87,8 @@ function deriveModel(
   const processObjects: El[] = [];
   const references = elements.filter((el) => el.$type === DATA_OBJECT_REFERENCE && isStatusReference(el));
 
-  // Das Datenobjekt „Prozess“ ist freiwillig; ohne es hat der Vorgang keinen Status (ADR 0012).
-  // Datenobjekte gehören zu einem Pool. Jeder Pool darf deshalb eins haben; alle stehen für denselben Haupttask.
+  // Das Datenobjekt „Prozess“ ist freiwillig; ohne es hat der Vorgang keinen Status.
+  // Datenobjekte gehören zu einem Pool. Jeder Pool darf deshalb eins haben; alle stehen für denselben Vorgang.
   for (const { process } of pools) {
     const own = collectFlowElements(process).filter((el) => el.$type === DATA_OBJECT && isProcessObjectName(el.name));
     processObjects.push(...own.slice(0, 1));
@@ -107,7 +107,7 @@ function deriveModel(
   for (const ref of references) {
     const resolved = resolveStatus(ref, issues, catalog);
     if (!resolved) {
-      // Am Datenobjekt „Prozess“ ist der Status Pflicht (ADR 0012).
+      // Am Datenobjekt „Prozess“ ist der Status Pflicht.
       issues.push({
         code: 'reference-without-state',
         severity: 'error',
@@ -186,7 +186,7 @@ function deriveModel(
   }
 
   // Den Anfangsstatus setzt je Startereignis die erste Aktivität mit Output auf „Prozess“. Davor darf es
-  // Aktivitäten ohne Status geben, z. B. manuelle Tätigkeiten (ADR 0012).
+  // Aktivitäten ohne Status geben, z. B. manuelle Tätigkeiten.
   const settingStatus = new Set(changes.filter((c) => c.outputs.length > 0).map((c) => c.elementId));
   const initialStatuses: string[] = [];
   for (const activity of firstStatusActivities(pools, root.collaboration, settingStatus)) {
@@ -259,7 +259,7 @@ function isStatusReference(ref: El): boolean {
 /**
  * Je Startereignis der obersten Prozessebene die ersten Aktivitäten, die einen Status setzen.
  * Der Weg folgt dem Sequenzfluss und geht über Gateways, Ereignisse und Aktivitäten ohne Status hinweg.
- * In einer Kollaboration folgt er auch den Nachrichtenflüssen in andere Pools (ADR 0014). Ein Startereignis,
+ * In einer Kollaboration folgt er auch den Nachrichtenflüssen in andere Pools. Ein Startereignis,
  * das eine Nachricht aus einem anderen Pool auslöst, ist kein eigener Anfang, sondern Fortsetzung.
  */
 function firstStatusActivities(pools: PoolProcess[], collaboration: El | undefined, settingStatus: Set<string>): El[] {
@@ -308,7 +308,7 @@ function firstStatusActivities(pools: PoolProcess[], collaboration: El | undefin
 /**
  * Der dataState-Eintrag ist maßgeblich. Fehlt er, gilt der Status aus der Beschriftung
  * `Objekt [Status]`, damit auch Modelle aus anderen Werkzeugen lesbar bleiben.
- * Der Schlüssel kommt aus `praxiq:key`, sonst aus der Statustabelle (ID oder Name), sonst aus dem Namen (ADR 0010, 0012).
+ * Der Schlüssel kommt aus `bestadd:key`, sonst aus der Statustabelle (ID oder Name), sonst aus dem Namen.
  */
 function resolveStatus(ref: El, issues: ModelIssue[], catalog: Catalog): { key: string; name: string } | undefined {
   const dataState = ref.dataState as El | undefined;

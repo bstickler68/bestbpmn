@@ -3,23 +3,23 @@ import type { AttributeDefinition, RoleDefinition, Service, StatusDefinition } f
 import { DEFAULT_ATTRIBUTE_DEFINITIONS } from '@bestbpmn/model';
 import { is, type BusinessObject, type DiagramElement } from './util';
 
-/** Konfiguration des Modellierers unter `praxiq` (ADR 0009). */
-export interface PraxiqConfig {
-  /** Vom Administrator gepflegte Attributdefinitionen. Fehlt sie, gelten die Standardattribute. */
+/** Konfiguration des Modellierers unter `bestbpmn`. */
+export interface BestbpmnConfig {
+  /** Attributdefinitionen. Fehlt sie, gelten die Standardattribute. */
   attributes?: AttributeDefinition[];
-  /** Service-Katalog. Später aus der CMDB von PRAXIQ. */
+  /** Service-Katalog. */
   services?: Service[];
-  /** Statustabelle (ADR 0012). Bis zum Backend aus `templates/catalog/states.json`. */
+  /** Statustabelle. Beispiel: `templates/catalog/states.json`. */
   states?: StatusDefinition[];
-  /** Rollen- und Gruppentabelle (ADR 0013). Bis zum Backend aus `templates/catalog/roles.json`. */
+  /** Rollen- und Gruppentabelle. Beispiel: `templates/catalog/roles.json`. */
   roles?: RoleDefinition[];
-  /** Sprache der Oberfläche, z. B. `de`. Standard ist Englisch (ADR 0010). */
+  /** Sprache der Oberfläche, z. B. `de`. Standard ist Englisch. */
   language?: string;
   /** Übersetzungsfunktion aus `@bestbpmn/i18n`; fehlt sie, erzeugt der Modellierer eine eigene. */
   t?: TFunction;
 }
 
-export const UPDATE_ATTRIBUTE = 'praxiq.attribute.update';
+export const UPDATE_ATTRIBUTE = 'bestbpmn.attribute.update';
 
 export interface UpdateAttributeContext {
   element: DiagramElement;
@@ -31,7 +31,7 @@ export interface UpdateAttributeContext {
 }
 
 export function findContainer(bo: BusinessObject): BusinessObject | undefined {
-  return (bo.extensionElements?.values ?? []).find((v: BusinessObject) => is(v, 'praxiq:Attributes'));
+  return (bo.extensionElements?.values ?? []).find((v: BusinessObject) => is(v, 'bestadd:Attributes'));
 }
 
 export function findAttribute(bo: BusinessObject, key: string): BusinessObject | undefined {
@@ -45,13 +45,13 @@ export function definitionsFor(definitions: AttributeDefinition[], bo: BusinessO
   );
 }
 
-export function resolveDefinitions(config: PraxiqConfig | undefined): AttributeDefinition[] {
+export function resolveDefinitions(config: BestbpmnConfig | undefined): AttributeDefinition[] {
   return config?.attributes ?? DEFAULT_ATTRIBUTE_DEFINITIONS;
 }
 
 /**
  * Setzt ein Zusatzattribut in einem Schritt, der sich als Ganzes rückgängig machen lässt.
- * Legt `extensionElements`, `praxiq:attributes` und `praxiq:attribute` bei Bedarf an
+ * Legt `extensionElements`, `bestadd:attributes` und `bestadd:attribute` bei Bedarf an
  * und räumt leere Container wieder auf.
  */
 export default class UpdateAttributeHandler {
@@ -76,7 +76,7 @@ export default class UpdateAttributeHandler {
 
     let container = findContainer(bo);
     if (!container) {
-      container = bpmnFactory.create('praxiq:Attributes', { attributes: [] }) as BusinessObject;
+      container = bpmnFactory.create('bestadd:Attributes', { attributes: [] }) as BusinessObject;
       container.$parent = extensionElements;
       modeling.updateModdleProperties(element, extensionElements, {
         values: [...extensionElements.values, container],
@@ -85,7 +85,7 @@ export default class UpdateAttributeHandler {
 
     let attribute = findAttribute(bo, key);
     if (!attribute) {
-      attribute = bpmnFactory.create('praxiq:Attribute', { key }) as BusinessObject;
+      attribute = bpmnFactory.create('bestadd:Attribute', { key }) as BusinessObject;
       attribute.$parent = container;
       modeling.updateModdleProperties(element, container, {
         attributes: [...container.attributes, attribute],

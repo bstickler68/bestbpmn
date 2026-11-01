@@ -1,7 +1,7 @@
 {
-  "name": "PRAXIQ",
-  "prefix": "praxiq",
-  "uri": "https://praxiq.org/schema/praxiq/1.0",
+  "name": "bestadd",
+  "prefix": "bestadd",
+  "uri": "urn:bestadd:schema:1.0",
   "xml": {
     "tagAlias": "lowerCase"
   },

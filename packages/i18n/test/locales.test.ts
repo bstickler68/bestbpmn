@@ -10,7 +10,7 @@ function keys(value: unknown, prefix = ''): string[] {
   return Object.entries(value).flatMap(([k, v]) => keys(v, prefix ? `${prefix}.${k}` : k));
 }
 
-describe('Systemtexte (ADR 0010)', () => {
+describe('Systemtexte', () => {
   it('haben in jeder Sprache dieselben Schlüssel', () => {
     expect(keys(de).sort()).toEqual(keys(en).sort());
   });

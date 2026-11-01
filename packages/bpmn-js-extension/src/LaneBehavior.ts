@@ -12,7 +12,7 @@ import {
   readRaci,
   type RoleDefinition,
 } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
+import type { BestbpmnConfig } from './attributes';
 import { UPDATE_RACI } from './raci';
 import { is, type BusinessObject } from './util';
 
@@ -27,7 +27,7 @@ const COMMANDS = [
 ];
 
 /**
- * Swimlanes bestimmen D (ADR 0013).
+ * Swimlanes bestimmen D.
  *
  * - Liegt eine Aktivität in einer Lane oder einem Pool mit Rolle bzw. Gruppe, wird sie als D
  *   in den `potentialOwner` geschrieben. Nach jedem Verschieben, Anlegen oder Ändern der Lane erneut.
@@ -37,7 +37,7 @@ const COMMANDS = [
  *   wird zurückgesetzt.
  */
 export default class LaneBehavior extends CommandInterceptor {
-  static $inject = ['eventBus', 'modeling', 'commandStack', 'elementRegistry', 'bpmnjs', 'config.praxiq'];
+  static $inject = ['eventBus', 'modeling', 'commandStack', 'elementRegistry', 'bpmnjs', 'config.bestbpmn'];
 
   private syncing = false;
 
@@ -47,7 +47,7 @@ export default class LaneBehavior extends CommandInterceptor {
     private commandStack: any,
     private elementRegistry: any,
     private bpmnjs: any,
-    config: PraxiqConfig | undefined,
+    config: BestbpmnConfig | undefined,
   ) {
     super(eventBus);
     const roles = config?.roles;

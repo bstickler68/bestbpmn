@@ -6,9 +6,9 @@ import { deriveRaciMatrices, readRaci, type RoleDefinition } from '@bestbpmn/mod
 import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import roles from '../../../templates/catalog/roles.json';
 import {
-  praxiqModdleExtensions,
-  praxiqModule,
-  praxiqPropertiesProviderModule,
+  bestbpmnModdleExtensions,
+  bestbpmnModule,
+  bestbpmnPropertiesProviderModule,
   translateModule,
   UPDATE_RACI,
 } from '@bestbpmn/bpmn-js-extension';
@@ -29,13 +29,13 @@ async function setup(language = 'en') {
     additionalModules: [
       BpmnPropertiesPanelModule,
       BpmnPropertiesProviderModule,
-      praxiqModule,
-      praxiqPropertiesProviderModule,
+      bestbpmnModule,
+      bestbpmnPropertiesProviderModule,
       translateModule(language),
     ],
-    moddleExtensions: praxiqModdleExtensions,
+    moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: container.querySelector('#p') },
-    praxiq: { language, roles: roles as RoleDefinition[] },
+    bestbpmn: { language, roles: roles as RoleDefinition[] },
   });
   await modeler.importXML(template);
 }
@@ -50,7 +50,7 @@ async function type(input: HTMLInputElement, text: string) {
 
 /** Wählt einen Treffer wie mit der Maus. */
 function pick(entry: Element, value: string) {
-  entry.querySelector(`.praxiq-picker-results li[data-value="${value}"]`)!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  entry.querySelector(`.bestbpmn-picker-results li[data-value="${value}"]`)!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
 }
 
 afterEach(() => {
@@ -58,7 +58,7 @@ afterEach(() => {
   container?.remove();
 });
 
-describe('RACI an Aktivitäten (ADR 0003)', () => {
+describe('RACI an Aktivitäten', () => {
   it('schreibt R als potentialOwner und nimmt es mit Rückgängig zurück', async () => {
     await setup();
     const task = element('Pruefen');
@@ -109,9 +109,9 @@ describe('RACI an Aktivitäten (ADR 0003)', () => {
     await nextTick();
     get('selection').select(element('Pruefen'));
     await nextTick();
-    const entry = (role: string) => container.querySelector(`[data-entry-id="praxiq-raci-${role}"]`)!;
-    const chips = (role: string) => [...entry(role).querySelectorAll('.praxiq-chip')].map((c) => c.getAttribute('data-value'));
-    const group = container.querySelector('[data-group-id="group-praxiq-raci"]')!;
+    const entry = (role: string) => container.querySelector(`[data-entry-id="bestbpmn-raci-${role}"]`)!;
+    const chips = (role: string) => [...entry(role).querySelectorAll('.bestbpmn-chip')].map((c) => c.getAttribute('data-value'));
+    const group = container.querySelector('[data-group-id="group-bestbpmn-raci"]')!;
     expect(group.textContent).toContain('Verantwortlichkeiten (DEMI)');
     expect(group.textContent).toContain('D – Durchführungsverantwortlich');
     expect(chips('responsible')).toEqual(['group(reviewers)']);
@@ -122,12 +122,12 @@ describe('RACI an Aktivitäten (ADR 0003)', () => {
     // Einfachauswahl mit Wert: kein Suchfeld, erst nach dem Entfernen
     expect(entry('responsible').querySelector('input')).toBeNull();
 
-    entry('responsible').querySelector<HTMLButtonElement>('.praxiq-chip-remove')!.click();
+    entry('responsible').querySelector<HTMLButtonElement>('.bestbpmn-chip-remove')!.click();
     await nextTick();
     expect(readRaci(element('Pruefen').businessObject).responsible).toEqual([]);
 
     await type(entry('responsible').querySelector('input')!, 'prozess');
-    const results = [...entry('responsible').querySelectorAll('.praxiq-picker-results li')].map((li) => li.textContent);
+    const results = [...entry('responsible').querySelectorAll('.bestbpmn-picker-results li')].map((li) => li.textContent);
     expect(results).toEqual(['Prozessverantwortlicher (Rolle)']);
     pick(entry('responsible'), 'role(process_owner)');
     expect(readRaci(element('Pruefen').businessObject).responsible).toEqual([{ kind: 'role', ref: 'process_owner' }]);
@@ -162,7 +162,7 @@ describe('RACI an Aktivitäten (ADR 0003)', () => {
 });
 
 const LANE_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:raci="https://praxiq.org/schema/raci/1.0" id="D" targetNamespace="t">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:raci="urn:bestadd:raci:1.0" id="D" targetNamespace="t">
   <bpmn:collaboration id="C"><bpmn:participant id="Pool" name="Pool" processRef="P" /></bpmn:collaboration>
   <bpmn:process id="P">
     <bpmn:laneSet id="LS">
@@ -181,9 +181,9 @@ const LANE_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
 </bpmn:definitions>`;
 
-describe('D aus der Swimlane (ADR 0013)', () => {
+describe('D aus der Swimlane', () => {
   const issues = () =>
-    get('praxiqStatusCheck')
+    get('bestbpmnStatusCheck')
       .getModels()[0]
       .issues.filter((i: any) => i.code.startsWith('raci-') && i.code !== 'raci-unknown-assignee')
       .map((i: any) => [i.code, i.elementId]);
@@ -196,12 +196,12 @@ describe('D aus der Swimlane (ADR 0013)', () => {
     await nextTick();
     get('selection').select(element('InLane'));
     await nextTick();
-    const d = container.querySelector('[data-entry-id="praxiq-raci-responsible"]')!;
-    expect(d.querySelector('.praxiq-picker-disabled')).not.toBeNull();
+    const d = container.querySelector('[data-entry-id="bestbpmn-raci-responsible"]')!;
+    expect(d.querySelector('.bestbpmn-picker-disabled')).not.toBeNull();
     expect(d.querySelector('input')).toBeNull();
-    expect(d.querySelector('.praxiq-chip-remove')).toBeNull();
-    expect(d.querySelector('.praxiq-chip')?.getAttribute('data-value')).toBe('group(Autoren)');
-    expect(container.querySelector('[data-entry-id="praxiq-raci-responsible"]')!.textContent).toContain('Kommt aus der Swimlane');
+    expect(d.querySelector('.bestbpmn-chip-remove')).toBeNull();
+    expect(d.querySelector('.bestbpmn-chip')?.getAttribute('data-value')).toBe('group(Autoren)');
+    expect(container.querySelector('[data-entry-id="bestbpmn-raci-responsible"]')!.textContent).toContain('Kommt aus der Swimlane');
 
     const matrix = document.createElement('div');
     renderRaciMatrix(matrix, deriveRaciMatrices(modeler.getDefinitions()), createI18n('de').t);
@@ -254,8 +254,8 @@ describe('D aus der Swimlane (ADR 0013)', () => {
     await nextTick();
     get('selection').select(multi);
     await nextTick();
-    const entry = container.querySelector('[data-entry-id="praxiq-raci-responsible"]')!;
-    expect(entry.querySelectorAll('.praxiq-chip')).toHaveLength(2);
+    const entry = container.querySelector('[data-entry-id="bestbpmn-raci-responsible"]')!;
+    expect(entry.querySelectorAll('.bestbpmn-chip')).toHaveLength(2);
     expect(entry.querySelector('input')).not.toBeNull();
     expect(entry.textContent).toContain('Multi-Instanz-Aufgabe');
     get('selection').select(null);
@@ -266,8 +266,8 @@ describe('D aus der Swimlane (ADR 0013)', () => {
     await setup('de');
     await modeler.importXML(LANE_XML);
     // Eine Lane ohne Rolle/Gruppe ist ein Modellierungsfehler und wird rot markiert.
-    expect(get('canvas').hasMarker('Lane', 'praxiq-error')).toBe(true);
-    expect(get('canvas').hasMarker('Lane2', 'praxiq-error')).toBe(false);
+    expect(get('canvas').hasMarker('Lane', 'bestbpmn-error')).toBe(true);
+    expect(get('canvas').hasMarker('Lane2', 'bestbpmn-error')).toBe(false);
     get('modeling').updateLabel(element('Lane'), '');
     expect(issues()).toEqual([
       ['raci-missing-responsible', 'InLane'],

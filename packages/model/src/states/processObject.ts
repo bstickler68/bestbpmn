@@ -1,7 +1,7 @@
 import type { Language } from '../i18n/translations.js';
 
 /**
- * Nur das Datenobjekt mit diesem Namen trägt den Status des Vorgangs (ADR 0012).
+ * Nur das Datenobjekt mit diesem Namen trägt den Status des Vorgangs.
  * Andere Datenobjekte sind erlaubt, haben aber keinen Status.
  */
 export const PROCESS_OBJECT_NAMES: Record<string, string> = { en: 'process', de: 'Prozess' };

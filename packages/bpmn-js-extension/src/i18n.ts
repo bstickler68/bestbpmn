@@ -2,14 +2,14 @@ import { createI18n, DEFAULT_LANGUAGE, type TFunction } from '@bestbpmn/i18n';
 import panelGerman from '@bestbpmn/i18n/locales/bpmn-de.json';
 import bpmnGerman from 'bpmn-js-i18n/translations/de';
 
-/** Sprache und Übersetzungsfunktion des Modellierers (ADR 0010). */
-export interface PraxiqI18n {
+/** Sprache und Übersetzungsfunktion des Modellierers. */
+export interface BestbpmnI18n {
   language: string;
   t: TFunction;
 }
 
 /** Liest Sprache und `t` aus der Konfiguration; ohne Angabe gilt Englisch. */
-export function resolveI18n(config: { language?: string; t?: TFunction } | undefined): PraxiqI18n {
+export function resolveI18n(config: { language?: string; t?: TFunction } | undefined): BestbpmnI18n {
   const language = config?.language ?? DEFAULT_LANGUAGE;
   return { language, t: config?.t ?? createI18n(language).t };
 }

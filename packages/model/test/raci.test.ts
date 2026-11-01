@@ -7,7 +7,7 @@ const template = readFileSync(
   'utf8',
 );
 
-describe('RACI-Schreibweise (ADR 0003)', () => {
+describe('RACI-Schreibweise', () => {
   it('liest und schreibt alle Arten von Zuordnungen', () => {
     const text =
       'user(mmeier), group(Autoren), field(autor), initiator(), performerOf(Erstellen), notPerformerOf(Erstellen), orgRole(Leitung, autor)';
@@ -52,9 +52,9 @@ describe('RACI im Modell', () => {
   });
 });
 
-describe('RACI-Prüfregeln (ADR 0011)', () => {
+describe('RACI-Prüfregeln', () => {
   const head = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:raci="https://praxiq.org/schema/raci/1.0" id="D" targetNamespace="t">`;
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:raci="urn:bestadd:raci:1.0" id="D" targetNamespace="t">`;
   const owner = (text: string) =>
     `<bpmn:potentialOwner><bpmn:resourceAssignmentExpression><bpmn:formalExpression>${text}</bpmn:formalExpression></bpmn:resourceAssignmentExpression></bpmn:potentialOwner>`;
   const codes = async (body: string, lanes = '') => {
@@ -74,7 +74,7 @@ describe('RACI-Prüfregeln (ADR 0011)', () => {
     expect(await codes('<bpmn:serviceTask id="S" />')).toEqual([]);
   });
 
-  it('nimmt D aus der Swimlane, die Lane geht der Aufgabe vor (ADR 0013)', async () => {
+  it('nimmt D aus der Swimlane, die Lane geht der Aufgabe vor', async () => {
     const lanes = `<bpmn:laneSet id="LS"><bpmn:lane id="L" name="Autoren"><bpmn:flowNodeRef>A</bpmn:flowNodeRef><bpmn:flowNodeRef>B</bpmn:flowNodeRef>
       <bpmn:childLaneSet id="CLS"><bpmn:lane id="L2" name="field(autor)"><bpmn:flowNodeRef>C</bpmn:flowNodeRef></bpmn:lane></bpmn:childLaneSet></bpmn:lane></bpmn:laneSet>`;
     const body = `<bpmn:userTask id="A" /><bpmn:userTask id="B">${owner('user(chef), notPerformerOf(A)')}</bpmn:userTask><bpmn:userTask id="C" />`;

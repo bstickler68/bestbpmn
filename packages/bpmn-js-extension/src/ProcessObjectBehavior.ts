@@ -7,11 +7,11 @@ import {
   parseStateLabel,
   type StatusDefinition,
 } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
+import type { BestbpmnConfig } from './attributes';
 import { findDataObjects, findProcess, findReferences, is, type BusinessObject, type DiagramElement } from './util';
 
 /**
- * Status nur am Datenobjekt „Prozess“ (ADR 0012).
+ * Status nur am Datenobjekt „Prozess“.
  *
  * - Eine Referenz mit der Beschriftung `Prozess [in_review]` zeigt immer auf das eine Datenobjekt
  *   „Prozess“ des Prozesses und bekommt einen echten `bpmn:dataState` mit der Status-ID.
@@ -20,9 +20,9 @@ import { findDataObjects, findProcess, findReferences, is, type BusinessObject, 
  * - Beim Löschen einer Referenz bleibt das Datenobjekt erhalten, solange andere Referenzen darauf zeigen.
  */
 export default class ProcessObjectBehavior extends CommandInterceptor {
-  static $inject = ['eventBus', 'modeling', 'bpmnFactory', 'config.praxiq'];
+  static $inject = ['eventBus', 'modeling', 'bpmnFactory', 'config.bestbpmn'];
 
-  constructor(eventBus: any, modeling: any, bpmnFactory: any, config: PraxiqConfig | undefined) {
+  constructor(eventBus: any, modeling: any, bpmnFactory: any, config: BestbpmnConfig | undefined) {
     super(eventBus);
     const states: StatusDefinition[] | undefined = config?.states;
 

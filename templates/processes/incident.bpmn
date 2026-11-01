@@ -3,11 +3,11 @@
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  xmlns:raci="https://praxiq.org/schema/raci/1.0"
-                  xmlns:praxiq="https://praxiq.org/schema/praxiq/1.0"
+                  xmlns:raci="urn:bestadd:raci:1.0"
+                  xmlns:bestadd="urn:bestadd:schema:1.0"
                   id="Definitions_Incident"
-                  praxiq:language="de"
-                  targetNamespace="https://praxiq.org/templates">
+                  bestadd:language="de"
+                  targetNamespace="urn:bestadd:templates">
   <bpmn:collaboration id="Collaboration_Incident" name="Incident bearbeiten">
     <bpmn:participant id="Pool_Incident" name="IT-Service" processRef="Incident" />
   </bpmn:collaboration>
@@ -34,13 +34,13 @@
     </bpmn:laneSet>
     <bpmn:dataObject id="Prozess" name="Prozess" />
     <bpmn:dataObjectReference id="Ref_Neu" name="Prozess [new]" dataObjectRef="Prozess">
-      <bpmn:dataState id="State_Neu" praxiq:key="new" name="new" />
+      <bpmn:dataState id="State_Neu" bestadd:key="new" name="new" />
     </bpmn:dataObjectReference>
     <bpmn:dataObjectReference id="Ref_Geloest" name="Prozess [resolved]" dataObjectRef="Prozess">
-      <bpmn:dataState id="State_Geloest" praxiq:key="resolved" name="resolved" />
+      <bpmn:dataState id="State_Geloest" bestadd:key="resolved" name="resolved" />
     </bpmn:dataObjectReference>
     <bpmn:dataObjectReference id="Ref_Geschlossen" name="Prozess [closed]" dataObjectRef="Prozess">
-      <bpmn:dataState id="State_Geschlossen" praxiq:key="closed" name="closed" />
+      <bpmn:dataState id="State_Geschlossen" bestadd:key="closed" name="closed" />
     </bpmn:dataObjectReference>
 
     <bpmn:startEvent id="Start_Selbst" name="Störung bemerkt"><bpmn:outgoing>F1</bpmn:outgoing></bpmn:startEvent>
@@ -90,7 +90,7 @@
     <bpmn:userTask id="Loesung_pruefen" name="Lösung prüfen">
       <bpmn:incoming>F9</bpmn:incoming>
       <bpmn:outgoing>F10</bpmn:outgoing>
-      <bpmn:documentation textFormat="text/markdown">Multi-Instanz-Aufgabe: Service-Desk und Incident-Manager prüfen parallel, jede Rolle bekommt einen eigenen Subtask.</bpmn:documentation>
+      <bpmn:documentation textFormat="text/markdown">Multi-Instanz-Aufgabe: Service-Desk und Incident-Manager prüfen parallel, jede Rolle prüft für sich.</bpmn:documentation>
       <bpmn:dataOutputAssociation id="Out_Loesung_pruefen"><bpmn:targetRef>Ref_Geschlossen</bpmn:targetRef></bpmn:dataOutputAssociation>
       <bpmn:potentialOwner id="Owner_Loesung_pruefen"><bpmn:resourceAssignmentExpression id="Expr_Loesung_pruefen"><bpmn:formalExpression id="Formal_Loesung_pruefen">group(service_desk), role(incident_manager)</bpmn:formalExpression></bpmn:resourceAssignmentExpression></bpmn:potentialOwner>
       <bpmn:multiInstanceLoopCharacteristics id="MI_Loesung_pruefen" />

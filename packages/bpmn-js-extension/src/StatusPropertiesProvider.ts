@@ -11,23 +11,23 @@ import {
   processObjectName,
   type StatusDefinition,
 } from '@bestbpmn/model';
-import type { PraxiqConfig } from './attributes';
-import { resolveI18n, type PraxiqI18n } from './i18n';
+import type { BestbpmnConfig } from './attributes';
+import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { is, type BusinessObject, type DiagramElement } from './util';
 
 const LOW_PRIORITY = 600;
 
 /**
- * Status einer Referenz auf das Datenobjekt „Prozess“ als Auswahl aus der Statustabelle (ADR 0012).
+ * Status einer Referenz auf das Datenobjekt „Prozess“ als Auswahl aus der Statustabelle.
  * Die Auswahl schreibt die Beschriftung `Prozess [ID]`; daraus entsteht der dataState.
  */
 export default class StatusPropertiesProvider {
-  static $inject = ['propertiesPanel', 'config.praxiq', 'bpmnjs'];
+  static $inject = ['propertiesPanel', 'config.bestbpmn', 'bpmnjs'];
 
-  private i18n: PraxiqI18n;
+  private i18n: BestbpmnI18n;
   private states: StatusDefinition[];
 
-  constructor(propertiesPanel: any, config: PraxiqConfig | undefined, private bpmnjs: any) {
+  constructor(propertiesPanel: any, config: BestbpmnConfig | undefined, private bpmnjs: any) {
     this.i18n = resolveI18n(config);
     this.states = config?.states ?? [];
     propertiesPanel.registerProvider(LOW_PRIORITY, this);
@@ -45,21 +45,21 @@ export default class StatusPropertiesProvider {
       const entries = isProcess
         ? [
             {
-              id: 'praxiq-status-state',
+              id: 'bestbpmn-status-state',
               component: StatusEntry,
               states: this.states,
               i18n: this.i18n,
               isEdited: isSelectEntryEdited,
             },
           ]
-        : [{ id: 'praxiq-status-hint', component: Hint, text: t('panel.statusOnlyProcess', { name }) }];
+        : [{ id: 'bestbpmn-status-hint', component: Hint, text: t('panel.statusOnlyProcess', { name }) }];
       // Die ID unter „Allgemein“ gehört zur Referenz; alle Referenzen teilen sich ein Datenobjekt mit eigener ID.
       if (bo.dataObjectRef?.id) {
-        entries.unshift({ id: 'praxiq-status-data-object', component: DataObjectIdEntry, i18n: this.i18n } as any);
+        entries.unshift({ id: 'bestbpmn-status-data-object', component: DataObjectIdEntry, i18n: this.i18n } as any);
       }
       const index = groups.findIndex((g) => g.id === 'general');
       groups.splice(index >= 0 ? index + 1 : groups.length, 0, {
-        id: 'praxiq-status',
+        id: 'bestbpmn-status',
         label: t('panel.status'),
         entries,
       });
@@ -68,7 +68,7 @@ export default class StatusPropertiesProvider {
   }
 }
 
-function StatusEntry(props: { element: DiagramElement; id: string; states: StatusDefinition[]; i18n: PraxiqI18n }) {
+function StatusEntry(props: { element: DiagramElement; id: string; states: StatusDefinition[]; i18n: BestbpmnI18n }) {
   const { element, id, states, i18n } = props;
   const { t, language } = i18n;
   const modeling = useService('modeling');
@@ -95,7 +95,7 @@ function StatusEntry(props: { element: DiagramElement; id: string; states: Statu
   });
 }
 
-function DataObjectIdEntry(props: { element: DiagramElement; id: string; i18n: PraxiqI18n }) {
+function DataObjectIdEntry(props: { element: DiagramElement; id: string; i18n: BestbpmnI18n }) {
   const { element, id, i18n } = props;
   const debounce = useService('debounceInput');
   return h(TextFieldEntry, {
@@ -111,5 +111,5 @@ function DataObjectIdEntry(props: { element: DiagramElement; id: string; i18n: P
 }
 
 function Hint(props: { text: string }) {
-  return h('div', { class: 'bio-properties-panel-description praxiq-empty' }, props.text);
+  return h('div', { class: 'bio-properties-panel-description bestbpmn-empty' }, props.text);
 }

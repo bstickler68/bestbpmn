@@ -1,7 +1,7 @@
 {
   "name": "RACI",
   "prefix": "raci",
-  "uri": "https://praxiq.org/schema/raci/1.0",
+  "uri": "urn:bestadd:raci:1.0",
   "xml": {
     "tagAlias": "lowerCase"
   },

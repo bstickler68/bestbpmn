@@ -1,5 +1,5 @@
 import { catalogLabel, findRole, formatAssignee, type Assignee, type RoleDefinition } from '@bestbpmn/model';
-import type { PraxiqI18n } from './i18n';
+import type { BestbpmnI18n } from './i18n';
 
 export interface RoleOption {
   value: string;
@@ -10,7 +10,7 @@ export interface RoleOption {
  * Auswahl aus der Rollen- und Gruppentabelle. Wert ist die Schreibweise `group(id)` bzw. `role(id)`.
  * Vorhandene Zuordnungen, die die Tabelle nicht kennt (z. B. `initiator()`), bleiben als eigene Einträge sichtbar.
  */
-export function roleOptions(roles: RoleDefinition[], current: Assignee[], i18n: PraxiqI18n): RoleOption[] {
+export function roleOptions(roles: RoleDefinition[], current: Assignee[], i18n: BestbpmnI18n): RoleOption[] {
   const { t, language } = i18n;
   const options: RoleOption[] = roles.map((role) => ({
     value: formatAssignee({ kind: role.kind, ref: role.id }),
@@ -26,7 +26,7 @@ export function roleOptions(roles: RoleDefinition[], current: Assignee[], i18n: 
 }
 
 /** Texte des Suchfelds in der Sprache der Oberfläche. */
-export function pickerTexts(i18n: PraxiqI18n) {
+export function pickerTexts(i18n: BestbpmnI18n) {
   const { t } = i18n;
   return {
     placeholder: t('picker.placeholder'),
