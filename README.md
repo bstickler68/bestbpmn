@@ -28,6 +28,31 @@ keine reservierten Namen wie `CON`). Ab Etappe 4 gibt es die App als einzelne Da
 Startmenü-Eintrag möchte, kann sie zusätzlich von einem internen Webserver als PWA
 installieren.
 
+## Arbeitsordner und Sperren
+
+In Edge und Chrome lässt sich unter „Dateien“ ein Arbeitsordner wählen, auch auf einem
+Netzlaufwerk. „Speichern“ (oder Strg+S) schreibt dann direkt in die Datei; neue Modelle
+bekommen beim ersten Speichern einen Dateinamen. Der Browser merkt sich den Ordner, fragt
+aber nach jedem Neustart einmal nach, ob bestbpmn ihn verwenden darf.
+
+- **Sperrdatei.** Wer eine Datei öffnet, legt daneben `Name.bpmn.lock` an, mit Namen und
+  Uhrzeit. Andere sehen die Datei dann als „gesperrt“, können sie ansehen, aber nicht im
+  Ordner überschreiben, nur unter anderem Namen oder als Download speichern.
+- **Lebenszeichen.** Ein offenes Fenster erneuert seine Sperre jede Minute. Kommt zehn Minuten
+  lang keines (z. B. nach einem Absturz), gilt die Sperre als verwaist und lässt sich per Klick
+  aufheben. Beim Schließen oder beim Wechsel der Datei wird die Sperre freigegeben.
+- **Fremde Änderung.** Hat jemand die Datei seit dem Öffnen trotzdem geändert, fragt
+  „Speichern“ vor dem Überschreiben nach.
+- **Grenzen.** Ein Browser kann eine Datei nicht wirklich exklusiv sperren. Öffnen zwei
+  Personen dieselbe Datei im selben Augenblick, gewinnt die zuletzt geschriebene Sperre; die
+  App liest ihre Sperre deshalb kurz nach dem Schreiben noch einmal nach.
+
+Firefox kann keinen Ordner freigeben. Dort laufen Öffnen und Speichern über Hochladen und
+Herunterladen; ein Windows-Programm, das auch ohne Edge oder Chrome mit dem Arbeitsordner
+arbeitet, ist als Etappe 5 geplant. In allen Browsern lässt sich eine `.bpmn`-Datei auf das
+Fenster ziehen, und „Exportieren“ bietet BPMN, SVG und PNG an. Modelle mit Erweiterungen
+anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
+
 ## Status, Rollen und Prüfregeln
 
 - **Freitext ist der Normalfall.** Status, Rollen und Gruppen werden im Eigenschaftenpanel
@@ -62,8 +87,10 @@ npm test        # Browser-Tests brauchen Chromium: npx playwright install chromi
 0. Start: leeres Repository mit README und Lizenz
 1. **Gerüst:** Modellierer mit Status, RACI/DEMI und Prüfregeln
 2. Freitext für Status und Rollen, optionaler eigener Katalog, Regelprofile
-3. Arbeiten mit Dateien: Öffnen/Speichern lokal, Drag & Drop, Export als SVG/PNG, leeres Diagramm
+3. Arbeiten mit Dateien: Arbeitsordner mit Sperrdateien, Drag & Drop, Export als SVG/PNG, leeres Diagramm
+   - 3b. Druckbare Berichte (Steckbrief und Gesamtdokument) als HTML und PDF
 4. Auslieferung als einzelne HTML-Datei zum Doppelklicken, optional als installierbare Web-App (PWA)
+5. Windows-Programm (Tauri) mit Arbeitsordner auch für Firefox-Nutzer
 
 ## Lizenz
 

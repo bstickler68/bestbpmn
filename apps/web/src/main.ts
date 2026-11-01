@@ -29,6 +29,9 @@ import { renderStatusPanel } from './statusPanel';
 import { renderCatalogEditor } from './catalogEditor';
 import { renderRulesPanel } from './rulesPanel';
 import { loadCatalog, loadDisabledRules, saveCatalog, saveDisabledRules } from './storage';
+import { download, svgToPng, withExtension } from './export';
+import { FilesController } from './files/controller';
+import { renderBanner, renderFilesPanel } from './files/filesPanel';
 
 const LANGUAGE_KEY = 'bestbpmn.language';
 const statusPanel = document.querySelector<HTMLElement>('#status')!;
@@ -38,6 +41,9 @@ const showServices = document.querySelector<HTMLInputElement>('#show-services')!
 const nameLabel = document.querySelector<HTMLElement>('#model-name')!;
 const rulesPanel = document.querySelector<HTMLElement>('#rules')!;
 const catalogPanel = document.querySelector<HTMLElement>('#catalog')!;
+const filesPanel = document.querySelector<HTMLElement>('#files')!;
+const banner = document.querySelector<HTMLElement>('#banner')!;
+const fileLabel = document.querySelector<HTMLElement>('#file-name')!;
 
 /** Der Beispielkatalog aus `templates/catalog`, zum Ausprobieren in den Einstellungen. */
 const EXAMPLE_CATALOG: CatalogFile = parseCatalog(
@@ -50,6 +56,50 @@ let language: string;
 // Ohne eigenen Katalog sind Status, Rollen und Gruppen Freitext.
 let catalog: CatalogFile = loadCatalog();
 let disabledRules: IssueCode[] = loadDisabledRules();
+/** Ungespeicherte Änderungen seit dem letzten Öffnen oder Speichern. */
+let dirty = false;
+
+const currentName = () => fileNameFor(modelName(modeler.getDefinitions()));
+
+async function currentXml(): Promise<string> {
+  return (await modeler.saveXML({ format: true })).xml!;
+}
+
+/** Modell als BPMN-Datei herunterladen (Firefox, Kopie, Export). */
+async function downloadBpmn() {
+  download(files.fileName ?? currentName(), new Blob([await currentXml()], { type: 'application/xml' }));
+}
+
+const files = new FilesController(
+  {
+    t: () => t,
+    language: () => language,
+    getXml: currentXml,
+    load: (xml) => open(xml),
+    suggestedName: currentName,
+    isDirty: () => dirty,
+    markClean: () => {
+      dirty = false;
+      showFileState();
+    },
+    download: downloadBpmn,
+    changed: () => showFileState(),
+  },
+  fileNameFor,
+);
+
+/** Dateiname, ungespeicherte Änderungen, Sperrhinweis und Dateiliste. */
+function showFileState() {
+  if (!t) {
+    return;
+  }
+  const name = files.fileName;
+  fileLabel.textContent = `${name ?? ''}${dirty ? ' ●' : ''}`;
+  fileLabel.title = name ? `${files.folder?.name ?? ''}/${name}` : '';
+  fileLabel.classList.toggle('readonly', !!name && files.access !== 'edit');
+  renderBanner(banner, files, t);
+  renderFilesPanel(filesPanel, files, t);
+}
 
 function storedLanguage(): string | undefined {
   try {
@@ -109,7 +159,17 @@ async function createModeler(lang: string, xml: string) {
     renderRaciMatrix(raciPanel, definitions ? deriveRaciMatrices(definitions) : [], t, { roles: catalog.roles, language });
     showModelName();
   });
+  modeler.on('commandStack.changed', () => {
+    if (!dirty) {
+      dirty = true;
+      showFileState();
+    }
+  });
+  // Ein Neuaufbau (Sprache, Katalog) ändert am Modell nichts.
+  const wasDirty = dirty;
   await open(xml);
+  dirty = wasDirty;
+  showFileState();
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
   renderSettings();
 }
@@ -135,12 +195,22 @@ function renderSettings() {
   });
 }
 
+/** Lädt ein Modell; danach gilt es als unverändert. */
 async function open(xml: string) {
   try {
     await modeler.importXML(xml);
     modeler.get('canvas').zoom('fit-viewport');
   } catch (error) {
     statusPanel.textContent = t('app.openError', { message: (error as Error).message });
+  }
+  dirty = false;
+  showFileState();
+}
+
+/** Ein Modell, das zu keiner Datei im Ordner gehört (neu, Vorlage, hochgeladen, hineingezogen). */
+async function openDetached(xml: string | Promise<string>) {
+  if (await files.detach()) {
+    await open(await xml);
   }
 }
 
@@ -171,22 +241,67 @@ languageSelect.addEventListener('change', async () => {
   await createModeler(language, xml);
 });
 
-document.querySelector('#new')!.addEventListener('click', () => open(EMPTY_DIAGRAM));
-document.querySelector('#template')!.addEventListener('click', () => open(template));
-document.querySelector('#template-incident')!.addEventListener('click', () => open(incident));
-document.querySelector<HTMLInputElement>('#open')!.addEventListener('change', async (event) => {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (file) {
-    await open(await file.text());
+// Menüs „Neu“ und „Exportieren“: nach der Wahl und bei Klick daneben schließen.
+const menus = [...document.querySelectorAll<HTMLDetailsElement>('details.menu')];
+document.addEventListener('click', (event) => {
+  for (const menu of menus) {
+    if (!menu.contains(event.target as Node) || (event.target as Element).closest('.menu-items button')) {
+      menu.open = false;
+    }
   }
 });
-document.querySelector('#save')!.addEventListener('click', async () => {
-  const { xml } = await modeler.saveXML({ format: true });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(new Blob([xml!], { type: 'application/xml' }));
-  link.download = fileNameFor(modelName(modeler.getDefinitions()));
-  link.click();
-  URL.revokeObjectURL(link.href);
+
+document.querySelector('#new')!.addEventListener('click', () => openDetached(EMPTY_DIAGRAM));
+document.querySelector('#template')!.addEventListener('click', () => openDetached(template));
+document.querySelector('#template-incident')!.addEventListener('click', () => openDetached(incident));
+document.querySelector<HTMLInputElement>('#open')!.addEventListener('change', async (event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (file) {
+    await openDetached(file.text());
+  }
+});
+document.querySelector('#save')!.addEventListener('click', () => files.save());
+document.querySelector('#export-bpmn')!.addEventListener('click', downloadBpmn);
+document.querySelector('#export-svg')!.addEventListener('click', async () => {
+  const { svg } = await modeler.saveSVG();
+  download(withExtension(files.fileName ?? currentName(), '.svg'), new Blob([svg], { type: 'image/svg+xml' }));
+});
+document.querySelector('#export-png')!.addEventListener('click', async () => {
+  const { svg } = await modeler.saveSVG();
+  download(withExtension(files.fileName ?? currentName(), '.png'), await svgToPng(svg));
 });
 
-void createModeler(storedLanguage() ?? matchLanguage(navigator.languages), template);
+// Strg+S speichert wie unter Windows gewohnt, statt die Seite herunterzuladen.
+document.addEventListener('keydown', (event) => {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {
+    event.preventDefault();
+    void files.save();
+  }
+});
+
+// Eine .bpmn-Datei aus dem Explorer auf das Fenster ziehen öffnet sie.
+document.addEventListener('dragover', (event) => {
+  if (event.dataTransfer?.types.includes('Files')) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }
+});
+document.addEventListener('drop', (event) => {
+  const file = [...(event.dataTransfer?.files ?? [])].find((item) => /\.(bpmn|xml)$/i.test(item.name));
+  if (file) {
+    event.preventDefault();
+    void openDetached(file.text());
+  }
+});
+
+// Warnen, bevor ungespeicherte Änderungen verloren gehen; beim Schließen die Sperre freigeben.
+window.addEventListener('beforeunload', (event) => {
+  if (dirty) {
+    event.preventDefault();
+  }
+});
+window.addEventListener('pagehide', () => files.release());
+
+void createModeler(storedLanguage() ?? matchLanguage(navigator.languages), EMPTY_DIAGRAM).then(() => files.restore());

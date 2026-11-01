@@ -17,9 +17,16 @@
       "properties": "Properties",
       "status": "Status",
       "raci": "RACI",
-      "settings": "Settings"
+      "settings": "Settings",
+      "files": "Files"
     },
-    "templateIncident": "Incident template"
+    "templateIncident": "Incident template",
+    "newEmpty": "Empty diagram",
+    "export": "Export",
+    "exportBpmn": "Download BPMN file",
+    "exportSvg": "Graphic (SVG)",
+    "exportPng": "Image (PNG)",
+    "_tab": "Files"
   },
   "status": {
     "noProcess": "No process in the model.",
@@ -176,6 +183,42 @@
       "not-a-list": "“{{table}}” is not a list and was skipped.",
       "invalid-entry": "“{{table}}”, entry {{index}}: ID or name missing, skipped.",
       "duplicate-id": "“{{table}}”: the ID “{{id}}” appears twice, skipped."
+    }
+  },
+  "files": {
+    "title": "Working folder",
+    "unsupported": "This browser cannot share a folder (e.g. Firefox). Opening and saving work by upload and download here. With Edge or Chrome you can choose a working folder, also on a network drive.",
+    "user": "Your name",
+    "userPlaceholder": "shown in the lock file",
+    "askName": "What is your name? It is written into the lock file so others can see who is editing a file.",
+    "noFolder": "Choose a folder for your models, e.g. on a network drive. Saving then writes directly to the file.",
+    "pick": "Choose folder …",
+    "pickOther": "Other folder …",
+    "permission": "After each restart the browser asks again whether bestbpmn may use the folder “{{folder}}”.",
+    "allow": "Allow access to “{{folder}}”",
+    "folder": "Folder",
+    "refresh": "Refresh",
+    "saveAs": "Save as …",
+    "forget": "Forget folder",
+    "empty": "There are no models (.bpmn) in the folder yet.",
+    "listError": "The folder cannot be reached: {{message}}",
+    "readError": "“{{name}}” could not be read: {{message}}",
+    "lock": "locked: {{user}}, since {{since}}",
+    "staleLock": "stale lock: {{user}}",
+    "ownLock": "opened by you",
+    "saveAsName": "File name in the working folder:",
+    "exists": "“{{name}}” already exists. Overwrite?",
+    "lockedBy": "“{{name}}” is being edited by {{user}} (since {{since}}) and cannot be overwritten.",
+    "conflict": "“{{name}}” was changed by someone else since you opened it (last at {{time}}). Overwrite anyway? “Cancel” leaves the file unchanged.",
+    "readonlySave": "You do not have “{{name}}” open for editing, so bestbpmn cannot save it in the folder. Download it instead?",
+    "reloadChanged": "The file has changed in the meantime. Reload it? Your unsaved changes will be lost.",
+    "discard": "There are unsaved changes. Continue anyway and discard them?",
+    "banner": {
+      "locked": "“{{name}}” is being edited by {{user}} (since {{since}}). You can view the file but not save it in the folder.",
+      "stale": "“{{name}}” is still locked for {{user}}, but there has been no sign of life since {{heartbeat}}, e.g. because the window crashed.",
+      "lost": "{{user}} has taken over the lock on “{{name}}”. Save your changes under another name or as a download.",
+      "retry": "Try again",
+      "takeOver": "Remove lock and edit"
     }
   }
 }
