@@ -9,14 +9,29 @@
     <header class="toolbar">
       <strong data-i18n="app.title">bestbpmn</strong>
       <span id="model-name" class="model-name"></span>
-      <button id="new" data-i18n="app.new">New</button>
-      <button id="template" data-i18n="app.template">Template</button>
-      <button id="template-incident" data-i18n="app.templateIncident">Incident template</button>
+      <span id="file-name" class="file-name"></span>
+      <details class="menu" id="new-menu">
+        <summary data-i18n="app.new">New</summary>
+        <div class="menu-items">
+          <button id="new" data-i18n="app.newEmpty">Empty diagram</button>
+          <button id="template" data-i18n="app.template">Template</button>
+          <button id="template-incident" data-i18n="app.templateIncident">Incident template</button>
+        </div>
+      </details>
       <label class="button" data-i18n="app.open">Open <input id="open" type="file" accept=".bpmn,.xml" hidden /></label>
       <button id="save" data-i18n="app.save">Save</button>
+      <details class="menu" id="export-menu">
+        <summary data-i18n="app.export">Export</summary>
+        <div class="menu-items">
+          <button id="export-bpmn" data-i18n="app.exportBpmn">BPMN file</button>
+          <button id="export-svg" data-i18n="app.exportSvg">Graphic (SVG)</button>
+          <button id="export-png" data-i18n="app.exportPng">Image (PNG)</button>
+        </div>
+      </details>
       <label class="toggle"><input id="show-services" type="checkbox" /><span data-i18n="app.showServices">Show IT services</span></label>
       <label class="toggle"><span data-i18n="language.label">Language</span> <select id="language"></select></label>
     </header>
+    <div id="banner" class="banner" role="status" hidden></div>
     <main class="layout">
       <div id="canvas"></div>
       <aside class="sidebar">
@@ -24,11 +39,13 @@
           <button role="tab" data-tab="properties" aria-selected="true" data-i18n="app.tabs.properties">Properties</button>
           <button role="tab" data-tab="status" aria-selected="false" data-i18n="app.tabs.status">Status</button>
           <button role="tab" data-tab="raci" aria-selected="false" data-i18n="app.tabs.raci">RACI</button>
+          <button role="tab" data-tab="files" aria-selected="false" data-i18n="app.tabs.files">Files</button>
           <button role="tab" data-tab="settings" aria-selected="false" data-i18n="app.tabs.settings">Settings</button>
         </nav>
         <section id="properties" class="tab-panel"></section>
         <section id="status" class="tab-panel" aria-live="polite" hidden></section>
         <section id="raci" class="tab-panel" hidden></section>
+        <section id="files" class="tab-panel" hidden></section>
         <section id="settings" class="tab-panel" hidden>
           <div id="rules"></div>
           <div id="catalog"></div>

@@ -17,9 +17,16 @@
       "properties": "Eigenschaften",
       "status": "Status",
       "raci": "DEMI",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "files": "Dateien"
     },
-    "templateIncident": "Vorlage Incident"
+    "templateIncident": "Vorlage Incident",
+    "newEmpty": "Leeres Diagramm",
+    "export": "Exportieren",
+    "exportBpmn": "BPMN-Datei herunterladen",
+    "exportSvg": "Grafik (SVG)",
+    "exportPng": "Bild (PNG)",
+    "_tab": "Dateien"
   },
   "status": {
     "noProcess": "Kein Prozess im Modell.",
@@ -176,6 +183,42 @@
       "not-a-list": "„{{table}}“ ist keine Liste und wurde übersprungen.",
       "invalid-entry": "„{{table}}“, Eintrag {{index}}: ID oder Name fehlt, übersprungen.",
       "duplicate-id": "„{{table}}“: Die ID „{{id}}“ kommt doppelt vor, übersprungen."
+    }
+  },
+  "files": {
+    "title": "Arbeitsordner",
+    "unsupported": "Dieser Browser kann keinen Ordner freigeben (z. B. Firefox). Öffnen und Speichern laufen hier über Hochladen und Herunterladen. Mit Edge oder Chrome kannst du einen Arbeitsordner wählen, auch auf einem Netzlaufwerk.",
+    "user": "Dein Name",
+    "userPlaceholder": "steht in der Sperrdatei",
+    "askName": "Wie heißt du? Der Name steht in der Sperrdatei, damit andere sehen, wer eine Datei gerade bearbeitet.",
+    "noFolder": "Wähle einen Ordner für deine Modelle, z. B. auf einem Netzlaufwerk. Speichern schreibt dann direkt in die Datei.",
+    "pick": "Ordner wählen …",
+    "pickOther": "Anderer Ordner …",
+    "permission": "Der Browser fragt nach jedem Neustart noch einmal, ob bestbpmn den Ordner „{{folder}}“ verwenden darf.",
+    "allow": "Zugriff auf „{{folder}}“ erlauben",
+    "folder": "Ordner",
+    "refresh": "Aktualisieren",
+    "saveAs": "Speichern unter …",
+    "forget": "Ordner vergessen",
+    "empty": "Im Ordner liegen noch keine Modelle (.bpmn).",
+    "listError": "Der Ordner ist nicht erreichbar: {{message}}",
+    "readError": "„{{name}}“ konnte nicht gelesen werden: {{message}}",
+    "lock": "gesperrt: {{user}}, seit {{since}}",
+    "staleLock": "verwaiste Sperre: {{user}}",
+    "ownLock": "von dir geöffnet",
+    "saveAsName": "Dateiname im Arbeitsordner:",
+    "exists": "„{{name}}“ gibt es schon. Überschreiben?",
+    "lockedBy": "„{{name}}“ wird gerade von {{user}} bearbeitet (seit {{since}}) und kann nicht überschrieben werden.",
+    "conflict": "„{{name}}“ wurde seit dem Öffnen von jemand anderem geändert (zuletzt {{time}}). Trotzdem überschreiben? „Abbrechen“ lässt die Datei unverändert.",
+    "readonlySave": "Du hast „{{name}}“ nicht zum Bearbeiten geöffnet, deshalb kann bestbpmn nicht in den Ordner speichern. Stattdessen als Download speichern?",
+    "reloadChanged": "Die Datei wurde inzwischen geändert. Neu laden? Deine ungespeicherten Änderungen gehen dabei verloren.",
+    "discard": "Es gibt ungespeicherte Änderungen. Trotzdem fortfahren und sie verwerfen?",
+    "banner": {
+      "locked": "„{{name}}“ wird gerade von {{user}} bearbeitet (seit {{since}}). Du kannst die Datei ansehen, aber nicht im Ordner speichern.",
+      "stale": "„{{name}}“ ist noch für {{user}} gesperrt, aber seit {{heartbeat}} kam kein Lebenszeichen mehr, z. B. weil das Fenster abgestürzt ist.",
+      "lost": "{{user}} hat die Sperre auf „{{name}}“ übernommen. Speichere deine Änderungen unter einem anderen Namen oder als Download.",
+      "retry": "Erneut versuchen",
+      "takeOver": "Sperre aufheben und bearbeiten"
     }
   }
 }
