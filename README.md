@@ -23,8 +23,10 @@ Kollegen arbeiten unter Windows mit Edge oder Chrome; eine Installation von Node
 oder anderen Programmen ist dafür nicht nötig. Die App läuft im Browser, Modelle
 werden lokal als `.bpmn`-Datei gespeichert. Der Dateiname kommt aus dem Modellnamen
 und ist unter Windows immer gültig (keine verbotenen Zeichen, kein Punkt am Ende,
-keine reservierten Namen wie `CON`). Ab Etappe 4 lässt sich die App von einem
-internen Webserver aus als Programm installieren (PWA, mit Startmenü-Eintrag).
+keine reservierten Namen wie `CON`). Ab Etappe 4 gibt es die App als einzelne Datei
+`bestbpmn.html`, die man ohne Server per Doppelklick öffnet. Wer einen
+Startmenü-Eintrag möchte, kann sie zusätzlich von einem internen Webserver als PWA
+installieren.
 
 ## Aufbau
 
@@ -50,7 +52,7 @@ npm test        # Browser-Tests brauchen Chromium: npx playwright install chromi
 1. **Gerüst:** Modellierer mit Status, RACI/DEMI und Prüfregeln
 2. Freitext für Status und Rollen, optionaler eigener Katalog, Regelprofile
 3. Arbeiten mit Dateien: Öffnen/Speichern lokal, Drag & Drop, Export als SVG/PNG, leeres Diagramm
-4. Auslieferung als installierbare Web-App (PWA) und Release-ZIP
+4. Auslieferung als einzelne HTML-Datei zum Doppelklicken, optional als installierbare Web-App (PWA)
 
 ## Lizenz
 
