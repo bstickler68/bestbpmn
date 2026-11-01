@@ -49,7 +49,8 @@ export function findRole(
 }
 
 /**
- * Die zentralen Tabellen, die der Modellierer und die Modellprüfung kennen. Beispiele liegen
+ * Die Tabellen, die die Modellprüfung kennt. Jede ist freiwillig: Ohne Statustabelle ist jeder Status
+ * erlaubt, ohne Rollen- und Gruppentabelle jede Rolle und Gruppe (Freitext). Beispiele liegen
  * unter `templates/catalog/`.
  */
 export interface Catalog {

@@ -34,7 +34,7 @@ const COMMANDS = [
  *   `notPerformerOf(…)` bleibt als Einschränkung erhalten.
  * - Multi-Instanz-Aufgaben behalten ihre eigenen D; die Lane gilt nur, solange keins eingetragen ist.
  * - Lanes und Pools mit Rolle oder Gruppe aus der Tabelle heißen wie der Tabelleneintrag; Umbenennen
- *   wird zurückgesetzt.
+ *   wird zurückgesetzt. Eine frei eingegebene Rolle oder Gruppe gibt nur einer Lane ohne Namen den Namen.
  */
 export default class LaneBehavior extends CommandInterceptor {
   static $inject = ['eventBus', 'modeling', 'commandStack', 'elementRegistry', 'bpmnjs', 'config.bestbpmn'];
@@ -109,9 +109,16 @@ export default class LaneBehavior extends CommandInterceptor {
   }
 
   private lockName(lane: BusinessObject, roles: RoleDefinition[] | undefined, language: string) {
-    const role = findRole(roles, parseAssignee(lane.assignee ?? ''));
+    const assignee = parseAssignee(lane.assignee ?? '');
+    const role = findRole(roles, assignee);
     const element = this.elementRegistry.get(lane.id);
-    if (!role || !element) {
+    if (!element) {
+      return;
+    }
+    if (!role) {
+      if ((assignee?.kind === 'group' || assignee?.kind === 'role') && !lane.name?.trim()) {
+        this.modeling.updateLabel(element, assignee.ref);
+      }
       return;
     }
     const name = catalogLabel(role, language);

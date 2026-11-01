@@ -9,6 +9,8 @@ Kern des Modellierers ohne Oberfläche: Namensräume, Statusmodell, RACI/DEMI un
   - die IDs aller Status in der Reihenfolge ihres Auftretens, dazu ihre Namen in der Hauptsprache (`statusNames`) und ihre Übersetzungen (`statusTranslations`), beides aus der Statustabelle, falls übergeben,
   - die möglichen Anfangsstatus: je Startereignis die Status der ersten Aktivität mit Output auf „Prozess“,
   - je Schritt die Status, die er beim Abschluss setzen kann (`outputs`), und die nur dokumentierten Status aus Input-Verknüpfungen (`documentedInputs`).
+- **Katalog-Datei** (`parseCatalog`, `serializeCatalog`): eine JSON-Datei mit `states`, `roles` und `services`, jede Tabelle freiwillig. Ungültige Einträge werden übersprungen und gemeldet; leere Tabellen gelten als nicht vorhanden, damit ohne Statustabelle jeder Status erlaubt ist.
+- **Regelprofile** (`RULE_PROFILES`, `disabledRulesOf`, `matchRuleProfile`): `document` verlangt kein D an jeder Benutzeraufgabe und keine Rolle an jeder Lane, `complete` prüft alles. `deriveStatusModels(xml, catalog, { disabledRules })` lässt abgeschaltete Regeln weg.
 - **Modellierregeln** als Meldungen am Ergebnis:
 
 | Code | Stufe | Bedeutung |

@@ -1,5 +1,5 @@
 import type { TFunction } from '@bestbpmn/i18n';
-import type { AttributeDefinition, RoleDefinition, Service, StatusDefinition } from '@bestbpmn/model';
+import type { AttributeDefinition, IssueCode, RoleDefinition, Service, StatusDefinition } from '@bestbpmn/model';
 import { DEFAULT_ATTRIBUTE_DEFINITIONS } from '@bestbpmn/model';
 import { is, type BusinessObject, type DiagramElement } from './util';
 
@@ -9,10 +9,12 @@ export interface BestbpmnConfig {
   attributes?: AttributeDefinition[];
   /** Service-Katalog. */
   services?: Service[];
-  /** Statustabelle. Beispiel: `templates/catalog/states.json`. */
+  /** Statustabelle. Fehlt sie, sind Status Freitext. Beispiel: `templates/catalog/states.json`. */
   states?: StatusDefinition[];
-  /** Rollen- und Gruppentabelle. Beispiel: `templates/catalog/roles.json`. */
+  /** Rollen- und Gruppentabelle. Fehlt sie, sind Rollen und Gruppen Freitext. Beispiel: `templates/catalog/roles.json`. */
   roles?: RoleDefinition[];
+  /** Abgeschaltete Prüfregeln, z. B. `disabledRulesOf('document')` aus `@bestbpmn/model`. */
+  disabledRules?: IssueCode[];
   /** Sprache der Oberfläche, z. B. `de`. Standard ist Englisch. */
   language?: string;
   /** Übersetzungsfunktion aus `@bestbpmn/i18n`; fehlt sie, erzeugt der Modellierer eine eigene. */

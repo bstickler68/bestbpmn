@@ -6,10 +6,10 @@ import '@bpmn-io/properties-panel/dist/assets/properties-panel.css';
 import './styles.css';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { createI18n, matchLanguage, SUPPORTED_LANGUAGES, type TFunction } from '@bestbpmn/i18n';
-import { deriveRaciMatrices, type RoleDefinition, type StatusDefinition, type StatusModel } from '@bestbpmn/model';
-import services from '../../../templates/catalog/services.json';
-import states from '../../../templates/catalog/states.json';
-import roles from '../../../templates/catalog/roles.json';
+import { deriveRaciMatrices, parseCatalog, type CatalogFile, type IssueCode, type StatusModel } from '@bestbpmn/model';
+import exampleServices from '../../../templates/catalog/services.json';
+import exampleStates from '../../../templates/catalog/states.json';
+import exampleRoles from '../../../templates/catalog/roles.json';
 import incident from '../../../templates/processes/incident.bpmn?raw';
 import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import { EMPTY_DIAGRAM } from './emptyDiagram';
@@ -22,9 +22,13 @@ import {
   STATUS_CHANGED,
   translateModule,
   type ServiceOverlays,
+  type StatusCheck,
 } from '@bestbpmn/bpmn-js-extension';
 import { renderRaciMatrix } from './raciMatrix';
 import { renderStatusPanel } from './statusPanel';
+import { renderCatalogEditor } from './catalogEditor';
+import { renderRulesPanel } from './rulesPanel';
+import { loadCatalog, loadDisabledRules, saveCatalog, saveDisabledRules } from './storage';
 
 const LANGUAGE_KEY = 'bestbpmn.language';
 const statusPanel = document.querySelector<HTMLElement>('#status')!;
@@ -32,9 +36,20 @@ const raciPanel = document.querySelector<HTMLElement>('#raci')!;
 const languageSelect = document.querySelector<HTMLSelectElement>('#language')!;
 const showServices = document.querySelector<HTMLInputElement>('#show-services')!;
 const nameLabel = document.querySelector<HTMLElement>('#model-name')!;
+const rulesPanel = document.querySelector<HTMLElement>('#rules')!;
+const catalogPanel = document.querySelector<HTMLElement>('#catalog')!;
+
+/** Der Beispielkatalog aus `templates/catalog`, zum Ausprobieren in den Einstellungen. */
+const EXAMPLE_CATALOG: CatalogFile = parseCatalog(
+  JSON.stringify({ states: exampleStates, roles: exampleRoles, services: exampleServices }),
+).catalog;
 
 let modeler: any;
 let t: TFunction;
+let language: string;
+// Ohne eigenen Katalog sind Status, Rollen und Gruppen Freitext.
+let catalog: CatalogFile = loadCatalog();
+let disabledRules: IssueCode[] = loadDisabledRules();
 
 function storedLanguage(): string | undefined {
   try {
@@ -68,7 +83,8 @@ function applyStaticTexts(language: string) {
  * bpmn-js übersetzt nur beim Aufbau. Ein Sprachwechsel baut den Modellierer deshalb neu auf
  * und lädt das aktuelle Modell wieder hinein; Rückgängig beginnt danach von vorn.
  */
-async function createModeler(language: string, xml: string) {
+async function createModeler(lang: string, xml: string) {
+  language = lang;
   t = createI18n(language).t;
   applyStaticTexts(language);
   modeler?.destroy();
@@ -83,19 +99,40 @@ async function createModeler(language: string, xml: string) {
     ],
     moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: '#properties' },
-    // Service-Katalog, Status-, Rollen- und Gruppentabelle kommen bis Etappe 2 aus den Beispieldateien.
-    bestbpmn: { services, states: states as StatusDefinition[], roles: roles as RoleDefinition[], language, t },
+    bestbpmn: { ...catalog, disabledRules, language, t },
   });
   modeler.on(STATUS_CHANGED, ({ models }: { models: StatusModel[] }) => {
     renderStatusPanel(statusPanel, models, { language, t });
   });
   modeler.on(['import.done', 'commandStack.changed'], () => {
     const definitions = modeler.getDefinitions();
-    renderRaciMatrix(raciPanel, definitions ? deriveRaciMatrices(definitions) : [], t, { roles: roles as RoleDefinition[], language });
+    renderRaciMatrix(raciPanel, definitions ? deriveRaciMatrices(definitions) : [], t, { roles: catalog.roles, language });
     showModelName();
   });
   await open(xml);
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
+  renderSettings();
+}
+
+/** Einstellungen: Prüfregeln gelten sofort, ein geänderter Katalog baut den Modellierer neu auf. */
+function renderSettings() {
+  renderRulesPanel(rulesPanel, disabledRules, t, (rules) => {
+    disabledRules = rules;
+    saveDisabledRules(rules);
+    (modeler.get('bestbpmnStatusCheck') as StatusCheck).setDisabledRules(rules);
+    renderSettings();
+  });
+  renderCatalogEditor(catalogPanel, {
+    t,
+    catalog,
+    example: EXAMPLE_CATALOG,
+    onApply: async (next) => {
+      catalog = next;
+      saveCatalog(next);
+      const { xml } = await modeler.saveXML();
+      await createModeler(language, xml);
+    },
+  });
 }
 
 async function open(xml: string) {
@@ -114,6 +151,8 @@ document.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((tab) =>
       other.setAttribute('aria-selected', String(selected));
       document.getElementById(other.dataset.tab!)!.hidden = !selected;
     });
+    // Die Einstellungen mit dem Katalog brauchen mehr Platz.
+    document.querySelector('.sidebar')!.classList.toggle('wide', tab.dataset.tab === 'settings');
   }),
 );
 

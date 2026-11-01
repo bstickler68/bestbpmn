@@ -5,6 +5,7 @@ import {
   formatStateLabel,
   isProcessObjectName,
   parseStateLabel,
+  stateKey,
   type StatusDefinition,
 } from '@bestbpmn/model';
 import type { BestbpmnConfig } from './attributes';
@@ -15,7 +16,8 @@ import { findDataObjects, findProcess, findReferences, is, type BusinessObject, 
  *
  * - Eine Referenz mit der Beschriftung `Prozess [in_review]` zeigt immer auf das eine Datenobjekt
  *   „Prozess“ des Prozesses und bekommt einen echten `bpmn:dataState` mit der Status-ID.
- *   Steht in der Klammer ein Name aus der Statustabelle, wird er durch die ID ersetzt.
+ *   Steht in der Klammer ein Name aus der Statustabelle, wird er durch die ID ersetzt. Ein frei
+ *   eingegebener Status bleibt als Name stehen und bekommt einen Schlüssel aus seinem Namen.
  * - Jede andere Beschriftung meint ein anderes Datenobjekt. Das ist erlaubt, hat aber keinen Status.
  * - Beim Löschen einer Referenz bleibt das Datenobjekt erhalten, solange andere Referenzen darauf zeigen.
  */
@@ -77,10 +79,13 @@ export default class ProcessObjectBehavior extends CommandInterceptor {
         }
       }
 
+      // Ein Status aus dem Katalog steht mit seiner ID im Modell. Ein frei eingegebener Status behält seinen
+      // Namen; sein Schlüssel wird daraus gebildet (`In Prüfung` → `in_pruefung`).
       const status = label?.state ? (findStatus(states, label.state)?.id ?? label.state) : undefined;
-      if (status && (bo.dataState?.name !== status || bo.dataState?.key !== status)) {
+      const key = status && findStatus(states, status) ? status : status ? stateKey(status) || status : undefined;
+      if (status && (bo.dataState?.name !== status || bo.dataState?.key !== key)) {
         modeling.updateModdleProperties(element, bo, {
-          dataState: bpmnFactory.create('bpmn:DataState', { name: status, key: status }),
+          dataState: bpmnFactory.create('bpmn:DataState', { name: status, key }),
         });
       } else if (!status && bo.dataState) {
         modeling.updateModdleProperties(element, bo, { dataState: undefined });

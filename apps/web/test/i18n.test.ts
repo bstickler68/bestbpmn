@@ -90,16 +90,27 @@ describe('Oberfläche in zwei Sprachen', () => {
     await nextTick();
 
     const group = container.querySelector('[data-group-id="group-bestbpmn-status"]')!;
-    const select = group.querySelector<HTMLSelectElement>('select')!;
-    expect(select.value).toBe('approved');
+    const entry = group.querySelector('[data-entry-id="bestbpmn-status-state"]')!;
+    expect([...entry.querySelectorAll('.bestbpmn-chip')].map((c) => c.getAttribute('data-value'))).toEqual(['approved']);
+    expect(entry.textContent).toContain('Freigegeben (approved)');
     expect(group.textContent).toContain('Datenobjekt-ID');
     expect(group.querySelector<HTMLInputElement>('input[name="bestbpmn-status-data-object"]')?.value).toBe('Prozess');
-    expect([...select.options].map((o) => o.textContent)).toContain('In Arbeit (in_progress)');
 
-    select.value = 'rejected';
-    select.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(element('Ref_Freigegeben').businessObject.name).toBe('Prozess [rejected]');
-    expect(element('Ref_Freigegeben').businessObject.dataState.name).toBe('rejected');
+    entry.querySelector<HTMLButtonElement>('.bestbpmn-chip-remove')!.click();
+    await nextTick();
+    expect(element('Ref_Freigegeben').businessObject.name).toBe('Prozess');
+    const input = group.querySelector<HTMLInputElement>('[data-entry-id="bestbpmn-status-state"] input')!;
+    input.focus();
+    input.value = 'arbeit';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+    const results = [...group.querySelectorAll('.bestbpmn-picker-results li')].map((li) => li.textContent);
+    expect(results).toEqual(['In Arbeit (in_progress)', '„arbeit“ als neuer Status']);
+    group
+      .querySelector('.bestbpmn-picker-results li[data-value="in_progress"]')!
+      .dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(element('Ref_Freigegeben').businessObject.name).toBe('Prozess [in_progress]');
+    expect(element('Ref_Freigegeben').businessObject.dataState.name).toBe('in_progress');
     get('selection').select(null);
     await nextTick();
   });

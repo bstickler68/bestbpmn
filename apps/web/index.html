@@ -24,10 +24,15 @@
           <button role="tab" data-tab="properties" aria-selected="true" data-i18n="app.tabs.properties">Properties</button>
           <button role="tab" data-tab="status" aria-selected="false" data-i18n="app.tabs.status">Status</button>
           <button role="tab" data-tab="raci" aria-selected="false" data-i18n="app.tabs.raci">RACI</button>
+          <button role="tab" data-tab="settings" aria-selected="false" data-i18n="app.tabs.settings">Settings</button>
         </nav>
         <section id="properties" class="tab-panel"></section>
         <section id="status" class="tab-panel" aria-live="polite" hidden></section>
         <section id="raci" class="tab-panel" hidden></section>
+        <section id="settings" class="tab-panel" hidden>
+          <div id="rules"></div>
+          <div id="catalog"></div>
+        </section>
       </aside>
     </main>
     <script type="module" src="/src/main.ts"></script>
