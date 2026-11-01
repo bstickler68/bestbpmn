@@ -189,4 +189,14 @@ describe('Kollaboration mit einem Pool', () => {
     expect(fileNameFor('A/B: C?')).toBe('A-B- C-.bpmn');
     expect(fileNameFor(undefined)).toBe('process.bpmn');
   });
+
+  it('bildet Dateinamen, die unter Windows gültig sind', () => {
+    expect(fileNameFor('Ende.')).toBe('Ende.bpmn');
+    expect(fileNameFor('Ende . . ')).toBe('Ende.bpmn');
+    expect(fileNameFor('Zeile\nZwei')).toBe('Zeile-Zwei.bpmn');
+    expect(fileNameFor('CON')).toBe('CON-process.bpmn');
+    expect(fileNameFor('lpt1')).toBe('lpt1-process.bpmn');
+    expect(fileNameFor('Console')).toBe('Console.bpmn');
+    expect(fileNameFor('...')).toBe('process.bpmn');
+  });
 });

@@ -15,7 +15,16 @@ npm install
 npm run dev -w @bestbpmn/web   # öffnet http://localhost:5173
 ```
 
-Voraussetzung ist Node.js 22 (siehe `.nvmrc`).
+Voraussetzung ist Node.js 22 (siehe `.nvmrc`). Entwickelt wird unter Ubuntu.
+
+## Nutzung unter Windows
+
+Kollegen arbeiten unter Windows mit Edge oder Chrome; eine Installation von Node.js
+oder anderen Programmen ist dafür nicht nötig. Die App läuft im Browser, Modelle
+werden lokal als `.bpmn`-Datei gespeichert. Der Dateiname kommt aus dem Modellnamen
+und ist unter Windows immer gültig (keine verbotenen Zeichen, kein Punkt am Ende,
+keine reservierten Namen wie `CON`). Ab Etappe 4 lässt sich die App von einem
+internen Webserver aus als Programm installieren (PWA, mit Startmenü-Eintrag).
 
 ## Aufbau
 

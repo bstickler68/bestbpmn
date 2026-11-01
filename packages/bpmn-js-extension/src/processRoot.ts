@@ -70,8 +70,21 @@ export function modelName(definitions: BusinessObject | undefined): string | und
   return ((named('bpmn:Collaboration') ?? named('bpmn:Process'))?.name as string | undefined)?.trim();
 }
 
-/** Dateiname aus dem Modellnamen, z. B. „Incident bearbeiten“ → `Incident bearbeiten.bpmn`. */
+/** Gerätenamen, die Windows nicht als Dateinamen zulässt, auch nicht mit Endung. */
+const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
+/**
+ * Dateiname aus dem Modellnamen, z. B. „Incident bearbeiten“ → `Incident bearbeiten.bpmn`.
+ * Der Name ist unter Windows, macOS und Linux gültig: keine verbotenen Zeichen oder Steuerzeichen,
+ * kein Punkt oder Leerzeichen am Ende und kein reservierter Gerätename wie `CON`.
+ */
 export function fileNameFor(name: string | undefined): string {
-  const safe = (name ?? '').replace(/[\\/:*?"<>|]+/g, '-').trim();
+  let safe = (name ?? '')
+    .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-')
+    .trim()
+    .replace(/[. ]+$/, '');
+  if (WINDOWS_RESERVED.test(safe)) {
+    safe = `${safe}-process`;
+  }
   return `${safe || 'process'}.bpmn`;
 }

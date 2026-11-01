@@ -5,5 +5,5 @@
 - Modell zuerst: Status und Zuständigkeit kommen nur aus dem BPMN-Modell. Der Status ist eine Zusatzinformation und steuert nichts.
 - Standalone: keine Server, kein Backend, keine internen Namen oder Daten im Repository. Eine spätere Veröffentlichung als Open Source soll möglich bleiben.
 - Abhängigkeiten nur unter MIT, ISC, BSD oder Apache 2.0; bpmn-js unter der bpmn.io-Lizenz, das Wasserzeichen bleibt sichtbar. Vor dem Hinzufügen die Lizenz prüfen.
-- Alles ist TypeScript.
+- Alles ist TypeScript. Entwickelt wird unter Ubuntu; die Nutzer arbeiten unter Windows mit Edge oder Chrome. Alles, was Nutzer sehen oder speichern, muss dort funktionieren (Dateinamen, Tastenkürzel, Schriften).
 - Änderungen nur per Pull Request auf `main`; jede Etappe bleibt für sich lauffähig.
