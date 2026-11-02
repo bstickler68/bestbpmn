@@ -173,7 +173,8 @@ describe('Live-Prüfung', () => {
     expect(model?.statuses).toEqual(['in_review', 'reviewed', 'approved']);
     expect(model?.initialStatuses).toEqual(['in_review']);
     expect(model?.statusNames.in_review).toBe('In Prüfung');
-    expect(model?.issues).toEqual([]);
+    // Die Vorlage hat nur an einer Aufgabe einen IT-Service; diese Regel hat eigene Tests.
+    expect(model?.issues.filter((i) => i.code !== 'task-without-service')).toEqual([]);
   });
 
   it('markiert eine Referenz auf „Prozess“ ohne Status', async () => {

@@ -21,7 +21,11 @@ const plain = `<?xml version="1.0" encoding="UTF-8"?>
 describe('Regelprofile', () => {
   it('meldet im Profil „Vollständig“ fehlendes D und Lane ohne Rolle', async () => {
     const [m] = await deriveStatusModels(plain, {}, { disabledRules: disabledRulesOf('complete') });
-    expect([...new Set(m!.issues.map((i) => i.code))].sort()).toEqual(['lane-without-role', 'raci-missing-responsible']);
+    expect([...new Set(m!.issues.map((i) => i.code))].sort()).toEqual([
+      'lane-without-role',
+      'raci-missing-responsible',
+      'task-without-service',
+    ]);
   });
 
   it('meldet im Profil „Dokumentieren“ nichts für ein reines bpmn.io-Diagramm', async () => {
@@ -39,12 +43,41 @@ describe('Regelprofile', () => {
   });
 
   it('erkennt das Profil zu einer Auswahl', () => {
-    expect(matchRuleProfile(['lane-without-role', 'raci-missing-responsible'])).toBe('document');
+    expect(matchRuleProfile(['lane-without-role', 'raci-missing-responsible', 'task-without-service'])).toBe('document');
     expect(matchRuleProfile([])).toBe('complete');
     expect(matchRuleProfile(['unknown-state'])).toBeUndefined();
   });
 
-  it('kennt alle 13 Regeln', () => {
-    expect(new Set(ISSUE_CODES).size).toBe(13);
+  it('kennt alle 14 Regeln', () => {
+    expect(new Set(ISSUE_CODES).size).toBe(14);
+  });
+});
+
+const services = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bestadd="urn:bestadd:schema:1.0" id="D" targetNamespace="t">
+  <bpmn:process id="P" isExecutable="false">
+    <bpmn:userTask id="U1" name="Erfassen" />
+    <bpmn:userTask id="U2" name="Freigeben">
+      <bpmn:extensionElements><bestadd:attributes><bestadd:attribute key="services"><bestadd:serviceRef ref="crm" name="CRM" /></bestadd:attribute></bestadd:attributes></bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="S1" name="Buchen" />
+    <bpmn:task id="T1" name="Ablegen" />
+    <bpmn:manualTask id="M1" name="Unterschreiben" />
+    <bpmn:subProcess id="SP" name="Versand"><bpmn:serviceTask id="S2" name="Mail senden" /></bpmn:subProcess>
+  </bpmn:process>
+</bpmn:definitions>`;
+
+describe('Prüfregel IT-Service', () => {
+  const serviceIssues = async (disabledRules: ReturnType<typeof disabledRulesOf>) => {
+    const [m] = await deriveStatusModels(services, {}, { disabledRules });
+    return m!.issues.filter((i) => i.code === 'task-without-service').map((i) => i.elementId);
+  };
+
+  it('verlangt im Profil „Vollständig“ einen IT-Service an Benutzer- und Serviceaufgaben', async () => {
+    expect((await serviceIssues(disabledRulesOf('complete'))).sort()).toEqual(['S1', 'S2', 'U1']);
+  });
+
+  it('ist im Profil „Dokumentieren“ abgeschaltet', async () => {
+    expect(await serviceIssues(disabledRulesOf('document'))).toEqual([]);
   });
 });

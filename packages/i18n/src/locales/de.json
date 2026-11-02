@@ -58,7 +58,8 @@
     "raci-multiple-responsible": "„{{element}}“ hat mehr als ein D: {{assignees}}. Erlaubt ist genau eins.",
     "raci-multiple-accountable": "„{{element}}“ hat mehr als ein E: {{assignees}}. Erlaubt ist höchstens eins.",
     "raci-unknown-assignee": "„{{element}}“: {{assignee}} gibt es im Katalog nicht.",
-    "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine."
+    "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine.",
+    "task-without-service": "Die Aufgabe „{{element}}“ hat keinen IT-Service. Benutzer- und Serviceaufgaben brauchen mindestens einen."
   },
   "panel": {
     "translations": "Übersetzungen",
@@ -148,7 +149,8 @@
       "raci-multiple-responsible": "Höchstens ein D je Aufgabe (außer Multi-Instanz)",
       "raci-multiple-accountable": "Höchstens ein E je Aufgabe",
       "raci-unknown-assignee": "Rollen und Gruppen müssen im Katalog stehen (nur mit Katalog)",
-      "lane-without-role": "Jede Lane hat eine Rolle oder Gruppe"
+      "lane-without-role": "Jede Lane hat eine Rolle oder Gruppe",
+      "task-without-service": "Jede Benutzer- und Serviceaufgabe hat einen IT-Service"
     }
   },
   "catalog": {

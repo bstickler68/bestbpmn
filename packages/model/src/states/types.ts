@@ -13,7 +13,8 @@ export type IssueCode =
   | 'raci-multiple-responsible'
   | 'raci-multiple-accountable'
   | 'raci-unknown-assignee'
-  | 'lane-without-role';
+  | 'lane-without-role'
+  | 'task-without-service';
 
 /**
  * Ein Verstoß gegen die Modellierregeln. Enthält nur Code und Parameter;

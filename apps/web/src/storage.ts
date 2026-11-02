@@ -2,10 +2,13 @@ import {
   DEFAULT_RULE_PROFILE,
   disabledRulesOf,
   isIssueCode,
+  matchRuleProfile,
   parseCatalog,
+  RULE_PROFILES,
   serializeCatalog,
   type CatalogFile,
   type IssueCode,
+  type RuleProfile,
 } from '@bestbpmn/model';
 
 const CATALOG_KEY = 'bestbpmn.catalog';
@@ -43,20 +46,34 @@ export function saveCatalog(catalog: CatalogFile): void {
   write(CATALOG_KEY, text.trim() === '{}' ? undefined : text);
 }
 
-/** Die abgeschalteten Prüfregeln. Standard ist das Profil „Dokumentieren“. */
+/** Das Profil „Dokumentieren“ bis v0.1.0, gespeichert nur als Liste ohne Profilnamen. */
+const LEGACY_DOCUMENT_RULES = ['lane-without-role', 'raci-missing-responsible'].join();
+
+/**
+ * Die abgeschalteten Prüfregeln. Standard ist das Profil „Dokumentieren“. Ist ein Profil gespeichert,
+ * gilt dessen aktuelle Liste, damit neue Prüfregeln dem Profil folgen.
+ */
 export function loadDisabledRules(): IssueCode[] {
   const text = read(RULES_KEY);
   if (!text) {
     return disabledRulesOf(DEFAULT_RULE_PROFILE);
   }
   try {
-    const value = JSON.parse(text) as { disabled?: unknown };
-    return Array.isArray(value.disabled) ? value.disabled.filter(isIssueCode) : disabledRulesOf(DEFAULT_RULE_PROFILE);
+    const value = JSON.parse(text) as { profile?: unknown; disabled?: unknown };
+    if (typeof value.profile === 'string' && value.profile in RULE_PROFILES) {
+      return disabledRulesOf(value.profile as RuleProfile);
+    }
+    if (!Array.isArray(value.disabled)) {
+      return disabledRulesOf(DEFAULT_RULE_PROFILE);
+    }
+    const disabled = value.disabled.filter(isIssueCode);
+    return [...disabled].sort().join() === LEGACY_DOCUMENT_RULES ? disabledRulesOf('document') : disabled;
   } catch {
     return disabledRulesOf(DEFAULT_RULE_PROFILE);
   }
 }
 
 export function saveDisabledRules(disabled: IssueCode[]): void {
-  write(RULES_KEY, JSON.stringify({ disabled }));
+  const profile = matchRuleProfile(disabled);
+  write(RULES_KEY, JSON.stringify(profile ? { profile, disabled } : { disabled }));
 }
