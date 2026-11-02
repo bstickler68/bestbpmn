@@ -77,12 +77,13 @@ Grafik und Stil eingebettet, zum Ablegen und Verschicken) oder über den Druckdi
 Browsers, dort auch „Als PDF speichern“:
 
 - **Steckbrief** (ohne Grafik): Name, Zweck und Beschreibung, Auslöser (Startereignisse),
-  Endzustand (Endereignisse), erste und letzte Aktivität, Input (Datenobjekte an
-  Startereignissen), Output (an Endereignissen) und Ressourcen: Personell (Rollen und Gruppen
+  Endzustand (Endereignisse), erste und letzte Aktivität, Schnittstellen (Input: Datenobjekte
+  an Startereignissen; Output: an Endereignissen) und Ressourcen: Personell (Rollen und Gruppen
   aus der DEMI-Matrix), Dokumente (Datenobjekte, die in Aktivitäten eingehen, und Links),
   Systeme (IT-Services).
-- **Gesamtdokument**: Modellinformationen, Grafik, alle Modellierungselemente als Tabelle,
-  Status und Statuswechsel und DEMI-Matrix. Die Elementtabelle hat die Spalten
+- **Gesamtdokument**: Prozessinformationen, Prozessablaufdiagramm, Beschreibung der
+  Prozessschritte als Tabelle, Status und Statuswechsel (nur, wenn ein Status modelliert ist)
+  und DEMI-Matrix. Die Elementtabelle hat die Spalten
   Nr., Elementtyp, Elementart, Name, IT-System(e), Beschreibung und weiterführende
   Dokumentation. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
   weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
@@ -98,8 +99,9 @@ Querformat.
 - **Eigener Katalog, freiwillig.** Unter „Einstellungen“ lassen sich Status, Rollen/Gruppen
   und IT-Services als Tabellen pflegen, als `bestbpmn-katalog.json` exportieren und
   importieren. Der Katalog liegt nur im Browser des jeweiligen PCs.
-- **Prüfregeln als Profil.** „Dokumentieren“ (Standard) verlangt kein D an jeder Aufgabe und
-  keine Rolle an jeder Lane, passend für Diagramme aus bpmn.io. „Vollständig“ prüft alles.
+- **Prüfregeln als Profil.** „Dokumentieren“ (Standard) verlangt kein D an jeder Aufgabe,
+  keine Rolle an jeder Lane und keinen IT-Service an Benutzer- und Serviceaufgaben, passend für
+  Diagramme aus bpmn.io. „Vollständig“ prüft alles.
   Jede Regel lässt sich auch einzeln ab- oder zuschalten.
 
 ## Aufbau

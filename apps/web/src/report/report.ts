@@ -270,6 +270,8 @@ export function fullHtml(input: ReportInput): string {
   const { t } = input;
   const profile = deriveProfile(input.definitions);
   const models = input.statusModels ?? [];
+  // Das Kapitel Status erscheint nur, wenn im Modell mindestens ein Status modelliert ist.
+  const hasStatuses = models.some((m) => m.statuses.length > 0);
   const info = [
     [t('report.name'), escape(profile.name ?? t('report.untitled'))],
     [t('report.description'), paragraphs(profile.description) || escape(t('report.none'))],
@@ -281,7 +283,7 @@ export function fullHtml(input: ReportInput): string {
 </section>
 ${input.svg ? `<section class="graphic"><h2>${escape(t('report.graphic'))}</h2><div class="diagram">${input.svg.replace(/^<\?xml[^>]*>\s*/, '')}</div></section>` : ''}
 <section class="elements-section"><h2>${escape(t('report.elements'))}</h2>${elementTables(input)}</section>
-<section class="status-section"><h2>${escape(t('report.statusTable'))}</h2>${statusSection(models, input)}</section>
+${hasStatuses ? `<section class="status-section"><h2>${escape(t('report.statusTable'))}</h2>${statusSection(models, input)}</section>` : ''}
 <section class="raci-section"><h2>${escape(t('report.raci'))}</h2>${raciSection(input)}</section>
 </main>`;
   return page(input, 'full', body);
