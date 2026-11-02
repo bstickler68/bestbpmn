@@ -58,7 +58,8 @@
     "raci-multiple-responsible": "“{{element}}” has more than one R: {{assignees}}. Exactly one is allowed.",
     "raci-multiple-accountable": "“{{element}}” has more than one A: {{assignees}}. At most one is allowed.",
     "raci-unknown-assignee": "“{{element}}”: {{assignee}} is not in the catalog.",
-    "lane-without-role": "The lane “{{element}}” has no role or group. Every lane needs one."
+    "lane-without-role": "The lane “{{element}}” has no role or group. Every lane needs one.",
+    "task-without-service": "The task “{{element}}” has no IT service. User and service tasks need at least one."
   },
   "panel": {
     "translations": "Translations",
@@ -148,7 +149,8 @@
       "raci-multiple-responsible": "At most one R per task (except multi-instance)",
       "raci-multiple-accountable": "At most one A per task",
       "raci-unknown-assignee": "Roles and groups must be in the catalog (catalog only)",
-      "lane-without-role": "Every lane has a role or group"
+      "lane-without-role": "Every lane has a role or group",
+      "task-without-service": "Every user and service task has an IT service"
     }
   },
   "catalog": {
@@ -242,20 +244,20 @@
     "endStates": "End states",
     "firstActivities": "First activity",
     "lastActivities": "Last activity",
-    "inputs": "Input",
-    "outputs": "Output",
+    "inputs": "Interfaces (input)",
+    "outputs": "Interfaces (output)",
     "resources": "Resources",
     "people": "People",
     "documents": "Documents",
     "systems": "Systems",
     "none": "–",
     "store": "data store",
-    "modelInfo": "Model information",
+    "modelInfo": "Process information",
     "name": "Name",
     "description": "Description",
     "pages": "Page",
-    "graphic": "Diagram",
-    "elements": "Model elements",
+    "graphic": "Process flow diagram",
+    "elements": "Description of the process steps",
     "statusTable": "Status",
     "statusChanges": "Status changes",
     "raci": "Responsibilities (RACI)",

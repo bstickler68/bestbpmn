@@ -58,7 +58,10 @@ describe('RACI-Prüfregeln', () => {
   const owner = (text: string) =>
     `<bpmn:potentialOwner><bpmn:resourceAssignmentExpression><bpmn:formalExpression>${text}</bpmn:formalExpression></bpmn:resourceAssignmentExpression></bpmn:potentialOwner>`;
   const codes = async (body: string, lanes = '') => {
-    const { deriveStatusModels } = await import('../src/index.js');
+    const { deriveStatusModels: derive } = await import('../src/index.js');
+    // Die Regel für IT-Services hat eigene Tests.
+    const deriveStatusModels = (...[xml, catalog, options]: Parameters<typeof derive>) =>
+      derive(xml, catalog, { ...options, disabledRules: ['task-without-service', ...(options?.disabledRules ?? [])] });
     const [m] = await deriveStatusModels(
       `${head}<bpmn:process id="P"><bpmn:dataObject id="V" name="Prozess" />${lanes}${body}</bpmn:process></bpmn:definitions>`,
     );
@@ -133,7 +136,10 @@ describe('RACI-Prüfregeln', () => {
   });
 
   it('warnt bei Rollen und Gruppen, die die Tabelle nicht kennt', async () => {
-    const { deriveStatusModels } = await import('../src/index.js');
+    const { deriveStatusModels: derive } = await import('../src/index.js');
+    // Die Regel für IT-Services hat eigene Tests.
+    const deriveStatusModels = (...[xml, catalog, options]: Parameters<typeof derive>) =>
+      derive(xml, catalog, { ...options, disabledRules: ['task-without-service', ...(options?.disabledRules ?? [])] });
     const [m] = await deriveStatusModels(
       `${head}<bpmn:process id="P"><bpmn:userTask id="A">${owner('group(gibts_nicht)')}</bpmn:userTask>
        <bpmn:userTask id="B">${owner('role(process_owner)')}</bpmn:userTask></bpmn:process></bpmn:definitions>`,

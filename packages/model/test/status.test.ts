@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { createModdle, deriveStatusModels, type StatusDefinition } from '../src/index.js';
+import { createModdle, deriveStatusModels as derive, type StatusDefinition } from '../src/index.js';
+
+/** Diese Tests prüfen Status und Zuständigkeit; die Regel für IT-Services hat eigene Tests. */
+const deriveStatusModels = (...[xml, catalog, options]: Parameters<typeof derive>) =>
+  derive(xml, catalog, { ...options, disabledRules: ['task-without-service', ...(options?.disabledRules ?? [])] });
 
 const states = JSON.parse(
   readFileSync(new URL('../../../templates/catalog/states.json', import.meta.url), 'utf8'),

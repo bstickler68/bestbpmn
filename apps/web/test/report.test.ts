@@ -25,8 +25,8 @@ describe('Steckbrief', () => {
       'Endzustand',
       'Erste Aktivität',
       'Letzte Aktivität',
-      'Input',
-      'Output',
+      'Schnittstellen (Input)',
+      'Schnittstellen (Output)',
       'Ressourcen',
     ]);
     expect(doc.querySelector('svg')).toBeNull();
@@ -49,7 +49,7 @@ describe('Steckbrief', () => {
 });
 
 describe('Gesamtdokument', () => {
-  it('enthält Modellinformationen, Grafik, Elemente, Status und DEMI, ohne Hauptsprache und Prüfergebnis', async () => {
+  it('enthält Prozessinformationen, Diagramm, Prozessschritte, Status und DEMI, ohne Hauptsprache und Prüfergebnis', async () => {
     const defs = await definitions(incident);
     const doc = parse(
       fullHtml({
@@ -63,9 +63,9 @@ describe('Gesamtdokument', () => {
     );
 
     expect([...doc.querySelectorAll('h2')].map((h) => h.textContent)).toEqual([
-      'Modellinformationen',
-      'Grafik',
-      'Modellierungselemente',
+      'Prozessinformationen',
+      'Prozessablaufdiagramm',
+      'Beschreibung der Prozessschritte',
       'Status',
       'Verantwortlichkeiten (DEMI)',
     ]);
@@ -78,6 +78,22 @@ describe('Gesamtdokument', () => {
     expect(new Set(numbers).size).toBe(numbers.length);
     expect(doc.querySelector('table.raci')).not.toBeNull();
     expect(doc.querySelector('table.status')).not.toBeNull();
+  });
+
+  it('lässt das Kapitel Status weg, wenn kein Status modelliert ist', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="D" targetNamespace="t">
+  <bpmn:process id="P" name="Ohne Status"><bpmn:task id="T" name="Erledigen" /></bpmn:process>
+</bpmn:definitions>`;
+    const defs = await definitions(xml);
+    const doc = parse(fullHtml({ t, language: 'de', definitions: defs, now, statusModels: deriveFromDefinitions(defs) }));
+
+    expect([...doc.querySelectorAll('h2')].map((h) => h.textContent)).toEqual([
+      'Prozessinformationen',
+      'Beschreibung der Prozessschritte',
+      'Verantwortlichkeiten (DEMI)',
+    ]);
+    expect(doc.querySelector('.status-section')).toBeNull();
   });
 
   it('schreibt Verweise auf andere Nummern in die Beschreibung', async () => {

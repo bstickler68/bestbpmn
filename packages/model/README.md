@@ -27,6 +27,7 @@ Kern des Modellierers ohne Oberfläche: Namensräume, Statusmodell, RACI/DEMI un
 | `raci-multiple-responsible` | Fehler | eine Benutzeraufgabe hat mehr als ein D (außer Multi-Instanz) |
 | `raci-multiple-accountable` | Fehler | eine Aktivität hat mehr als ein E |
 | `lane-without-role` | Fehler | eine Swimlane hat keine Rolle oder Gruppe (`raci:assignee`) |
+| `task-without-service` | Fehler | eine Benutzer- oder Serviceaufgabe hat keinen IT-Service |
 | `raci-unknown-assignee` | Warnung | eine Gruppe oder Rolle fehlt in der Rollen- und Gruppentabelle |
 
 Meldungen enthalten nur `code` und `params`. Die Texte in Englisch und Deutsch liegen in `@bestbpmn/i18n` unter `issue.<code>`.

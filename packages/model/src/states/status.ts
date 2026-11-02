@@ -4,6 +4,7 @@ import bestadd from '../moddle/bestadd.json' with { type: 'json' };
 import { modelLanguage, readStateTranslations } from '../i18n/translations.js';
 import { stateKey } from './key.js';
 import { checkLanes, checkRaci, findParticipant, laneMap } from '../raci/check.js';
+import { checkTaskServices } from '../rules/services.js';
 import { parseStateLabel } from './label.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
@@ -226,6 +227,7 @@ function deriveModel(
     issues.push(
       ...checkLanes(process),
       ...checkRaci(collectFlowElements(process), laneMap(process, participant), catalog.roles),
+      ...checkTaskServices(collectFlowElements(process)),
     );
   }
 

@@ -159,7 +159,7 @@ describe('Regelprofile im Modellierer', () => {
     expect(models()[0]!.issues).toEqual([]);
 
     get<StatusCheck>('bestbpmnStatusCheck').setDisabledRules(disabledRulesOf('complete'));
-    expect(models()[0]!.issues.map((i) => i.code)).toEqual(['raci-missing-responsible']);
+    expect(models()[0]!.issues.map((i) => i.code)).toEqual(['raci-missing-responsible', 'task-without-service']);
     // Rückgängig bleibt erhalten, weil der Modellierer nicht neu aufgebaut wird.
     get('commandStack').undo();
     expect(models()[0]!.issues).toEqual([]);
@@ -172,13 +172,13 @@ describe('Einstellungen', () => {
     const onChange = vi.fn();
     renderRulesPanel(div, disabledRulesOf('document'), t, onChange);
     expect(div.querySelector<HTMLSelectElement>('#rule-profile')!.value).toBe('document');
-    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(13);
+    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(14);
     expect(div.querySelector<HTMLInputElement>('[data-rule="lane-without-role"]')!.checked).toBe(false);
 
     const box = div.querySelector<HTMLInputElement>('[data-rule="unknown-state"]')!;
     box.checked = false;
     box.dispatchEvent(new Event('change'));
-    expect([...onChange.mock.calls[0]![0]].sort()).toEqual(['lane-without-role', 'raci-missing-responsible', 'unknown-state']);
+    expect([...onChange.mock.calls[0]![0]].sort()).toEqual(['lane-without-role', 'raci-missing-responsible', 'task-without-service', 'unknown-state']);
 
     renderRulesPanel(div, ['unknown-state'], t, onChange);
     expect(div.querySelector<HTMLSelectElement>('#rule-profile')!.value).toBe('custom');
