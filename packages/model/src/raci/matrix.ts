@@ -12,6 +12,8 @@ export interface RaciRow {
   raci: Raci;
   /** D kommt aus der Swimlane, nicht aus der Aktivität selbst. */
   responsibleFromLane: boolean;
+  /** Die Spalte des D aus der Swimlane oder dem Pool; nur dieses D wird hervorgehoben. */
+  laneColumn?: string;
   /**
    * Rollen je Spalte, z. B. `{ 'group(Autoren)': ['responsible'] }`. Die Buchstaben (R/A/C/I bzw.
    * auf Deutsch D/E/M/I) setzt erst die Anzeige.
@@ -58,7 +60,7 @@ function deriveMatrix(process: El, participant?: El): RaciMatrix {
   const rows: RaciRow[] = [];
   const lanes = laneMap(process, participant);
   for (const el of activities(process)) {
-    const { responsibleFromLane, ...raci } = resolveRaci(el, lanes);
+    const { responsibleFromLane, laneResponsible, ...raci } = resolveRaci(el, lanes);
     const cells: Record<string, RaciRole[]> = {};
     for (const role of RACI_ROLES) {
       for (const assignee of raci[role]) {
@@ -74,6 +76,7 @@ function deriveMatrix(process: El, participant?: El): RaciMatrix {
       ...(el.name ? { elementName: el.name } : {}),
       raci,
       responsibleFromLane,
+      ...(laneResponsible ? { laneColumn: formatAssignee(laneResponsible) } : {}),
       cells,
     });
   }

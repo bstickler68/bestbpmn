@@ -3,6 +3,7 @@ import {
   catalogLabel,
   findParticipant,
   findRole,
+  formatAssignee,
   formatAssignees,
   isMultiInstance,
   laneAssignee,
@@ -32,7 +33,7 @@ const COMMANDS = [
  * - Liegt eine Aktivität in einer Lane oder einem Pool mit Rolle bzw. Gruppe, wird sie als D
  *   in den `potentialOwner` geschrieben. Nach jedem Verschieben, Anlegen oder Ändern der Lane erneut.
  *   `notPerformerOf(…)` bleibt als Einschränkung erhalten.
- * - Multi-Instanz-Aufgaben behalten ihre eigenen D; die Lane gilt nur, solange keins eingetragen ist.
+ * - Multi-Instanz-Aufgaben haben das D aus der Lane immer vorn und dürfen weitere D haben.
  * - Lanes und Pools mit Rolle oder Gruppe aus der Tabelle heißen wie der Tabelleneintrag; Umbenennen
  *   wird zurückgesetzt. Eine frei eingegebene Rolle oder Gruppe gibt nur einer Lane ohne Namen den Namen.
  */
@@ -82,27 +83,40 @@ export default class LaneBehavior extends CommandInterceptor {
       for (const lane of allLanes(process.laneSets)) {
         this.lockName(lane, roles, language);
       }
+      const laneAssignees = new Set(
+        [...new Set(lanes.values())].map((lane) => laneAssignee(lane)).filter((a) => !!a).map((a) => formatAssignee(a!)),
+      );
       for (const [node, lane] of lanes) {
         if (!is(node, 'bpmn:Activity') || is(node, 'bpmn:SubProcess')) {
           continue;
         }
-        this.syncResponsible(node, lane);
+        this.syncResponsible(node, lane, laneAssignees);
       }
     }
   }
 
-  private syncResponsible(node: BusinessObject, lane: BusinessObject) {
+  /**
+   * Schreibt das D aus der Lane an die erste Stelle. Multi-Instanz-Aufgaben behalten weitere D;
+   * stand vorn noch das D einer anderen Lane (Aufgabe verschoben), fällt es weg.
+   */
+  private syncResponsible(node: BusinessObject, lane: BusinessObject, laneAssignees: Set<string>) {
     const fromLane = laneAssignee(lane);
     const element = this.elementRegistry.get(node.id);
     if (!fromLane || !element) {
       return;
     }
     const current = readRaci(node).responsible;
-    const positive = current.filter((a) => a.kind !== 'notPerformerOf');
-    if (isMultiInstance(node) && positive.length) {
-      return;
+    const restrictions = current.filter((a) => a.kind === 'notPerformerOf');
+    let others: typeof current = [];
+    if (isMultiInstance(node)) {
+      const lead = formatAssignee(fromLane);
+      others = current.filter((a) => a.kind !== 'notPerformerOf');
+      if (others[0] && formatAssignee(others[0]) !== lead && laneAssignees.has(formatAssignee(others[0]))) {
+        others = others.slice(1);
+      }
+      others = others.filter((a) => formatAssignee(a) !== lead);
     }
-    const wanted = [fromLane, ...current.filter((a) => a.kind === 'notPerformerOf')];
+    const wanted = [fromLane, ...others, ...restrictions];
     if (formatAssignees(wanted) !== formatAssignees(current)) {
       this.commandStack.execute(UPDATE_RACI, { element, role: 'responsible', assignees: wanted });
     }

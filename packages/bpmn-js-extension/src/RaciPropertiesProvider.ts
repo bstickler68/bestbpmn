@@ -59,7 +59,7 @@ export default class RaciPropertiesProvider {
         roles: this.roles,
         i18n: this.i18n,
         multiple: role === 'consulted' || role === 'informed' || (role === 'responsible' && multi),
-        fromLane: role === 'responsible' && !multi ? fromLane : undefined,
+        fromLane: role === 'responsible' ? fromLane : undefined,
       }));
       // Direkt nach „Allgemein“ und „Beschreibung“, vor Übersetzungen und Zusatzattributen.
       const index = groups.findIndex((g) => g.id === 'documentation');
@@ -96,19 +96,30 @@ function RoleEntry(props: RoleEntryProps) {
   const commandStack = useService('commandStack');
   const bpmnjs = useService('bpmnjs');
   const { selected, restrictions } = split(role, readRaci(element.businessObject)[role]);
-  const shown = fromLane ? [fromLane] : selected;
+  const lane = fromLane ? formatAssignee(fromLane) : undefined;
+  // Das D aus der Swimlane steht immer vorn. Bei Multi-Instanz dürfen weitere D dazukommen, sonst nicht.
+  const shown = fromLane ? (multiple ? [fromLane, ...selected.filter((a) => formatAssignee(a) !== lane)] : [fromLane]) : selected;
+  const description = fromLane
+    ? multiple
+      ? `${t('raci.fromLane')} ${t('raci.multiInstance')}`
+      : t('raci.fromLane')
+    : role === 'responsible' && multiple
+      ? t('raci.multiInstance')
+      : undefined;
   return h(RolePicker, {
     id,
     label: t(`raci.${role}`),
-    description: fromLane ? t('raci.fromLane') : role === 'responsible' && multiple ? t('raci.multiInstance') : undefined,
+    description,
     options: roleOptions(roles, shown, i18n, usedAssignees(bpmnjs.getDefinitions())),
     custom: customRoleOptions(i18n),
     values: shown.map(formatAssignee),
     multiple,
-    disabled: !!fromLane,
+    disabled: !!fromLane && !multiple,
+    locked: lane ? [lane] : [],
     texts: pickerTexts(i18n),
     onChange: (values: string[]) => {
-      const assignees = values.map((v) => parseAssignee(v)).filter((a): a is Assignee => !!a);
+      const chosen = values.map((v) => parseAssignee(v)).filter((a): a is Assignee => !!a);
+      const assignees = fromLane ? [fromLane, ...chosen.filter((a) => formatAssignee(a) !== lane)] : chosen;
       commandStack.execute(UPDATE_RACI, { element, role, assignees: [...assignees, ...restrictions] });
     },
   });

@@ -14,6 +14,8 @@ export interface RolePickerProps {
   values: string[];
   multiple: boolean;
   disabled?: boolean;
+  /** Werte, die angezeigt, aber nicht entfernt werden können, z. B. das D aus der Swimlane. */
+  locked?: string[];
   texts: { placeholder: string; noResults: string; remove: (label: string) => string };
   /**
    * Freitext: Einträge, die aus dem getippten Text entstehen, z. B. „Einkauf“ als Gruppe.
@@ -29,7 +31,7 @@ export interface RolePickerProps {
  * Hält auch Hunderte Rollen und Gruppen aus, weil nur die Treffer angezeigt werden.
  */
 export function RolePicker(props: RolePickerProps) {
-  const { id, label, description, options, values, multiple, disabled, texts, custom, onChange } = props;
+  const { id, label, description, options, values, multiple, disabled, locked = [], texts, custom, onChange } = props;
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -55,6 +57,9 @@ export function RolePicker(props: RolePickerProps) {
     setOpen(multiple);
   };
   const remove = (value: string) => {
+    if (locked.includes(value)) {
+      return;
+    }
     onChange(values.filter((v) => v !== value));
     // Bei Einfachauswahl erscheint das Suchfeld erst nach dem Neuzeichnen wieder.
     setTimeout(() => input.current?.focus());
@@ -76,7 +81,7 @@ export function RolePicker(props: RolePickerProps) {
       }
     } else if (event.key === 'Escape') {
       setOpen(false);
-    } else if (event.key === 'Backspace' && !query && values.length) {
+    } else if (event.key === 'Backspace' && !query && values.length && !locked.includes(values[values.length - 1]!)) {
       onChange(values.slice(0, -1));
     }
   };
@@ -92,9 +97,9 @@ export function RolePicker(props: RolePickerProps) {
       },
       [
         ...values.map((value) =>
-          h('span', { class: 'bestbpmn-chip', 'data-value': value }, [
+          h('span', { class: `bestbpmn-chip${locked.includes(value) ? ' bestbpmn-chip-locked' : ''}`, 'data-value': value }, [
             h('span', { class: 'bestbpmn-chip-label' }, labelOf(value)),
-            disabled
+            disabled || locked.includes(value)
               ? null
               : h(
                   'button',

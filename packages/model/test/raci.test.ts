@@ -140,7 +140,11 @@ describe('RACI-Prüfregeln', () => {
     expect(await codes(mi(false))).toEqual([]);
     const lanes = `<bpmn:laneSet id="LS"><bpmn:lane id="L" name="Autoren"><bpmn:flowNodeRef>A</bpmn:flowNodeRef></bpmn:lane></bpmn:laneSet>`;
     const { rootElement } = await createModdle().fromXML(`${head}<bpmn:process id="P">${lanes}${mi(true)}</bpmn:process></bpmn:definitions>`);
-    expect(formatAssignees(deriveRaciMatrices(rootElement)[0]!.rows[0]!.raci.responsible)).toBe('group(X), role(Y)');
+    // Das D aus der Lane steht vorn, die eigenen D bleiben; hervorgehoben wird nur die Lane-Spalte.
+    const row = deriveRaciMatrices(rootElement)[0]!.rows[0]!;
+    expect(formatAssignees(row.raci.responsible)).toBe('group(Autoren), group(X), role(Y)');
+    expect(row.laneColumn).toBe('group(Autoren)');
+    expect(row.cells).toEqual({ 'group(Autoren)': ['responsible'], 'group(X)': ['responsible'], 'role(Y)': ['responsible'] });
   });
 
   it('warnt bei Rollen und Gruppen, die die Tabelle nicht kennt', async () => {
