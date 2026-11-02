@@ -77,6 +77,9 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
   Strg+Y (auch Strg+Umschalt+Z). In Eingabefeldern gilt das Rückgängig des Feldes.
 - **Modellname.** Hat eine geöffnete Datei keinen Modellnamen, gilt der Dateiname ohne Endung.
 - **IDs** vergibt bestbpmn selbst; das Eigenschaftenpanel zeigt sie nur an.
+- **DEMI-Matrix.** Sie bleibt immer eine Tabelle mit einer Spalte je Rolle oder Gruppe, auch bei
+  mehreren Pools. Ein Pool ohne Swimlanes wirkt wie eine Swimlane: Seine Rolle oder Gruppe,
+  sonst sein Name, ist D für alle Aktivitäten darin.
 - **Eigenschaften ausblenden.** Die schmale Leiste links vom Eigenschaftenbereich klappt ihn
   auf und zu, damit das Diagramm auf kleinen Bildschirmen mehr Platz hat.
 

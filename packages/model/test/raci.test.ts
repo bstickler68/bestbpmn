@@ -1,6 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { createModdle, deriveRaciMatrices, formatAssignees, parseAssignees, readRaci } from '../src/index.js';
+import {
+  combineRaciMatrices,
+  createModdle,
+  deriveRaciMatrices,
+  deriveStatusModels,
+  formatAssignees,
+  parseAssignees,
+  readRaci,
+} from '../src/index.js';
 
 const template = readFileSync(
   new URL('../../../templates/processes/dokumentenfreigabe.bpmn', import.meta.url),
@@ -162,5 +170,42 @@ describe('RACI-Prüfregeln', () => {
         ),
       ),
     ).toEqual([]);
+  });
+});
+
+describe('Pools ohne Swimlanes', () => {
+  // Zwei Pools ohne Lanes: „Autoren“ nur mit Namen, der zweite mit Gruppe aus dem Panel.
+  // „Prüfen“ hat zusätzlich ein M für die Autoren an der Aufgabe.
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:raci="urn:bestadd:raci:1.0" id="D" targetNamespace="t">
+  <bpmn:collaboration id="C">
+    <bpmn:participant id="PoolA" name="Autoren" processRef="PA" />
+    <bpmn:participant id="PoolB" name="Prüfteam" processRef="PB" raci:assignee="group(reviewers)" />
+    <bpmn:participant id="PoolC" processRef="PC" />
+  </bpmn:collaboration>
+  <bpmn:process id="PA"><bpmn:userTask id="Schreiben" name="Schreiben" /></bpmn:process>
+  <bpmn:process id="PB">
+    <bpmn:userTask id="Pruefen" name="Prüfen">
+      <bpmn:extensionElements><raci:consulted><raci:group ref="Autoren" /></raci:consulted></bpmn:extensionElements>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmn:process id="PC"><bpmn:task id="Ablegen" name="Ablegen" /></bpmn:process>
+</bpmn:definitions>`;
+
+  it('nimmt D aus dem Pool, auch nur aus seinem Namen, und bildet eine gemeinsame Tabelle', async () => {
+    const { rootElement } = await createModdle().fromXML(xml);
+    const matrix = combineRaciMatrices(deriveRaciMatrices(rootElement));
+    expect(matrix.columns).toEqual(['group(Autoren)', 'group(reviewers)']);
+    expect(matrix.rows.map((r) => [r.elementId, r.cells, r.responsibleFromLane])).toEqual([
+      ['Schreiben', { 'group(Autoren)': ['responsible'] }, true],
+      ['Pruefen', { 'group(reviewers)': ['responsible'], 'group(Autoren)': ['consulted'] }, true],
+      ['Ablegen', {}, false],
+    ]);
+  });
+
+  it('prüft einen Pool ohne Lanes wie eine Lane', async () => {
+    const models = await deriveStatusModels(xml);
+    const laneIssues = models.flatMap((m) => m.issues).filter((i) => i.code === 'lane-without-role');
+    expect(laneIssues.map((i) => i.elementId).sort()).toEqual(['PoolA', 'PoolC']);
   });
 });

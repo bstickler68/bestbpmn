@@ -8,17 +8,15 @@ type El = ModdleElement & Record<string, any>;
 /**
  * D aus einer Swimlane oder einem Pool:
  * - Ist eine Rolle oder Gruppe ausgewählt, steht sie in `raci:assignee`, z. B. `group(service_desk)`.
- * - Sonst gilt bei Lanes der Name als Gruppe (`Autoren` → `group(Autoren)`) oder er steht selbst in der
+ * - Sonst gilt der Name als Gruppe (`Autoren` → `group(Autoren)`) oder er steht selbst in der
  *   RACI-Schreibweise, z. B. `field(autor)`. Das hält Modelle aus anderen Werkzeugen lesbar.
- * - Ein Pool zählt nur mit ausgewählter Rolle oder Gruppe, weil sein Name meist die Organisation nennt.
+ * - Ein Pool ohne Lanes wird wie eine Lane behandelt: Auch sein Name gilt als Rolle oder Gruppe.
+ *   Hat der Pool Lanes, zählt er nicht (siehe `laneMap`).
  */
 export function laneAssignee(lane: El): Assignee | undefined {
   const explicit = (lane.assignee as string | undefined)?.trim();
   if (explicit) {
     return parseAssignee(explicit);
-  }
-  if (lane.$type !== 'bpmn:Lane') {
-    return undefined;
   }
   const name = (lane.name as string | undefined)?.trim();
   if (!name) {
@@ -78,9 +76,21 @@ export function laneMap(process: El, participant?: El): Map<El, El> {
 /**
  * Jede Swimlane braucht eine Rolle oder Gruppe aus der Tabelle (`raci:assignee`). Geprüft werden
  * die innersten Lanes, denn aus ihnen kommt D; eine Lane, die nur weitere Lanes enthält, braucht keine.
+ * Ein Pool ohne Lanes ist selbst die Lane und wird genauso geprüft.
  */
-export function checkLanes(process: El): ModelIssue[] {
+export function checkLanes(process: El, participant?: El): ModelIssue[] {
   const issues: ModelIssue[] = [];
+  if (!hasLanes(process)) {
+    if (participant && !(participant.assignee as string | undefined)?.trim()) {
+      issues.push({
+        code: 'lane-without-role',
+        severity: 'error',
+        elementId: participant.id,
+        params: { element: participant.name || participant.id || participant.$type },
+      });
+    }
+    return issues;
+  }
   const visit = (laneSets: El[] | undefined) => {
     for (const laneSet of laneSets ?? []) {
       for (const lane of (laneSet.lanes ?? []) as El[]) {

@@ -87,7 +87,7 @@ export {
   type Raci,
   type RaciRole,
 } from './raci/read.js';
-export { deriveRaciMatrices, type RaciMatrix, type RaciRow } from './raci/matrix.js';
+export { combineRaciMatrices, deriveRaciMatrices, type RaciMatrix, type RaciRow } from './raci/matrix.js';
 export { checkLanes, checkRaci, findParticipant, hasLanes, isMultiInstance, laneAssignee, laneMap, resolveRaci } from './raci/check.js';
 export {
   classify,

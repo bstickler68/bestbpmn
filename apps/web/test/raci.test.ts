@@ -171,6 +171,35 @@ describe('RACI an Aktivitäten', () => {
     const rowEn = panel.querySelector('tr[data-element-id="Pruefen"]')!;
     expect([...rowEn.querySelectorAll('td')].map((td) => td.textContent).join('')).toBe('ARC');
   });
+
+  it('zeigt mehrere Pools in einer Tabelle mit einer Spalte je Rolle oder Gruppe', () => {
+    const row = (elementId: string, cells: Record<string, ('responsible' | 'consulted')[]>) => ({
+      elementId,
+      raci: { responsible: [], accountable: [], consulted: [], informed: [] },
+      responsibleFromLane: true,
+      cells,
+    });
+    const panel = document.createElement('div');
+    renderRaciMatrix(
+      panel,
+      [
+        { processId: 'A', processName: 'Autoren', columns: ['group(Autoren)'], rows: [row('Schreiben', { 'group(Autoren)': ['responsible'] })] },
+        {
+          processId: 'B',
+          processName: 'Prüfteam',
+          columns: ['group(Prüfteam)', 'group(Autoren)'],
+          rows: [row('Pruefen', { 'group(Prüfteam)': ['responsible'], 'group(Autoren)': ['consulted'] })],
+        },
+      ],
+      createI18n('de').t,
+    );
+    expect(panel.querySelectorAll('table')).toHaveLength(1);
+    expect(panel.querySelector('h2')).toBeNull();
+    expect([...panel.querySelectorAll('thead th')].map((th) => th.textContent)).toEqual(['Aktivität', 'group(Autoren)', 'group(Prüfteam)']);
+    const letters = (id: string) => [...panel.querySelectorAll(`tr[data-element-id="${id}"] td`)].map((td) => td.textContent);
+    expect(letters('Schreiben')).toEqual(['D', '']);
+    expect(letters('Pruefen')).toEqual(['M', 'D']);
+  });
 });
 
 const LANE_XML = `<?xml version="1.0" encoding="UTF-8"?>

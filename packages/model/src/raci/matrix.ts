@@ -27,6 +27,26 @@ export interface RaciMatrix {
   rows: RaciRow[];
 }
 
+/**
+ * Fasst die Matrizen aller Prozesse (Pools) zu einer Tabelle zusammen: je Rolle oder Gruppe genau
+ * eine Spalte, die Zeilen in der Reihenfolge der Pools.
+ */
+export function combineRaciMatrices(matrices: RaciMatrix[]): RaciMatrix {
+  const columns: string[] = [];
+  for (const column of matrices.flatMap((m) => m.columns)) {
+    if (!columns.includes(column)) {
+      columns.push(column);
+    }
+  }
+  const first = matrices[0];
+  return {
+    processId: first?.processId ?? '',
+    ...(matrices.length === 1 && first?.processName ? { processName: first.processName } : {}),
+    columns,
+    rows: matrices.flatMap((m) => m.rows),
+  };
+}
+
 /** Leitet je Prozess die RACI-Matrix ab: Zeilen = Aktivitäten, Spalten = Zuordnungen. */
 export function deriveRaciMatrices(definitions: ModdleElement): RaciMatrix[] {
   const roots = ((definitions as El).rootElements ?? []) as El[];

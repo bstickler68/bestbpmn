@@ -225,7 +225,7 @@ function deriveModel(
 
   for (const { process, participant } of pools) {
     issues.push(
-      ...checkLanes(process),
+      ...checkLanes(process, participant),
       ...checkRaci(collectFlowElements(process), laneMap(process, participant), catalog.roles),
       ...checkTaskServices(collectFlowElements(process)),
     );
