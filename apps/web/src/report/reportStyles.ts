@@ -61,7 +61,13 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .ok { color: #1a7f37; }
 
 @page { size: A4; margin: 16mm 14mm 18mm; @bottom-right { content: counter(page) " / " counter(pages); font: 8pt "Segoe UI", Arial, sans-serif; color: #57606a; } }
-@page landscape { size: A4 landscape; }
+/*
+ * Diagramm und Prozessschritte im Querformat. Der Druckdialog von Edge und Chrome kennt nur eine
+ * Ausrichtung für alle Seiten; dort wird die Querformatseite gedreht auf A4 hoch ausgegeben.
+ * Firefox druckt gemischte Ausrichtungen direkt und behält deshalb echte Querformatseiten.
+ */
+@page landscape { size: A4 landscape; page-orientation: rotate-left; }
+@supports (-moz-appearance: none) { @page landscape { page-orientation: upright; } }
 @media print {
   body.report { max-width: none; padding: 0; font-size: 10pt; }
   .graphic, .elements-section { page: landscape; }
