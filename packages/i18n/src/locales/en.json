@@ -11,6 +11,11 @@
     "template": "Template: document approval",
     "open": "Open",
     "save": "Save",
+    "unsaved": "Unsaved changes",
+    "undo": "Undo (Ctrl+Z)",
+    "redo": "Redo (Ctrl+Y)",
+    "hideSidebar": "Hide properties",
+    "showSidebar": "Show properties",
     "showServices": "Show IT services",
     "openError": "The file could not be read: {{message}}",
     "tabs": {

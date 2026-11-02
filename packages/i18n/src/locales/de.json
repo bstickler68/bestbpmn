@@ -11,6 +11,11 @@
     "template": "Vorlage Dokumentenfreigabe",
     "open": "Öffnen",
     "save": "Speichern",
+    "unsaved": "Nicht gespeicherte Änderungen",
+    "undo": "Rückgängig (Strg+Z)",
+    "redo": "Wiederherstellen (Strg+Y)",
+    "hideSidebar": "Eigenschaften ausblenden",
+    "showSidebar": "Eigenschaften einblenden",
     "showServices": "IT-Services anzeigen",
     "openError": "Die Datei konnte nicht gelesen werden: {{message}}",
     "tabs": {

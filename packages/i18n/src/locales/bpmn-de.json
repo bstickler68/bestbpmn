@@ -2,6 +2,8 @@
   "General": "Allgemein",
   "Name": "Name",
   "ID": "ID",
+  "Participant ID": "Pool-ID",
+  "Process ID": "Prozess-ID",
   "Documentation": "Beschreibung",
   "Element documentation": "Beschreibung (Markdown)",
   "Process documentation": "Beschreibung des Prozesses (Markdown)",

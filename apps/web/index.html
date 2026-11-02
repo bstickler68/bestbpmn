@@ -21,6 +21,8 @@
       </details>
       <label class="button" data-i18n="app.open">Open <input id="open" type="file" accept=".bpmn,.xml" hidden /></label>
       <button id="save" data-i18n="app.save">Save</button>
+      <button id="undo" class="icon" data-i18n-title="app.undo" aria-label="Undo" disabled>↶</button>
+      <button id="redo" class="icon" data-i18n-title="app.redo" aria-label="Redo" disabled>↷</button>
       <details class="menu" id="export-menu">
         <summary data-i18n="app.export">Export</summary>
         <div class="menu-items">
@@ -45,7 +47,8 @@
     <div id="update" class="banner update" role="status" hidden></div>
     <main class="layout">
       <div id="canvas"></div>
-      <aside class="sidebar">
+      <button id="toggle-sidebar" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">⟩</button>
+      <aside class="sidebar" id="sidebar">
         <nav class="tabs" role="tablist">
           <button role="tab" data-tab="properties" aria-selected="true" data-i18n="app.tabs.properties">Properties</button>
           <button role="tab" data-tab="status" aria-selected="false" data-i18n="app.tabs.status">Status</button>

@@ -16,6 +16,7 @@ import { EMPTY_DIAGRAM } from './emptyDiagram';
 import {
   fileNameFor,
   modelName,
+  singleParticipant,
   bestbpmnModdleExtensions,
   bestbpmnModule,
   bestbpmnPropertiesProviderModule,
@@ -47,6 +48,12 @@ const catalogPanel = document.querySelector<HTMLElement>('#catalog')!;
 const filesPanel = document.querySelector<HTMLElement>('#files')!;
 const banner = document.querySelector<HTMLElement>('#banner')!;
 const fileLabel = document.querySelector<HTMLElement>('#file-name')!;
+const saveButton = document.querySelector<HTMLButtonElement>('#save')!;
+const undoButton = document.querySelector<HTMLButtonElement>('#undo')!;
+const redoButton = document.querySelector<HTMLButtonElement>('#redo')!;
+const layout = document.querySelector<HTMLElement>('.layout')!;
+const sidebarToggle = document.querySelector<HTMLButtonElement>('#toggle-sidebar')!;
+const SIDEBAR_KEY = 'bestbpmn.sidebar';
 
 /** Der Beispielkatalog aus `templates/catalog`, zum Ausprobieren in den Einstellungen. */
 const EXAMPLE_CATALOG: CatalogFile = parseCatalog(
@@ -78,7 +85,7 @@ const files = new FilesController(
     t: () => t,
     language: () => language,
     getXml: currentXml,
-    load: (xml) => open(xml),
+    load: (xml, fileName) => open(xml, fileName),
     suggestedName: currentName,
     isDirty: () => dirty,
     markClean: () => {
@@ -100,6 +107,9 @@ function showFileState() {
   fileLabel.textContent = `${name ?? ''}${dirty ? ' ●' : ''}`;
   fileLabel.title = name ? `${files.folder?.name ?? ''}/${name}` : '';
   fileLabel.classList.toggle('readonly', !!name && files.access !== 'edit');
+  // Ungespeicherte Änderungen: Der Speichern-Button wird dezent rot.
+  saveButton.classList.toggle('unsaved', dirty);
+  saveButton.title = dirty ? t('app.unsaved') : '';
   renderBanner(banner, files, t);
   renderFilesPanel(filesPanel, files, t);
 }
@@ -129,6 +139,10 @@ function applyStaticTexts(language: string) {
   document.title = t('app.title');
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
     el.firstChild!.textContent = t(el.dataset.i18n!);
+  });
+  document.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach((el) => {
+    el.title = t(el.dataset.i18nTitle!);
+    el.setAttribute('aria-label', el.title);
   });
   languageSelect.innerHTML = SUPPORTED_LANGUAGES.map(
     (lang) => `<option value="${lang}"${lang === language ? ' selected' : ''}>${t(`language.${lang}`)}</option>`,
@@ -171,6 +185,7 @@ async function createModeler(lang: string, xml: string) {
       showFileState();
     }
   });
+  modeler.on(['import.done', 'commandStack.changed'], showUndoState);
   // Ein Neuaufbau (Sprache, Katalog) ändert am Modell nichts.
   const wasDirty = dirty;
   await open(xml);
@@ -178,6 +193,7 @@ async function createModeler(lang: string, xml: string) {
   showFileState();
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
   renderSettings();
+  showSidebar(!layout.classList.contains('sidebar-collapsed'));
 }
 
 /** Einstellungen: Prüfregeln gelten sofort, ein geänderter Katalog baut den Modellierer neu auf. */
@@ -202,9 +218,10 @@ function renderSettings() {
 }
 
 /** Lädt ein Modell; danach gilt es als unverändert. */
-async function open(xml: string) {
+async function open(xml: string, fileName?: string) {
   try {
     await modeler.importXML(xml);
+    nameFromFile(fileName);
     modeler.get('canvas').zoom('fit-viewport');
   } catch (error) {
     statusPanel.textContent = t('app.openError', { message: (error as Error).message });
@@ -213,10 +230,40 @@ async function open(xml: string) {
   showFileState();
 }
 
+/**
+ * Hat das Modell keinen Namen, gilt der Dateiname ohne Endung, z. B. `Incident bearbeiten.bpmn`
+ * → „Incident bearbeiten“. Der Name kommt ins Modell, ohne dass es als geändert gilt; gespeichert
+ * wird er mit der nächsten Änderung.
+ */
+function nameFromFile(fileName: string | undefined) {
+  const name = fileName?.replace(/\.(bpmn20\.xml|bpmn|xml)$/i, '').trim();
+  if (!name || modelName(modeler.getDefinitions())) {
+    return;
+  }
+  const root = modeler.get('canvas').getRootElement()?.businessObject;
+  if (!root || !(root.$instanceOf('bpmn:Process') || root.$instanceOf('bpmn:Collaboration'))) {
+    return;
+  }
+  root.name = name;
+  // Bei nur einem Pool heißt der Prozess wie das Modell, wie beim Umbenennen im Panel.
+  const process = singleParticipant(root)?.processRef;
+  if (process && !process.name) {
+    process.name = name;
+  }
+  showModelName();
+}
+
+/** Rückgängig und Wiederherstellen sind nur aktiv, wenn es etwas zurückzunehmen gibt. */
+function showUndoState() {
+  const commandStack = modeler.get('commandStack');
+  undoButton.disabled = !commandStack.canUndo();
+  redoButton.disabled = !commandStack.canRedo();
+}
+
 /** Ein Modell, das zu keiner Datei im Ordner gehört (neu, Vorlage, hochgeladen, hineingezogen). */
-async function openDetached(xml: string | Promise<string>) {
+async function openDetached(xml: string | Promise<string>, fileName?: string) {
   if (await files.detach()) {
-    await open(await xml);
+    await open(await xml, fileName);
   }
 }
 
@@ -265,10 +312,30 @@ document.querySelector<HTMLInputElement>('#open')!.addEventListener('change', as
   const file = input.files?.[0];
   input.value = '';
   if (file) {
-    await openDetached(file.text());
+    await openDetached(file.text(), file.name);
   }
 });
-document.querySelector('#save')!.addEventListener('click', () => files.save());
+saveButton.addEventListener('click', () => files.save());
+undoButton.addEventListener('click', () => modeler.get('commandStack').undo());
+redoButton.addEventListener('click', () => modeler.get('commandStack').redo());
+
+/** Eigenschaftenbereich auf- und zuklappen, für kleine Bildschirme. Der Zustand bleibt im Browser. */
+function showSidebar(open: boolean) {
+  layout.classList.toggle('sidebar-collapsed', !open);
+  sidebarToggle.setAttribute('aria-expanded', String(open));
+  sidebarToggle.textContent = open ? '⟩' : '⟨';
+  sidebarToggle.title = t(open ? 'app.hideSidebar' : 'app.showSidebar');
+  modeler.get('canvas').resized();
+}
+sidebarToggle.addEventListener('click', () => {
+  const open = layout.classList.contains('sidebar-collapsed');
+  showSidebar(open);
+  try {
+    localStorage.setItem(SIDEBAR_KEY, open ? 'open' : 'closed');
+  } catch {
+    // Ohne Speicher gilt die Wahl nur bis zum Neuladen.
+  }
+});
 document.querySelector('#export-bpmn')!.addEventListener('click', downloadBpmn);
 document.querySelector('#export-svg')!.addEventListener('click', async () => {
   const { svg } = await modeler.saveSVG();
@@ -313,11 +380,32 @@ document.querySelector('#report-full-print')!.addEventListener('click', () => re
 document.querySelector('#report-profile-html')!.addEventListener('click', () => report('profile', 'html'));
 document.querySelector('#report-full-html')!.addEventListener('click', () => report('full', 'html'));
 
+/** Eingabefelder (z. B. im Eigenschaftenpanel) behalten ihr eigenes Rückgängig. */
+const isTextInput = (target: EventTarget | null) =>
+  target instanceof HTMLElement && (target.isContentEditable || /^(input|textarea|select)$/i.test(target.tagName));
+
 // Strg+S speichert wie unter Windows gewohnt, statt die Seite herunterzuladen.
+// Strg+Z und Strg+Y (oder Strg+Umschalt+Z) gelten auch, wenn das Diagramm nicht im Fokus ist.
 document.addEventListener('keydown', (event) => {
-  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {
+  if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+    return;
+  }
+  const key = event.key.toLowerCase();
+  if (key === 's') {
     event.preventDefault();
     void files.save();
+    return;
+  }
+  // Hat das Diagramm die Taste schon verarbeitet, nicht noch einmal ausführen.
+  if (event.defaultPrevented || isTextInput(event.target) || (key !== 'z' && key !== 'y')) {
+    return;
+  }
+  event.preventDefault();
+  const commandStack = modeler.get('commandStack');
+  if (key === 'y' || event.shiftKey) {
+    commandStack.redo();
+  } else {
+    commandStack.undo();
   }
 });
 
@@ -332,7 +420,7 @@ document.addEventListener('drop', (event) => {
   const file = [...(event.dataTransfer?.files ?? [])].find((item) => /\.(bpmn|xml)$/i.test(item.name));
   if (file) {
     event.preventDefault();
-    void openDetached(file.text());
+    void openDetached(file.text(), file.name);
   }
 });
 
@@ -344,8 +432,17 @@ window.addEventListener('beforeunload', (event) => {
 });
 window.addEventListener('pagehide', () => files.release());
 
+function storedSidebar(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_KEY) !== 'closed';
+  } catch {
+    return true;
+  }
+}
+
+layout.classList.toggle('sidebar-collapsed', !storedSidebar());
 void createModeler(storedLanguage() ?? matchLanguage(navigator.languages), EMPTY_DIAGRAM).then(() => {
-  handleLaunchedFiles((text) => void openDetached(text));
+  handleLaunchedFiles((text, fileName) => void openDetached(text, fileName));
   registerServiceWorker(document.querySelector<HTMLElement>('#update')!, () => t);
   return files.restore();
 });
