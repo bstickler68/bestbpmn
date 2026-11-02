@@ -220,3 +220,29 @@ describe('Einstellungen', () => {
     });
   });
 });
+
+describe('IDs', () => {
+  it('zeigt die ID nur an; sie lässt sich im Panel nicht ändern', async () => {
+    await setup();
+    const task = create('bpmn:UserTask', 200);
+    await nextTick();
+    get('selection').select(task);
+    await nextTick();
+    const input = container.querySelector<HTMLInputElement>('[data-entry-id="id"] input')!;
+    expect(input.value).toBe(task.businessObject.id);
+    expect(input.disabled).toBe(true);
+  });
+
+  it('zeigt auch die Prozess-ID eines Pools nur an', async () => {
+    await setup();
+    const pool = create('bpmn:Participant', 400);
+    get('selection').select(pool);
+    await nextTick();
+    for (const id of ['id', 'processId']) {
+      expect(container.querySelector<HTMLInputElement>(`[data-entry-id="${id}"] input`)!.disabled).toBe(true);
+    }
+    expect(container.querySelector<HTMLInputElement>('[data-entry-id="processId"] input')!.value).toBe(
+      pool.businessObject.processRef.id,
+    );
+  });
+});

@@ -7,6 +7,7 @@ import LanePropertiesProvider from './LanePropertiesProvider';
 import ProcessObjectBehavior from './ProcessObjectBehavior';
 import { ProcessNameBehavior } from './processRoot';
 import ProcessRootPropertiesProvider from './ProcessRootPropertiesProvider';
+import ReadOnlyIdsProvider from './ReadOnlyIdsProvider';
 import ServiceOverlays from './ServiceOverlays';
 import StatusCheck from './StatusCheck';
 import StatusPropertiesProvider from './StatusPropertiesProvider';
@@ -42,13 +43,14 @@ export const bestbpmnModule = {
  * Setzt `BpmnPropertiesPanelModule` aus bpmn-js-properties-panel voraus.
  */
 export const bestbpmnPropertiesProviderModule = {
-  __init__: ['bestbpmnStatusProvider', 'bestbpmnLaneProvider', 'bestbpmnProcessRootProvider', 'bestbpmnRaciProvider', 'bestbpmnTranslationsProvider', 'bestbpmnAttributesProvider'],
+  __init__: ['bestbpmnStatusProvider', 'bestbpmnLaneProvider', 'bestbpmnProcessRootProvider', 'bestbpmnRaciProvider', 'bestbpmnTranslationsProvider', 'bestbpmnAttributesProvider', 'bestbpmnReadOnlyIdsProvider'],
   bestbpmnStatusProvider: ['type', StatusPropertiesProvider],
   bestbpmnLaneProvider: ['type', LanePropertiesProvider],
   bestbpmnProcessRootProvider: ['type', ProcessRootPropertiesProvider],
   bestbpmnRaciProvider: ['type', RaciPropertiesProvider],
   bestbpmnTranslationsProvider: ['type', TranslationsPropertiesProvider],
   bestbpmnAttributesProvider: ['type', AttributesPropertiesProvider],
+  bestbpmnReadOnlyIdsProvider: ['type', ReadOnlyIdsProvider],
 };
 
 /** moddle-Erweiterungen, die der Modellierer kennen muss. */
@@ -59,6 +61,6 @@ export { UPDATE_ATTRIBUTE, type BestbpmnConfig } from './attributes';
 export { translateModule, resolveI18n } from './i18n';
 export { UPDATE_RACI } from './raci';
 export { UPDATE_TRANSLATION } from './translations';
-export { fileNameFor, modelName } from './processRoot';
+export { fileNameFor, modelName, singleParticipant } from './processRoot';
 export type { default as StatusCheck } from './StatusCheck';
 export type { default as ServiceOverlays } from './ServiceOverlays';

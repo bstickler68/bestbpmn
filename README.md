@@ -70,6 +70,16 @@ arbeitet, ist als Etappe 5 geplant. In allen Browsern lässt sich eine `.bpmn`-D
 Fenster ziehen, und „Exportieren“ bietet BPMN, SVG und PNG an. Modelle mit Erweiterungen
 anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 
+## Bedienung
+
+- **Ungespeicherte Änderungen** färben den Button „Speichern“ dezent rot.
+- **Rückgängig und Wiederherstellen** über die Pfeile neben „Speichern“ oder mit Strg+Z und
+  Strg+Y (auch Strg+Umschalt+Z). In Eingabefeldern gilt das Rückgängig des Feldes.
+- **Modellname.** Hat eine geöffnete Datei keinen Modellnamen, gilt der Dateiname ohne Endung.
+- **IDs** vergibt bestbpmn selbst; das Eigenschaftenpanel zeigt sie nur an.
+- **Eigenschaften ausblenden.** Die schmale Leiste links vom Eigenschaftenbereich klappt ihn
+  auf und zu, damit das Diagramm auf kleinen Bildschirmen mehr Platz hat.
+
 ## Berichte
 
 Unter „Bericht“ gibt es das Modell in zwei Fassungen, jeweils als HTML-Datei (eine Datei,

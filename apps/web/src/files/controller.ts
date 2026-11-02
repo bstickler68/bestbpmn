@@ -14,7 +14,8 @@ export interface FilesHost {
   /** Aktuelles Modell als BPMN-XML. */
   getXml: () => Promise<string>;
   /** Lädt ein Modell in den Modellierer. */
-  load: (xml: string) => Promise<void>;
+  /** Lädt ein Modell; `fileName` ist der Name der Datei im Ordner. */
+  load: (xml: string, fileName?: string) => Promise<void>;
   /** Vorschlag für den Dateinamen (aus dem Modellnamen). */
   suggestedName: () => string;
   /** Ungespeicherte Änderungen? */
@@ -186,7 +187,7 @@ export class FilesController {
       return;
     }
     this.session = session;
-    await this.host.load(text);
+    await this.host.load(text, name);
     this.host.markClean();
     await this.refresh();
   }
@@ -201,7 +202,7 @@ export class FilesController {
     }
     const text = await this.session.retry(force);
     if (text !== undefined && (!this.host.isDirty() || confirm(this.host.t()('files.reloadChanged')))) {
-      await this.host.load(text);
+      await this.host.load(text, this.session.file);
       this.host.markClean();
     }
     await this.refresh();

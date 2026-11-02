@@ -53,13 +53,13 @@ export function registerServiceWorker(banner: HTMLElement, t: () => TFunction): 
 }
 
 /** Installierte App: Doppelklick auf eine `.bpmn`-Datei öffnet sie in bestbpmn (Edge, Chrome). */
-export function handleLaunchedFiles(open: (text: Promise<string>) => void): void {
+export function handleLaunchedFiles(open: (text: Promise<string>, fileName: string) => void): void {
   const queue = (window as unknown as { launchQueue?: { setConsumer(consumer: (params: { files: FileSystemFileHandle[] }) => void): void } })
     .launchQueue;
   queue?.setConsumer(({ files }) => {
     const handle = files?.[0];
     if (handle) {
-      open(handle.getFile().then((file) => file.text()));
+      open(handle.getFile().then((file) => file.text()), handle.name);
     }
   });
 }
