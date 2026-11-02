@@ -25,6 +25,7 @@ Kern des Modellierers ohne Oberfläche: Namensräume, Statusmodell, RACI/DEMI un
 | `state-key-conflict` | Warnung | ein Statusschlüssel steht für verschiedene Namen |
 | `raci-missing-responsible` | Fehler | eine Benutzeraufgabe hat kein D (weder an der Aufgabe noch über die Swimlane) |
 | `raci-multiple-responsible` | Fehler | eine Benutzeraufgabe hat mehr als ein D (außer Multi-Instanz) |
+| `multi-instance-single-responsible` | Fehler | eine Multi-Instanz-Aufgabe hat weniger als zwei D |
 | `raci-multiple-accountable` | Fehler | eine Aktivität hat mehr als ein E |
 | `lane-without-role` | Fehler | eine Swimlane oder ein Pool ohne Lanes hat keine Rolle oder Gruppe (`raci:assignee`) |
 | `task-without-service` | Fehler | eine Benutzer- oder Serviceaufgabe hat keinen IT-Service |

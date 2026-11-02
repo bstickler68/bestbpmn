@@ -144,6 +144,8 @@ export function resolveRaci(
  * Prüfregeln für RACI/DEMI:
  * - Jede Benutzeraufgabe hat genau ein D, an der Aufgabe oder über ihre Swimlane.
  *   Multi-Instanz-Aufgaben dürfen mehrere D haben. `notPerformerOf(…)` schränkt nur ein und zählt nicht mit.
+ * - Multi-Instanz-Aufgaben (nicht Teilprozesse) brauchen mindestens zwei D. Fehlt D ganz, meldet das bei
+ *   Benutzeraufgaben schon `raci-missing-responsible`.
  * - Höchstens ein E je Aktivität. M und I dürfen mehrfach vorkommen.
  * - Mit Rollen- und Gruppentabelle: unbekannte `group(…)` und `role(…)` sind eine Warnung.
  */
@@ -168,6 +170,19 @@ export function checkRaci(elements: El[], lanes: Map<El, El>, roles?: RoleDefini
           params: { element, assignees: formatAssignees(responsible) },
         });
       }
+    }
+    if (
+      isMultiInstance(el) &&
+      !el.$instanceOf?.('bpmn:SubProcess') &&
+      responsible.length < 2 &&
+      !(responsible.length === 0 && el.$type === 'bpmn:UserTask')
+    ) {
+      issues.push({
+        code: 'multi-instance-single-responsible',
+        severity: 'error',
+        elementId: el.id,
+        params: { element, assignees: formatAssignees(responsible) },
+      });
     }
     if (raci.accountable.length > 1) {
       issues.push({

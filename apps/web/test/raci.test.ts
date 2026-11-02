@@ -336,6 +336,27 @@ describe('D aus der Swimlane', () => {
     await nextTick();
   });
 
+  it('lässt bei Typwechsel einer Multi-Instanz-Aufgabe nur das erste D stehen', async () => {
+    await setup('de');
+    await modeler.importXML(LANE_XML);
+    const addSecond = (el: any) =>
+      get('commandStack').execute(UPDATE_RACI, {
+        element: el,
+        role: 'responsible',
+        assignees: [{ kind: 'group', ref: 'Autoren' }, { kind: 'role', ref: 'incident_manager' }],
+      });
+    addSecond(element('Multi'));
+    const replaced = get('bpmnReplace').replaceElement(element('Multi'), { type: 'bpmn:ServiceTask' });
+    expect(replaced.businessObject.$type).toBe('bpmn:ServiceTask');
+    expect(formatAssignees(readRaci(replaced.businessObject).responsible)).toBe('group(Autoren)');
+    get('commandStack').undo();
+    expect(formatAssignees(readRaci(element('Multi').businessObject).responsible)).toBe('group(Autoren), role(incident_manager)');
+
+    // Multi-Instanz entfernt: ebenfalls nur noch das erste D.
+    get('modeling').updateProperties(element('Multi'), { loopCharacteristics: undefined });
+    expect(formatAssignees(readRaci(element('Multi').businessObject).responsible)).toBe('group(Autoren)');
+  });
+
   it('meldet eine Aufgabe ohne D, wenn die Lane keine Zuordnung hat', async () => {
     await setup('de');
     await modeler.importXML(LANE_XML);

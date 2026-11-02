@@ -33,7 +33,8 @@ const COMMANDS = [
  * - Liegt eine Aktivität in einer Lane oder einem Pool mit Rolle bzw. Gruppe, wird sie als D
  *   in den `potentialOwner` geschrieben. Nach jedem Verschieben, Anlegen oder Ändern der Lane erneut.
  *   `notPerformerOf(…)` bleibt als Einschränkung erhalten.
- * - Multi-Instanz-Aufgaben haben das D aus der Lane immer vorn und dürfen weitere D haben.
+ * - Multi-Instanz-Aufgaben haben das D aus der Lane immer vorn und dürfen weitere D haben. Wechselt die
+ *   Aufgabe den Typ oder ist sie keine Multi-Instanz mehr, bleibt nur das erste D.
  * - Lanes und Pools mit Rolle oder Gruppe aus der Tabelle heißen wie der Tabelleneintrag; Umbenennen
  *   wird zurückgesetzt. Eine frei eingegebene Rolle oder Gruppe gibt nur einer Lane ohne Namen den Namen.
  */
@@ -52,6 +53,17 @@ export default class LaneBehavior extends CommandInterceptor {
   ) {
     super(eventBus);
     const roles = config?.roles;
+    // Wechselt eine Multi-Instanz-Aufgabe den Typ, bleibt nur das erste D, ebenso wenn sie keine Multi-Instanz mehr ist.
+    this.postExecuted('shape.replace', ({ context }: any) => {
+      if (context.oldShape?.businessObject && isMultiInstance(context.oldShape.businessObject)) {
+        this.keepFirstResponsible(context.newShape);
+      }
+    });
+    this.postExecuted('element.updateProperties', ({ context }: any) => {
+      if (context.properties && 'loopCharacteristics' in context.properties && !isMultiInstance(context.element.businessObject)) {
+        this.keepFirstResponsible(context.element);
+      }
+    });
     this.postExecuted(COMMANDS, () => {
       if (this.syncing) {
         return;
@@ -63,6 +75,20 @@ export default class LaneBehavior extends CommandInterceptor {
         this.syncing = false;
       }
     });
+  }
+
+  /** Lässt nur das erste D stehen (bei einer Lane deren D); `notPerformerOf(…)` bleibt. */
+  private keepFirstResponsible(element: any) {
+    const bo = element?.businessObject;
+    if (!bo || !is(bo, 'bpmn:Activity')) {
+      return;
+    }
+    const current = readRaci(bo).responsible;
+    const positive = current.filter((a) => a.kind !== 'notPerformerOf');
+    if (positive.length > 1) {
+      const restrictions = current.filter((a) => a.kind === 'notPerformerOf');
+      this.commandStack.execute(UPDATE_RACI, { element, role: 'responsible', assignees: [positive[0]!, ...restrictions] });
+    }
   }
 
   private sync(roles: RoleDefinition[] | undefined) {

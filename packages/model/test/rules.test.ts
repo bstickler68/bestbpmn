@@ -43,13 +43,13 @@ describe('Regelprofile', () => {
   });
 
   it('erkennt das Profil zu einer Auswahl', () => {
-    expect(matchRuleProfile(['lane-without-role', 'raci-missing-responsible', 'task-without-service'])).toBe('document');
+    expect(matchRuleProfile(['lane-without-role', 'multi-instance-single-responsible', 'raci-missing-responsible', 'task-without-service'])).toBe('document');
     expect(matchRuleProfile([])).toBe('complete');
     expect(matchRuleProfile(['unknown-state'])).toBeUndefined();
   });
 
-  it('kennt alle 14 Regeln', () => {
-    expect(new Set(ISSUE_CODES).size).toBe(14);
+  it('kennt alle 15 Regeln', () => {
+    expect(new Set(ISSUE_CODES).size).toBe(15);
   });
 });
 

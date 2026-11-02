@@ -14,6 +14,7 @@ export type IssueCode =
   | 'raci-multiple-accountable'
   | 'raci-unknown-assignee'
   | 'lane-without-role'
+  | 'multi-instance-single-responsible'
   | 'task-without-service';
 
 /**

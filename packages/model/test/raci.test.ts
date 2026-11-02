@@ -147,6 +147,23 @@ describe('RACI-Prüfregeln', () => {
     expect(row.cells).toEqual({ 'group(Autoren)': ['responsible'], 'group(X)': ['responsible'], 'role(Y)': ['responsible'] });
   });
 
+  it('verlangt an Multi-Instanz-Aufgaben mindestens zwei D', async () => {
+    const mi = (type: string, text?: string) =>
+      `<bpmn:${type} id="A"><bpmn:multiInstanceLoopCharacteristics />${text ? owner(text) : ''}</bpmn:${type}>`;
+    expect(await codes(mi('userTask', 'group(X)'))).toEqual([['multi-instance-single-responsible', 'A']]);
+    expect(await codes(mi('serviceTask'))).toEqual([['multi-instance-single-responsible', 'A']]);
+    // Fehlt D an einer Benutzeraufgabe ganz, reicht die Meldung „kein D“.
+    expect(await codes(mi('userTask'))).toEqual([['raci-missing-responsible', 'A']]);
+    // notPerformerOf zählt nicht als D.
+    expect(await codes(mi('userTask', 'group(X), notPerformerOf(B)'))).toEqual([['multi-instance-single-responsible', 'A']]);
+    // Teilprozesse sind ausgenommen.
+    expect(await codes(`<bpmn:subProcess id="S"><bpmn:multiInstanceLoopCharacteristics /></bpmn:subProcess>`)).toEqual([]);
+    // Das D aus der Lane zählt mit.
+    const lanes = `<bpmn:laneSet id="LS"><bpmn:lane id="L" name="Autoren" raci:assignee="group(Autoren)"><bpmn:flowNodeRef>A</bpmn:flowNodeRef></bpmn:lane></bpmn:laneSet>`;
+    expect(await codes(mi('userTask'), lanes)).toEqual([['multi-instance-single-responsible', 'A']]);
+    expect(await codes(mi('userTask', 'group(X)'), lanes)).toEqual([]);
+  });
+
   it('warnt bei Rollen und Gruppen, die die Tabelle nicht kennt', async () => {
     const { deriveStatusModels: derive } = await import('../src/index.js');
     // Die Regel für IT-Services hat eigene Tests.
