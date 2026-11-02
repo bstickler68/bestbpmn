@@ -36,7 +36,7 @@ function renderMatrix(matrix: RaciMatrix, t: TFunction, catalog: { roles?: RoleD
             const roles = row.cells[c] ?? [];
             const letters = escape(roles.map((role) => t(`raci.letter.${role}`)).join(''));
             // D aus der Swimlane wird schräg gestellt, damit man es von einem Eintrag an der Aufgabe unterscheidet.
-            return row.responsibleFromLane && roles.includes('responsible')
+            return c === row.laneColumn && roles.includes('responsible')
               ? `<td class="from-lane" title="${escape(t('raci.laneHint'))}">${letters}</td>`
               : `<td>${letters}</td>`;
           })

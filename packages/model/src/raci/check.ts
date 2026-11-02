@@ -120,27 +120,32 @@ export function isMultiInstance(element: ModdleElement): boolean {
 /**
  * RACI eines Elements mit D aus der Swimlane. Liegt die Aktivität in einer Lane mit Zuordnung,
  * ist das ihr D; `notPerformerOf(…)` an der Aktivität bleibt als Einschränkung erhalten.
- * Ausnahme Multi-Instanz-Aufgaben: Sie behalten ihre eigenen D, die Lane gilt nur, wenn keins eingetragen ist.
+ * Multi-Instanz-Aufgaben haben das D aus der Lane immer an erster Stelle und dürfen weitere D haben.
+ * `laneResponsible` ist das D aus der Lane, damit die Anzeige nur dieses hervorhebt.
  */
-export function resolveRaci(element: El, lanes: Map<El, El>): Raci & { responsibleFromLane: boolean } {
+export function resolveRaci(
+  element: El,
+  lanes: Map<El, El>,
+): Raci & { responsibleFromLane: boolean; laneResponsible?: Assignee } {
   const raci = readRaci(element);
   const lane = lanes.get(element);
   const fromLane = lane ? laneAssignee(lane) : undefined;
   if (!fromLane) {
     return { ...raci, responsibleFromLane: false };
   }
-  const positive = raci.responsible.filter((a) => a.kind !== 'notPerformerOf');
-  if (isMultiInstance(element) && positive.length) {
-    return { ...raci, responsibleFromLane: false };
-  }
   const restrictions = raci.responsible.filter((a) => a.kind === 'notPerformerOf');
-  return { ...raci, responsible: [fromLane, ...restrictions], responsibleFromLane: true };
+  const others = isMultiInstance(element)
+    ? raci.responsible.filter((a) => a.kind !== 'notPerformerOf' && formatAssignee(a) !== formatAssignee(fromLane))
+    : [];
+  return { ...raci, responsible: [fromLane, ...others, ...restrictions], responsibleFromLane: true, laneResponsible: fromLane };
 }
 
 /**
  * Prüfregeln für RACI/DEMI:
  * - Jede Benutzeraufgabe hat genau ein D, an der Aufgabe oder über ihre Swimlane.
  *   Multi-Instanz-Aufgaben dürfen mehrere D haben. `notPerformerOf(…)` schränkt nur ein und zählt nicht mit.
+ * - Multi-Instanz-Aufgaben (nicht Teilprozesse) brauchen mindestens zwei D. Fehlt D ganz, meldet das bei
+ *   Benutzeraufgaben schon `raci-missing-responsible`.
  * - Höchstens ein E je Aktivität. M und I dürfen mehrfach vorkommen.
  * - Mit Rollen- und Gruppentabelle: unbekannte `group(…)` und `role(…)` sind eine Warnung.
  */
@@ -165,6 +170,19 @@ export function checkRaci(elements: El[], lanes: Map<El, El>, roles?: RoleDefini
           params: { element, assignees: formatAssignees(responsible) },
         });
       }
+    }
+    if (
+      isMultiInstance(el) &&
+      !el.$instanceOf?.('bpmn:SubProcess') &&
+      responsible.length < 2 &&
+      !(responsible.length === 0 && el.$type === 'bpmn:UserTask')
+    ) {
+      issues.push({
+        code: 'multi-instance-single-responsible',
+        severity: 'error',
+        elementId: el.id,
+        params: { element, assignees: formatAssignees(responsible) },
+      });
     }
     if (raci.accountable.length > 1) {
       issues.push({

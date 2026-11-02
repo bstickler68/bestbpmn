@@ -172,13 +172,13 @@ describe('Einstellungen', () => {
     const onChange = vi.fn();
     renderRulesPanel(div, disabledRulesOf('document'), t, onChange);
     expect(div.querySelector<HTMLSelectElement>('#rule-profile')!.value).toBe('document');
-    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(14);
+    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(15);
     expect(div.querySelector<HTMLInputElement>('[data-rule="lane-without-role"]')!.checked).toBe(false);
 
     const box = div.querySelector<HTMLInputElement>('[data-rule="unknown-state"]')!;
     box.checked = false;
     box.dispatchEvent(new Event('change'));
-    expect([...onChange.mock.calls[0]![0]].sort()).toEqual(['lane-without-role', 'raci-missing-responsible', 'task-without-service', 'unknown-state']);
+    expect([...onChange.mock.calls[0]![0]].sort()).toEqual(['lane-without-role', 'multi-instance-single-responsible', 'raci-missing-responsible', 'task-without-service', 'unknown-state']);
 
     renderRulesPanel(div, ['unknown-state'], t, onChange);
     expect(div.querySelector<HTMLSelectElement>('#rule-profile')!.value).toBe('custom');

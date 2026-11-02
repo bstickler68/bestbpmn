@@ -68,6 +68,21 @@ let catalog: CatalogFile = loadCatalog();
 let disabledRules: IssueCode[] = loadDisabledRules();
 /** Ungespeicherte Änderungen seit dem letzten Öffnen oder Speichern. */
 let dirty = false;
+/**
+ * Der zuletzt ausgeführte Schritt beim Öffnen oder Speichern. Macht man alles bis dahin rückgängig
+ * (oder stellt es wieder her), gilt das Modell wieder als gespeichert.
+ */
+let savedStep: unknown = null;
+/** Nach einem Neuaufbau mit ungespeicherten Änderungen gibt es keinen gespeicherten Schritt mehr. */
+const NO_SAVED_STEP = {};
+
+const currentStep = (): unknown => modeler.get('commandStack')._getUndoAction() ?? null;
+
+/** Merkt sich den aktuellen Stand als gespeichert. */
+function markSaved() {
+  savedStep = currentStep();
+  dirty = false;
+}
 
 const currentName = () => fileNameFor(modelName(modeler.getDefinitions()));
 
@@ -89,7 +104,7 @@ const files = new FilesController(
     suggestedName: currentName,
     isDirty: () => dirty,
     markClean: () => {
-      dirty = false;
+      markSaved();
       showFileState();
     },
     download: downloadBpmn,
@@ -180,8 +195,9 @@ async function createModeler(lang: string, xml: string) {
     showModelName();
   });
   modeler.on('commandStack.changed', () => {
-    if (!dirty) {
-      dirty = true;
+    const changed = currentStep() !== savedStep;
+    if (changed !== dirty) {
+      dirty = changed;
       showFileState();
     }
   });
@@ -189,7 +205,10 @@ async function createModeler(lang: string, xml: string) {
   // Ein Neuaufbau (Sprache, Katalog) ändert am Modell nichts.
   const wasDirty = dirty;
   await open(xml);
-  dirty = wasDirty;
+  if (wasDirty) {
+    savedStep = NO_SAVED_STEP;
+    dirty = true;
+  }
   showFileState();
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
   renderSettings();
@@ -226,7 +245,7 @@ async function open(xml: string, fileName?: string) {
   } catch (error) {
     statusPanel.textContent = t('app.openError', { message: (error as Error).message });
   }
-  dirty = false;
+  markSaved();
   showFileState();
 }
 

@@ -57,6 +57,7 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .bestbpmn-picker-input { flex: 1; min-width: 80px; border: none; outline: none; font: inherit; font-size: 13px; padding: 2px; background: transparent; }
 .bestbpmn-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 6px; border: 1px solid #b3c7e6; border-radius: 3px; background: #eef4fc; font-size: 12px; }
 .bestbpmn-picker-disabled .bestbpmn-chip { padding-right: 6px; border-color: #d0d0d0; background: #ececec; color: #555; }
+.bestbpmn-chip-locked { padding-right: 6px; font-style: italic; border-color: #d0d0d0; background: #ececec; color: #555; }
 .bestbpmn-chip-remove { border: none; background: none; padding: 0 2px; font-size: 13px; line-height: 1; color: #555; cursor: pointer; }
 .bestbpmn-chip-remove:hover { color: #000; }
 .bestbpmn-picker-results { position: absolute; z-index: 1000; left: 12px; right: 12px; margin: 2px 0 0; padding: 2px 0; list-style: none; max-height: 240px; overflow-y: auto; background: #fff; border: 1px solid #c6c6c6; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }

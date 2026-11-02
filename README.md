@@ -72,14 +72,16 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 
 ## Bedienung
 
-- **Ungespeicherte Änderungen** färben den Button „Speichern“ dezent rot.
+- **Ungespeicherte Änderungen** färben den Button „Speichern“ dezent rot. Macht man alles
+  wieder rückgängig, ist er wieder normal.
 - **Rückgängig und Wiederherstellen** über die Pfeile neben „Speichern“ oder mit Strg+Z und
   Strg+Y (auch Strg+Umschalt+Z). In Eingabefeldern gilt das Rückgängig des Feldes.
 - **Modellname.** Hat eine geöffnete Datei keinen Modellnamen, gilt der Dateiname ohne Endung.
 - **IDs** vergibt bestbpmn selbst; das Eigenschaftenpanel zeigt sie nur an.
 - **DEMI-Matrix.** Sie bleibt immer eine Tabelle mit einer Spalte je Rolle oder Gruppe, auch bei
   mehreren Pools. Ein Pool ohne Swimlanes wirkt wie eine Swimlane: Seine Rolle oder Gruppe,
-  sonst sein Name, ist D für alle Aktivitäten darin.
+  sonst sein Name, ist D für alle Aktivitäten darin. Dieses D ist kursiv und lässt sich an der
+  Aufgabe nicht entfernen; Multi-Instanz-Aufgaben dürfen weitere D haben.
 - **Eigenschaften ausblenden.** Die schmale Leiste links vom Eigenschaftenbereich klappt ihn
   auf und zu, damit das Diagramm auf kleinen Bildschirmen mehr Platz hat.
 

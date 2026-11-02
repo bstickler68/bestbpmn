@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import Modeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { createI18n } from '@bestbpmn/i18n';
-import { deriveRaciMatrices, readRaci, type RoleDefinition } from '@bestbpmn/model';
+import { deriveRaciMatrices, formatAssignees, readRaci, type RoleDefinition } from '@bestbpmn/model';
 import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import roles from '../../../templates/catalog/roles.json';
 import {
@@ -301,6 +301,60 @@ describe('D aus der Swimlane', () => {
     expect(entry.textContent).toContain('Multi-Instanz-Aufgabe');
     get('selection').select(null);
     await nextTick();
+  });
+
+  it('hält bei Multi-Instanz das D aus der Lane fest und lässt weitere D zu', async () => {
+    await setup('de');
+    await modeler.importXML(LANE_XML);
+    const multi = element('Multi');
+    get('commandStack').execute(UPDATE_RACI, {
+      element: multi,
+      role: 'responsible',
+      assignees: [{ kind: 'role', ref: 'incident_manager' }],
+    });
+    expect(formatAssignees(readRaci(multi.businessObject).responsible)).toBe('group(Autoren), role(incident_manager)');
+
+    await nextTick();
+    get('selection').select(multi);
+    await nextTick();
+    const entry = container.querySelector('[data-entry-id="bestbpmn-raci-responsible"]')!;
+    const locked = entry.querySelector('.bestbpmn-chip-locked')!;
+    expect(locked.getAttribute('data-value')).toBe('group(Autoren)');
+    expect(locked.querySelector('.bestbpmn-chip-remove')).toBeNull();
+    expect(entry.querySelector('[data-value="role(incident_manager)"] .bestbpmn-chip-remove')).not.toBeNull();
+
+    // Nur das D aus der Lane ist in der Matrix kursiv.
+    const matrix = document.createElement('div');
+    renderRaciMatrix(matrix, deriveRaciMatrices(modeler.getDefinitions()), createI18n('de').t);
+    const cells = [...matrix.querySelectorAll('tr[data-element-id="Multi"] td')].filter((td) => td.textContent === 'D');
+    expect(cells.map((td) => td.classList.contains('from-lane'))).toEqual([true, false]);
+
+    // In eine andere Lane verschoben: Das alte Lane-D fällt weg, das neue steht vorn.
+    get('modeling').moveElements([multi], { x: 0, y: 200 });
+    expect(formatAssignees(readRaci(multi.businessObject).responsible)).toBe('group(service_desk), role(incident_manager)');
+    get('selection').select(null);
+    await nextTick();
+  });
+
+  it('lässt bei Typwechsel einer Multi-Instanz-Aufgabe nur das erste D stehen', async () => {
+    await setup('de');
+    await modeler.importXML(LANE_XML);
+    const addSecond = (el: any) =>
+      get('commandStack').execute(UPDATE_RACI, {
+        element: el,
+        role: 'responsible',
+        assignees: [{ kind: 'group', ref: 'Autoren' }, { kind: 'role', ref: 'incident_manager' }],
+      });
+    addSecond(element('Multi'));
+    const replaced = get('bpmnReplace').replaceElement(element('Multi'), { type: 'bpmn:ServiceTask' });
+    expect(replaced.businessObject.$type).toBe('bpmn:ServiceTask');
+    expect(formatAssignees(readRaci(replaced.businessObject).responsible)).toBe('group(Autoren)');
+    get('commandStack').undo();
+    expect(formatAssignees(readRaci(element('Multi').businessObject).responsible)).toBe('group(Autoren), role(incident_manager)');
+
+    // Multi-Instanz entfernt: ebenfalls nur noch das erste D.
+    get('modeling').updateProperties(element('Multi'), { loopCharacteristics: undefined });
+    expect(formatAssignees(readRaci(element('Multi').businessObject).responsible)).toBe('group(Autoren)');
   });
 
   it('meldet eine Aufgabe ohne D, wenn die Lane keine Zuordnung hat', async () => {

@@ -12,6 +12,7 @@ export const ISSUE_CODES: readonly IssueCode[] = [
   'state-key-conflict',
   'raci-missing-responsible',
   'raci-multiple-responsible',
+  'multi-instance-single-responsible',
   'raci-multiple-accountable',
   'raci-unknown-assignee',
   'lane-without-role',
@@ -20,14 +21,14 @@ export const ISSUE_CODES: readonly IssueCode[] = [
 
 /**
  * Regelprofile. `document` passt zu Diagrammen, die nur dokumentieren, etwa aus bpmn.io übernommene
- * Modelle ohne Zuständigkeiten: Es verlangt kein D an jeder Benutzeraufgabe, keine Rolle an jeder Lane und keinen IT-Service an
- * Benutzer- und Serviceaufgaben.
+ * Modelle ohne Zuständigkeiten: Es verlangt kein D an jeder Benutzeraufgabe, keine Rolle an jeder Lane, keine zwei D an
+ * Multi-Instanz-Aufgaben und keinen IT-Service an Benutzer- und Serviceaufgaben.
  * `complete` prüft alles.
  */
 export type RuleProfile = 'document' | 'complete';
 
 export const RULE_PROFILES: Record<RuleProfile, readonly IssueCode[]> = {
-  document: ['raci-missing-responsible', 'lane-without-role', 'task-without-service'],
+  document: ['raci-missing-responsible', 'multi-instance-single-responsible', 'lane-without-role', 'task-without-service'],
   complete: [],
 };
 
