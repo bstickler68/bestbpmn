@@ -1,23 +1,24 @@
 import type { TFunction } from '@bestbpmn/i18n';
-import { catalogLabel, findRole, parseAssignee, type RaciMatrix, type RoleDefinition } from '@bestbpmn/model';
+import { catalogLabel, combineRaciMatrices, findRole, parseAssignee, type RaciMatrix, type RoleDefinition } from '@bestbpmn/model';
 
 const escape = (text: string) =>
   text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-/** Zeigt die RACI-Matrix: Zeilen = Aktivitäten, Spalten = Personen, Gruppen und Rollen. */
+/**
+ * Zeigt die RACI-Matrix: Zeilen = Aktivitäten, Spalten = Personen, Gruppen und Rollen. Auch bei
+ * mehreren Pools bleibt es eine Tabelle mit genau einer Spalte je Rolle oder Gruppe.
+ */
 export function renderRaciMatrix(
   container: HTMLElement,
   matrices: RaciMatrix[],
   t: TFunction,
   catalog: { roles?: RoleDefinition[]; language?: string } = {},
 ): void {
-  container.innerHTML = matrices.map((m) => renderMatrix(m, t, catalog)).join('') || `<p>${escape(t('raci.noActivities'))}</p>`;
+  const matrix = combineRaciMatrices(matrices);
+  container.innerHTML = matrix.rows.length ? renderMatrix(matrix, t, catalog) : `<p>${escape(t('raci.noActivities'))}</p>`;
 }
 
 function renderMatrix(matrix: RaciMatrix, t: TFunction, catalog: { roles?: RoleDefinition[]; language?: string }): string {
-  if (!matrix.rows.length) {
-    return `<section><h2>${escape(matrix.processName ?? matrix.processId)}</h2><p>${escape(t('raci.noActivities'))}</p></section>`;
-  }
   // Spalten mit Rolle oder Gruppe aus der Tabelle zeigen deren Namen, die übrigen die Schreibweise.
   const head = matrix.columns
     .map((c) => {
@@ -43,7 +44,6 @@ function renderMatrix(matrix: RaciMatrix, t: TFunction, catalog: { roles?: RoleD
     )
     .join('');
   return `<section>
-    <h2>${escape(matrix.processName ?? matrix.processId)}</h2>
     <div class="raci-scroll"><table class="raci">
       <thead><tr><th scope="col">${escape(t('raci.activity'))}</th>${head}</tr></thead>
       <tbody>${body}</tbody>
