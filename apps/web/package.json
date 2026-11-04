@@ -1,6 +1,6 @@
 {
   "name": "@bestbpmn/web",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "private": true,
   "description": "bestbpmn als Web-App: bpmn-js mit Prozessstatus, RACI/DEMI und Prüfregeln",
   "license": "Apache-2.0",
