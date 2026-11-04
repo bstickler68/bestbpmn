@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   combineRaciMatrices,
   createModdle,
+  deriveElementTables,
   deriveRaciMatrices,
   deriveStatusModels,
   formatAssignees,
@@ -54,9 +55,12 @@ describe('RACI im Modell', () => {
     expect(matrix!.rows.map((r) => [r.elementId, r.cells])).toEqual([
       ['Erstellen', { 'group(authors)': ['responsible'], 'group(quality_management)': ['informed'] }],
       ['Pruefen', { 'group(reviewers)': ['responsible'], 'group(quality_management)': ['accountable'], 'field(autor)': ['consulted'] }],
-      ['Freigeben', { 'group(quality_management)': ['responsible'], 'initiator()': ['informed'] }],
+      // Wie in der Elementtabelle: der Rücksprung „Überarbeiten“ vor dem Hauptweg mit „Freigeben“.
       ['Ueberarbeiten', { 'group(authors)': ['responsible'] }],
+      ['Freigeben', { 'group(quality_management)': ['responsible'], 'initiator()': ['informed'] }],
     ]);
+    const tableIds = deriveElementTables(rootElement)[0]!.rows.filter((r) => r.type === 'task').map((r) => r.id);
+    expect(matrix!.rows.map((r) => r.elementId)).toEqual(tableIds);
   });
 });
 

@@ -2,6 +2,7 @@ import type { ModdleElement } from '../states/types.js';
 import { formatAssignee } from './assignees.js';
 import { findParticipant, laneMap, resolveRaci } from './check.js';
 import { RACI_ROLES, type Raci, type RaciRole } from './read.js';
+import { positions, tableOrder } from '../report/elements.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -52,14 +53,15 @@ export function combineRaciMatrices(matrices: RaciMatrix[]): RaciMatrix {
 /** Leitet je Prozess die RACI-Matrix ab: Zeilen = Aktivitäten, Spalten = Zuordnungen. */
 export function deriveRaciMatrices(definitions: ModdleElement): RaciMatrix[] {
   const roots = ((definitions as El).rootElements ?? []) as El[];
-  return roots.filter((el) => el.$type === 'bpmn:Process').map((p) => deriveMatrix(p, findParticipant(definitions, p)));
+  const where = positions(definitions);
+  return roots.filter((el) => el.$type === 'bpmn:Process').map((p) => deriveMatrix(p, where, findParticipant(definitions, p)));
 }
 
-function deriveMatrix(process: El, participant?: El): RaciMatrix {
+function deriveMatrix(process: El, where: Map<string, { x: number; y: number }>, participant?: El): RaciMatrix {
   const columns: string[] = [];
   const rows: RaciRow[] = [];
   const lanes = laneMap(process, participant);
-  for (const el of activities(process)) {
+  for (const el of activities(process, where)) {
     const { responsibleFromLane, laneResponsible, ...raci } = resolveRaci(el, lanes);
     const cells: Record<string, RaciRole[]> = {};
     for (const role of RACI_ROLES) {
@@ -85,12 +87,23 @@ function deriveMatrix(process: El, participant?: El): RaciMatrix {
   return { processId: process.id ?? '', ...(name ? { processName: name } : {}), columns, rows };
 }
 
-/** Aktivitäten, die eine Person bearbeitet oder die RACI-Angaben tragen, auch in Unterprozessen. */
-function activities(container: El): El[] {
+/**
+ * Aktivitäten, die eine Person bearbeitet oder die RACI-Angaben tragen, auch in Unterprozessen.
+ * Sie stehen in derselben Reihenfolge wie in der Elementtabelle des Berichts; Teilprozesse selbst nicht.
+ */
+function activities(process: El, where: Map<string, { x: number; y: number }>): El[] {
+  const ordered = tableOrder(process, where);
+  const all = allActivities(process);
+  const rank = new Map(ordered.map((el, index) => [el, index]));
+  // Aktivitäten, die die Tabelle nicht kennt, behalten ihren Platz am Ende.
+  return all.sort((a, b) => (rank.get(a) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b) ?? Number.MAX_SAFE_INTEGER));
+}
+
+function allActivities(container: El): El[] {
   const result: El[] = [];
   for (const el of (container.flowElements ?? []) as El[]) {
     if (el.$type === 'bpmn:SubProcess') {
-      result.push(...activities(el));
+      result.push(...allActivities(el));
     } else if (el.$instanceOf?.('bpmn:Activity')) {
       result.push(el);
     }

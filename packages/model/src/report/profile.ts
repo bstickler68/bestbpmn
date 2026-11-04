@@ -134,11 +134,15 @@ export function deriveProfile(definitions: ModdleElement): ProcessProfile {
   const defs = definitions as El;
   const where = positions(definitions);
   const processes = ((defs.rootElements ?? []) as El[]).filter((el) => el.$type === 'bpmn:Process');
-  const topLevel = processes.flatMap((p) => flowOrder(((p.flowElements ?? []) as El[]).filter((el) => el.$instanceOf?.('bpmn:FlowNode')), where));
+  const orders = processes.map((p) => flowOrder(((p.flowElements ?? []) as El[]).filter((el) => el.$instanceOf?.('bpmn:FlowNode')), where));
   const nodes = processes.flatMap(allNodes);
 
-  const starts = topLevel.filter((el) => el.$type === 'bpmn:StartEvent');
-  const ends = topLevel.filter((el) => el.$type === 'bpmn:EndEvent');
+  const starts = orders.flat().filter((el) => el.$type === 'bpmn:StartEvent');
+  // Das Endereignis des Hauptwegs steht in der Ablaufreihenfolge zuletzt, im Steckbrief zuerst.
+  const ends = orders.flatMap((order) => {
+    const found = order.filter((el) => el.$type === 'bpmn:EndEvent');
+    return found.length ? [found[found.length - 1]!, ...found.slice(0, -1)] : [];
+  });
   const activities = nodes.filter(isActivity);
 
   const byId = (items: ProfileEntry[]) => dedupe(items, (e) => e.id);

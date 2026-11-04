@@ -72,7 +72,7 @@ describe('Gesamtdokument', () => {
     expect(doc.querySelector('.info-table')!.textContent).not.toContain('Hauptsprache');
     expect(doc.querySelector('.diagram svg')).not.toBeNull();
     const head = [...doc.querySelectorAll('table.elements thead th')].map((th) => th.textContent);
-    expect(head).toEqual(['Nr.', 'Elementtyp', 'Elementart', 'Name', 'IT-System(e)', 'Beschreibung', 'Weiterführende Dokumentation']);
+    expect(head).toEqual(['Nr', 'Objekt', 'Typ', 'Name', 'System', 'Beschreibung', 'Weiterführende Dokumentation']);
     const numbers = [...doc.querySelectorAll('table.elements td.number')].map((td) => td.textContent);
     expect(numbers[0]).toBe('1');
     expect(new Set(numbers).size).toBe(numbers.length);

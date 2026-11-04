@@ -32,5 +32,12 @@
   "Select an element to edit its properties.": "Wähle ein Element aus, um seine Eigenschaften zu bearbeiten.",
   "Collaboration": "Kollaboration",
   "Participant": "Pool",
-  "Lane": "Swimlane"
+  "Lane": "Swimlane",
+  "Set color": "Hintergrundfarbe",
+  "No color": "Keine Farbe",
+  "Blue": "Blau",
+  "Orange": "Orange",
+  "Green": "Grün",
+  "Red": "Rot",
+  "Purple": "Violett"
 }

@@ -112,3 +112,8 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .files-lock { font-size: 12px; color: #9a6700; }
 .files-lock.own { color: #1a7f37; }
 .files-time { margin-left: auto; font-size: 12px; color: #57606a; }
+
+/* Farbpalette am Element: alle Farben in einer Reihe. */
+.djs-popup.color-picker .djs-popup-group {
+  grid: auto-flow / repeat(6, 1fr);
+}
