@@ -77,6 +77,13 @@ describe('Prüfregel IT-Service', () => {
     expect((await serviceIssues(disabledRulesOf('complete'))).sort()).toEqual(['S1', 'S2', 'U1']);
   });
 
+  it('meldet einen fehlenden IT-Service nur als Warnung', async () => {
+    const [m] = await deriveStatusModels(services, {}, { disabledRules: disabledRulesOf('complete') });
+    const severities = m!.issues.filter((i) => i.code === 'task-without-service').map((i) => i.severity);
+    expect(severities.length).toBeGreaterThan(0);
+    expect(new Set(severities)).toEqual(new Set(['warning']));
+  });
+
   it('ist im Profil „Dokumentieren“ abgeschaltet', async () => {
     expect(await serviceIssues(disabledRulesOf('document'))).toEqual([]);
   });

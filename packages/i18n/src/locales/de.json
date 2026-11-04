@@ -8,7 +8,6 @@
     "title": "bestbpmn",
     "untitled": "Ohne Namen",
     "new": "Neu",
-    "template": "Vorlage Dokumentenfreigabe",
     "open": "Öffnen",
     "save": "Speichern",
     "unsaved": "Nicht gespeicherte Änderungen",
@@ -25,7 +24,6 @@
       "settings": "Einstellungen",
       "files": "Dateien"
     },
-    "templateIncident": "Vorlage Incident",
     "newEmpty": "Leeres Diagramm",
     "export": "Exportieren",
     "exportBpmn": "BPMN-Datei herunterladen",
