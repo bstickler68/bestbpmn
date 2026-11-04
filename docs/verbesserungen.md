@@ -36,3 +36,8 @@ Sammlung der Rückmeldungen aus dem Praxistest (ab 2026-11-02). Die Liste wurde 
 | 20 | Wunsch | Gesamtdokument | In der Tabelle „Beschreibung der Prozessschritte“ ist das letzte Element immer ein Endereignis. Dafür werden die Pfade dazwischen in einer anderen Reihenfolge durchlaufen. | Bei Verzweigungen wird der Pfad, der zum Endereignis des Hauptablaufs führt, zuletzt ausgegeben; Seitenpfade (Abbrüche, Rücksprünge, zusätzliche Enden) kommen vorher und verweisen mit „weiter bei …“. Gibt es mehrere Endereignisse, steht eines davon am Schluss. | offen |
 | 21 | Wunsch | Gesamtdokument | Die Aktivitäten in der DEMI-Tabelle stehen in derselben Reihenfolge wie in der Tabelle „Beschreibung der Prozessschritte“. | Die DEMI-Matrix im Gesamtdokument übernimmt die Ablaufreihenfolge der Elementtabelle. Ob die Matrix in der App ebenso sortiert wird, ist offen; vorgeschlagen: ja, dann ist sie überall gleich. | offen |
 | 22 | Wunsch | Oberfläche | Die Vorlagen verschwinden aus dem Menü „Neu“ und werden nur noch im Hintergrund für Tests verwendet. | Im Menü „Neu“ bleibt nur „Leeres Diagramm“. Die Dateien unter `templates/` bleiben für die Tests; der Beispielkatalog in den Einstellungen bleibt unverändert. | offen |
+## Dritte Runde (ab 2026-11-02)
+
+| Nr. | Art | Bereich | Verbesserung | Hinweis zur Umsetzung | Stand |
+| --- | --- | --- | --- | --- | --- |
+| 18 | Wunsch | Prüfregeln | Fehlt einer Benutzer- oder Serviceaufgabe der IT-Service, ist das nur noch eine Warnung (gelb/orange markiert) statt eines Fehlers. | `task-without-service` in `packages/model/src/rules/services.ts` mit `severity: 'warning'`. Im Profil „Dokumentieren“ bleibt die Regel abgeschaltet. Gleiche Festlegung wie für PRAXIQ (Bernhard, 2026-11-02). | umgesetzt |

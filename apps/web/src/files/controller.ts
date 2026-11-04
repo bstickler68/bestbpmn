@@ -216,7 +216,7 @@ export class FilesController {
     this.host.changed();
   }
 
-  /** „Neu“, „Vorlage“ oder eine hochgeladene Datei: die offene Datei wird freigegeben. */
+  /** „Neu“ oder eine hochgeladene Datei: die offene Datei wird freigegeben. */
   async detach(): Promise<boolean> {
     if (!this.confirmDiscard()) {
       return false;
