@@ -174,6 +174,15 @@ export function deriveElementTables(definitions: ModdleElement): ElementTable[] 
     .filter((table) => table.rows.length > 0);
 }
 
+/**
+ * Alle Flussknoten eines Prozesses in der Reihenfolge der Elementtabelle; die Knoten eines
+ * Teilprozesses folgen direkt auf ihn.
+ */
+export function tableOrder(container: El, where: Map<string, { x: number; y: number }>): El[] {
+  const nodes = ((container.flowElements ?? []) as El[]).filter((el) => classify(el));
+  return flowOrder(nodes, where).flatMap((el) => (classify(el)!.type === 'subProcess' ? [el, ...tableOrder(el, where)] : [el]));
+}
+
 /** Nummeriert die Flussknoten eines Prozesses oder Teilprozesses in Ablaufreihenfolge. */
 function numberContainer(container: El, prefix: string, depth: number, where: Map<string, { x: number; y: number }>): ElementRow[] {
   const nodes = ((container.flowElements ?? []) as El[]).filter((el) => classify(el));
@@ -225,6 +234,10 @@ function loopOf(el: El): ElementRow['loop'] {
  * zu Ende verfolgt, bevor der nächste beginnt; ein zusammenführendes Element kommt erst, wenn alle
  * Zweige davor nummeriert sind. Rücksprünge (Schleifen) zählen dabei nicht. Angeheftete Ereignisse
  * folgen nach dem normalen Weg ihrer Aktivität.
+ *
+ * Am Schluss steht immer ein Endereignis: das am Ende des längsten Wegs ohne angeheftete Ereignisse
+ * (bei Gleichstand das am weitesten rechts). Zweige, die nicht dorthin führen (Abbrüche, weitere Enden, angeheftete
+ * Ereignisse), kommen deshalb vor dem Zweig, der zu diesem Endereignis führt.
  */
 export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number }>): El[] {
   const inSet = new Set(nodes);
@@ -278,6 +291,35 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
     }
   }
 
+  // Das Endereignis, das zuletzt kommt, und alle Knoten, von denen ein Weg dorthin führt.
+  const forward = (el: El): El[] => [
+    ...outgoing(el)
+      .filter((f) => inSet.has(f.targetRef) && !backEdges.has(f))
+      .map((f) => f.targetRef as El),
+    ...(boundaries.get(el) ?? []),
+  ];
+  // Wege über angeheftete Ereignisse sind Ausnahmen und zählen für die Wahl des letzten Endereignisses nicht.
+  const finalEnd = lastEndEvent(nodes, (el) => forward(el).filter((t) => t.attachedToRef !== el), pos);
+  const toFinal = new Set<El>();
+  if (finalEnd) {
+    const backward = new Map<El, El[]>();
+    for (const el of nodes) {
+      for (const target of forward(el)) {
+        backward.set(target, [...(backward.get(target) ?? []), el]);
+      }
+    }
+    const open = [finalEnd];
+    while (open.length) {
+      const el = open.pop()!;
+      if (!toFinal.has(el)) {
+        toFinal.add(el);
+        open.push(...(backward.get(el) ?? []));
+      }
+    }
+  }
+  /** Was zuerst drankommen soll, zuerst; Zweige zum letzten Endereignis ans Ende. */
+  const lastToFinal = (items: El[]) => [...items.filter((el) => !toFinal.has(el)), ...items.filter((el) => toFinal.has(el))];
+
   const waiting = new Map<El, number>();
   for (const el of nodes) {
     waiting.set(el, incoming(el).filter((f) => inSet.has(f.sourceRef) && !backEdges.has(f)).length);
@@ -285,8 +327,7 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
   const order: El[] = [];
   const done = new Set<El>();
   // Stapel: oben liegt, was als Nächstes kommt.
-  const stack: El[] = [...entries].reverse();
-  const later: El[] = [];
+  const stack: El[] = lastToFinal(entries).reverse();
   const release = (el: El) => {
     const ready: El[] = [];
     for (const flow of outgoing(el)) {
@@ -301,16 +342,13 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
       }
     }
     ready.sort(byPosition);
-    stack.push(...ready.reverse());
-    // Angeheftete Ereignisse kommen erst nach dem normalen Weg dran.
-    later.unshift(...(boundaries.get(el) ?? []));
+    // Angeheftete Ereignisse kommen nach dem normalen Weg dran, außer dieser führt zum letzten Endereignis.
+    const attached = (boundaries.get(el) ?? []).filter((b) => !done.has(b));
+    stack.push(...lastToFinal([...ready, ...attached]).reverse());
   };
 
   while (order.length < nodes.length) {
     let next = stack.pop();
-    if (!next && later.length) {
-      next = later.shift();
-    }
     if (!next) {
       // Rest (z. B. unverbundene Elemente oder Kreise ohne Einstieg) nach Lage.
       next = nodes.filter((el) => !done.has(el)).sort(byPosition)[0];
@@ -323,6 +361,35 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
     release(next);
   }
   return order;
+}
+
+/**
+ * Das Endereignis am Ende des längsten Wegs (Rücksprünge und angeheftete Ereignisse zählen nicht); bei Gleichstand das am
+ * weitesten rechts, dann das untere. `undefined`, wenn es kein Endereignis gibt.
+ */
+function lastEndEvent(nodes: El[], forward: (el: El) => El[], pos: (el: El) => { x: number; y: number }): El | undefined {
+  const indegree = new Map<El, number>(nodes.map((el) => [el, 0]));
+  for (const el of nodes) {
+    for (const target of forward(el)) {
+      indegree.set(target, indegree.get(target)! + 1);
+    }
+  }
+  const depth = new Map<El, number>();
+  const queue = nodes.filter((el) => indegree.get(el) === 0);
+  queue.forEach((el) => depth.set(el, 0));
+  while (queue.length) {
+    const el = queue.shift()!;
+    for (const target of forward(el)) {
+      depth.set(target, Math.max(depth.get(target) ?? 0, depth.get(el)! + 1));
+      const left = indegree.get(target)! - 1;
+      indegree.set(target, left);
+      if (left === 0) {
+        queue.push(target);
+      }
+    }
+  }
+  const ends = nodes.filter((el) => el.$type === 'bpmn:EndEvent');
+  return ends.sort((a, b) => (depth.get(b) ?? 0) - (depth.get(a) ?? 0) || pos(b).x - pos(a).x || pos(b).y - pos(a).y)[0];
 }
 
 function references(

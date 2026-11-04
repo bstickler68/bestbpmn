@@ -21,6 +21,7 @@
     "@bestbpmn/model": "0.1.0",
     "@bpmn-io/properties-panel": "3.57.1",
     "bpmn-js": "18.31.1",
+    "bpmn-js-color-picker": "0.7.2",
     "bpmn-js-properties-panel": "5.65.2"
   },
   "devDependencies": {

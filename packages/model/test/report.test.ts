@@ -92,15 +92,16 @@ describe('Elementtabelle', () => {
       '1 Start',
       '2 Erfassen',
       '3 Entscheidung',
-      '4 Genehmigen',
-      '5 Ablehnen',
-      '6 Zusammen',
-      '7 Mitteilen',
-      '8 Ende',
-      '9 Nachfragen',
-      '10 Frist',
-      '11 Erinnern',
-      '12 EndeErinnert',
+      // Seitenzweige zuerst, damit am Schluss das Endereignis des Hauptwegs steht.
+      '4 Nachfragen',
+      '5 Genehmigen',
+      '6 Frist',
+      '7 Erinnern',
+      '8 EndeErinnert',
+      '9 Ablehnen',
+      '10 Zusammen',
+      '11 Mitteilen',
+      '12 Ende',
     ]);
   });
 
@@ -131,17 +132,42 @@ describe('Elementtabelle', () => {
     const rows = deriveElementTables(await load())[0]!.rows;
     const next = (id: string) => rows.find((r) => r.id === id)!.next;
     expect(next('Entscheidung')).toEqual([
-      { target: '4', direction: 'forward', label: 'Ja' },
-      { target: '5', direction: 'forward', label: 'Nein', isDefault: true },
-      { target: '9', direction: 'forward', label: 'Unklar' },
+      { target: '5', direction: 'forward', label: 'Ja' },
+      { target: '9', direction: 'forward', label: 'Nein', isDefault: true },
+      { target: '4', direction: 'forward', label: 'Unklar' },
     ]);
     expect(next('Genehmigen')).toEqual([
-      { target: '6', direction: 'forward' },
-      { target: '10', direction: 'forward', boundary: { name: 'Frist abgelaufen', kind: 'timer' } },
+      { target: '10', direction: 'forward' },
+      { target: '6', direction: 'forward', boundary: { name: 'Frist abgelaufen', kind: 'timer' } },
     ]);
     expect(next('Ablehnen')).toEqual([]);
     expect(next('Nachfragen')).toEqual([{ target: '2', direction: 'back' }]);
     expect(next('Ende')).toEqual([]);
+  });
+
+  it('endet immer mit dem Endereignis des Hauptwegs', async () => {
+    // Hauptweg oben, Abbruch unten und ein angeheftetes Ereignis mit eigenem Ende.
+    const shape = (id: string, x: number, y: number) =>
+      `<bpmndi:BPMNShape id="${id}_di" bpmnElement="${id}"><dc:Bounds x="${x}" y="${y}" width="36" height="36" /></bpmndi:BPMNShape>`;
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="D" targetNamespace="urn:test">
+  <bpmn:process id="P">
+    <bpmn:startEvent id="S" /><bpmn:task id="A" /><bpmn:exclusiveGateway id="G" />
+    <bpmn:task id="B" /><bpmn:endEvent id="E" />
+    <bpmn:task id="Abbruch" /><bpmn:endEvent id="EAbbruch" />
+    <bpmn:boundaryEvent id="Frist" attachedToRef="B"><bpmn:timerEventDefinition /></bpmn:boundaryEvent><bpmn:endEvent id="EFrist" />
+    ${flow('f1', 'S', 'A')}${flow('f2', 'A', 'G')}${flow('f3', 'G', 'B')}${flow('f4', 'B', 'E')}
+    ${flow('f5', 'G', 'Abbruch')}${flow('f6', 'Abbruch', 'EAbbruch')}${flow('f7', 'Frist', 'EFrist')}
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Di"><bpmndi:BPMNPlane id="Pl" bpmnElement="P">
+    ${shape('S', 0, 100)}${shape('A', 100, 100)}${shape('G', 200, 100)}${shape('B', 300, 100)}${shape('E', 500, 100)}
+    ${shape('Abbruch', 300, 300)}${shape('EAbbruch', 400, 300)}${shape('Frist', 320, 140)}${shape('EFrist', 400, 200)}
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+    const rows = deriveElementTables(await load(xml))[0]!.rows;
+    expect(rows.map((r) => r.id)).toEqual(['S', 'A', 'G', 'Abbruch', 'EAbbruch', 'B', 'Frist', 'EFrist', 'E']);
+    expect(rows.at(-1)!.type).toBe('endEvent');
+    expect(deriveProfile(await load(xml)).endStates.map((e) => e.id)).toEqual(['E', 'EAbbruch', 'EFrist']);
   });
 
   it('nummeriert Teilprozesse mit Punkt', async () => {

@@ -81,7 +81,11 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 - **DEMI-Matrix.** Sie bleibt immer eine Tabelle mit einer Spalte je Rolle oder Gruppe, auch bei
   mehreren Pools. Ein Pool ohne Swimlanes wirkt wie eine Swimlane: Seine Rolle oder Gruppe,
   sonst sein Name, ist D für alle Aktivitäten darin. Dieses D ist kursiv und lässt sich an der
-  Aufgabe nicht entfernen; Multi-Instanz-Aufgaben dürfen weitere D haben.
+  Aufgabe nicht entfernen; Multi-Instanz-Aufgaben dürfen weitere D haben. Die Aktivitäten stehen
+  in derselben Reihenfolge wie in der Elementtabelle des Gesamtdokuments.
+- **Hintergrundfarbe.** Das Pinselsymbol am Element (neben dem Schraubenschlüssel) bietet fünf
+  Farben und „Keine Farbe“. Gespeichert wird nach „BPMN in Color“; auch bpmn.io und der Camunda
+  Modeler zeigen die Farben. Mehrere markierte Elemente lassen sich gemeinsam einfärben.
 - **Eigenschaften ausblenden.** Die schmale Leiste links vom Eigenschaftenbereich klappt ihn
   auf und zu, damit das Diagramm auf kleinen Bildschirmen mehr Platz hat.
 
@@ -99,9 +103,11 @@ Browsers, dort auch „Als PDF speichern“:
 - **Gesamtdokument**: Prozessinformationen, Prozessablaufdiagramm, Beschreibung der
   Prozessschritte als Tabelle, Status und Statuswechsel (nur, wenn ein Status modelliert ist)
   und DEMI-Matrix. Die Elementtabelle hat die Spalten
-  Nr., Elementtyp, Elementart, Name, IT-System(e), Beschreibung und weiterführende
+  Nr, Objekt, Typ, Name, System, Beschreibung und weiterführende
   Dokumentation. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
   weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
+  Am Schluss steht immer das Endereignis des Hauptwegs; Seitenzweige wie Abbrüche, Rücksprünge
+  und angeheftete Ereignisse kommen davor.
 
 Alles kommt aus dem Modell; das Datenobjekt „Prozess“ trägt nur den Status und zählt nicht
 als Input, Output oder Dokument. Gedruckt wird auf A4; Grafik und Elementtabelle stehen im
