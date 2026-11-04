@@ -10,8 +10,6 @@ import { deriveRaciMatrices, parseCatalog, type CatalogFile, type IssueCode, typ
 import exampleServices from '../../../templates/catalog/services.json';
 import exampleStates from '../../../templates/catalog/states.json';
 import exampleRoles from '../../../templates/catalog/roles.json';
-import incident from '../../../templates/processes/incident.bpmn?raw';
-import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import { EMPTY_DIAGRAM } from './emptyDiagram';
 import {
   fileNameFor,
@@ -279,7 +277,7 @@ function showUndoState() {
   redoButton.disabled = !commandStack.canRedo();
 }
 
-/** Ein Modell, das zu keiner Datei im Ordner gehört (neu, Vorlage, hochgeladen, hineingezogen). */
+/** Ein Modell, das zu keiner Datei im Ordner gehört (neu, hochgeladen, hineingezogen). */
 async function openDetached(xml: string | Promise<string>, fileName?: string) {
   if (await files.detach()) {
     await open(await xml, fileName);
@@ -313,7 +311,7 @@ languageSelect.addEventListener('change', async () => {
   await createModeler(language, xml);
 });
 
-// Menüs „Neu“ und „Exportieren“: nach der Wahl und bei Klick daneben schließen.
+// Menüs „Exportieren“ und „Bericht“: nach der Wahl und bei Klick daneben schließen.
 const menus = [...document.querySelectorAll<HTMLDetailsElement>('details.menu')];
 document.addEventListener('click', (event) => {
   for (const menu of menus) {
@@ -324,8 +322,6 @@ document.addEventListener('click', (event) => {
 });
 
 document.querySelector('#new')!.addEventListener('click', () => openDetached(EMPTY_DIAGRAM));
-document.querySelector('#template')!.addEventListener('click', () => openDetached(template));
-document.querySelector('#template-incident')!.addEventListener('click', () => openDetached(incident));
 document.querySelector<HTMLInputElement>('#open')!.addEventListener('change', async (event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
