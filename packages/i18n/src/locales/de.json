@@ -32,6 +32,11 @@
     "update": {
       "available": "Eine neue Version von bestbpmn ist da.",
       "reload": "Neu laden"
+    },
+    "navigation": {
+      "previous": "Vorheriges Element dieser Art",
+      "next": "Nächstes Element dieser Art",
+      "position": "{{index}} von {{count}}"
     }
   },
   "status": {

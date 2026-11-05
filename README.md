@@ -86,6 +86,10 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 - **Hintergrundfarbe.** Das Pinselsymbol am Element (neben dem Schraubenschlüssel) bietet fünf
   Farben und „Keine Farbe“. Gespeichert wird nach „BPMN in Color“; auch bpmn.io und der Camunda
   Modeler zeigen die Farben. Mehrere markierte Elemente lassen sich gemeinsam einfärben.
+- **Blättern.** Die kleinen Pfeile ‹ › oben rechts im Eigenschaftenbereich wählen das vorherige
+  bzw. nächste Element derselben Art aus (Aktivitäten, Ereignisse, Gateways, Daten, Pools und
+  Lanes, Textanmerkungen), in Modellierungsreihenfolge: bei waagrechten Prozessen von links nach
+  rechts, bei senkrechten von oben nach unten; Pools und Lanes quer dazu.
 - **Eigenschaften ausblenden.** Die schmale Leiste links vom Eigenschaftenbereich klappt ihn
   auf und zu, damit das Diagramm auf kleinen Bildschirmen mehr Platz hat.
 
