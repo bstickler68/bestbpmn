@@ -5,6 +5,7 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 import '@bpmn-io/properties-panel/dist/assets/properties-panel.css';
 // Vor den eigenen Stilen, damit styles.css die Farbpalette anpassen kann.
 import { COLOR_PICKER, ColorPickerModule } from './colors';
+import { mountNavigation } from './navigation';
 import './styles.css';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { createI18n, matchLanguage, SUPPORTED_LANGUAGES, type TFunction } from '@bestbpmn/i18n';
@@ -188,6 +189,7 @@ async function createModeler(lang: string, xml: string) {
     colorPicker: COLOR_PICKER,
     bestbpmn: { ...catalog, disabledRules, language, t },
   });
+  mountNavigation(document.querySelector<HTMLElement>('#properties')!, modeler, t);
   modeler.on(STATUS_CHANGED, ({ models }: { models: StatusModel[] }) => {
     renderStatusPanel(statusPanel, models, { language, t });
   });

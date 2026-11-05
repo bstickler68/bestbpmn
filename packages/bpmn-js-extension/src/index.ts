@@ -2,6 +2,7 @@
 import { bestaddModdle, raciModdle } from '@bestbpmn/model';
 import { AttributeCommands } from './attributes';
 import AttributesPropertiesProvider from './AttributesPropertiesProvider';
+import ElementNavigation from './ElementNavigation';
 import LaneBehavior from './LaneBehavior';
 import LanePropertiesProvider from './LanePropertiesProvider';
 import ProcessObjectBehavior from './ProcessObjectBehavior';
@@ -28,6 +29,7 @@ export const bestbpmnModule = {
     'bestbpmnRaciCommands',
     'bestbpmnServiceOverlays',
   ],
+  bestbpmnNavigation: ['type', ElementNavigation],
   bestbpmnProcessObject: ['type', ProcessObjectBehavior],
   bestbpmnLane: ['type', LaneBehavior],
   bestbpmnProcessName: ['type', ProcessNameBehavior],
@@ -57,6 +59,7 @@ export const bestbpmnPropertiesProviderModule = {
 export const bestbpmnModdleExtensions = { raci: raciModdle, bestadd: bestaddModdle };
 
 export { STATUS_CHANGED } from './StatusCheck';
+export { default as ElementNavigation, navigationGroup, type NavigationGroup, type NavigationPosition } from './ElementNavigation';
 export { UPDATE_ATTRIBUTE, type BestbpmnConfig } from './attributes';
 export { translateModule, resolveI18n } from './i18n';
 export { UPDATE_RACI } from './raci';

@@ -117,3 +117,12 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .djs-popup.color-picker .djs-popup-group {
   grid: auto-flow / repeat(6, 1fr);
 }
+
+/* Blättern im Eigenschaftenbereich: klein, oben rechts über der Kopfzeile des Panels. */
+#properties { position: relative; }
+.element-nav { position: absolute; top: 6px; right: 6px; z-index: 11; display: flex; align-items: center; gap: 2px; font-size: 11px; color: #57606a; }
+.element-nav[hidden] { display: none; }
+.element-nav button { width: 22px; height: 22px; padding: 0; border: 1px solid #d0d7de; border-radius: 4px; background: #fff; color: #24292f; font-size: 15px; line-height: 1; cursor: pointer; }
+.element-nav button:hover:not(:disabled) { background: #eaeef2; }
+.element-nav button:disabled { color: #b0b7bf; cursor: default; }
+.element-nav-position { min-width: 44px; text-align: center; white-space: nowrap; }
