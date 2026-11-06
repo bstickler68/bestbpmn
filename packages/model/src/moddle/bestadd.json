@@ -166,6 +166,24 @@
           "isMany": true
         }
       ]
+    },
+    {
+      "name": "Rules",
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        {
+          "name": "kinds",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "description",
+          "isBody": true,
+          "type": "String"
+        }
+      ]
     }
   ]
 }

@@ -18,6 +18,10 @@ bpmn-js-Module für Prozessstatus, RACI/DEMI und Live-Prüfung. Das Paket wird a
 | `bestbpmn.raci.update` | Befehl, der eine Rolle setzt: R im `potentialOwner`, A/C/I im `raci`-Namensraum. Rückgängig in einem Schritt, leere Einträge werden entfernt. |
 | `TranslationsPropertiesProvider` | Gruppe „Übersetzungen“: Name und Beschreibung in den übrigen Sprachen, am Prozess die Hauptsprache des Modells. Status werden in der Statustabelle übersetzt. |
 | `bestbpmn.translation.update` | Befehl für Übersetzungen, in einem Schritt rückgängig zu machen. |
+| `ConditionPropertiesProvider` | Gruppe „Bedingung“ an Sequenzflüssen aus exklusiven und inklusiven Gateways und aus Aktivitäten: Auswahl aus den Ergebnissen der Aufgabe davor (auch über Gateways hinweg), schreibt `${result == 'key'}` und gibt einem namenlosen Weg den Namen des Ergebnisses; daneben ein Textfeld für eigene Ausdrücke. Am Standardfluss nur ein Hinweis. |
+| `RulesPropertiesProvider` | Gruppe „Regeln“ an Aktivitäten: Kennzeichen Bedingung, Prüfung, Maske, Startaktion, Folgeaktion und eine Beschreibung. Aufgaben, die niemand abschließt, bieten nur Start- und Folgeaktion an. |
+| `bestbpmn.rules.update` | Befehl für Kennzeichen und Beschreibung (`bestadd:rules`), in einem Schritt rückgängig zu machen; leere Container werden entfernt. |
+| `RuleOverlays`, `GatewayOverlays` | Symbol „§ n“ an Aktivitäten mit Regel-Kennzeichen; 👤 / ⚙ an Gateways, die nach dem Ergebnis einer Person bzw. nach Feldwerten verzweigen. Wird nicht gespeichert. |
 | `StatusCheck` | Prüft nach jeder Änderung mit `@bestbpmn/model`, dem Katalog und den eingeschalteten Prüfregeln (`setDisabledRules` schaltet um, ohne Rückgängig zu verlieren), markiert betroffene Elemente rot oder gelb und meldet das Ergebnis über das Event `bestbpmn.status.changed`. |
 
 Alles lässt sich mit Rückgängig zurücknehmen.

@@ -68,7 +68,15 @@
     "raci-multiple-accountable": "„{{element}}“ hat mehr als ein E: {{assignees}}. Erlaubt ist höchstens eins.",
     "raci-unknown-assignee": "„{{element}}“: {{assignee}} gibt es im Katalog nicht.",
     "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine.",
-    "task-without-service": "Die Aufgabe „{{element}}“ hat keinen IT-Service. Benutzer- und Serviceaufgaben brauchen mindestens einen."
+    "task-without-service": "Die Aufgabe „{{element}}“ hat keinen IT-Service. Benutzer- und Serviceaufgaben brauchen mindestens einen.",
+    "flow-without-condition": "Der Weg „{{flow}}“ nach „{{element}}“ hat keine Bedingung. Nach einer Verzweigung braucht jeder Weg außer dem Standardfluss eine, sonst nimmt eine Engine immer den ersten.",
+    "conditional-flows-without-default": "„{{element}}“ hat nur bedingte Wege. Ohne Standardfluss bleibt der Ablauf stehen, wenn keine Bedingung zutrifft.",
+    "unknown-result-condition": "Der Weg „{{flow}}“ verzweigt nach dem Ergebnis „{{state}}“, das die Aufgabe davor nicht setzen kann.",
+    "either-or-at-task": "„{{element}}“ hat einen bedingten Weg und einen Standardfluss. Ein Entweder-oder gehört in ein exklusives Gateway; bedingte Wege an einer Aufgabe nur für „zusätzlich, wenn …“ neben dem normalen Weg.",
+    "result-condition-at-task": "Der Weg „{{flow}}“ verzweigt direkt an „{{element}}“ nach dem Ergebnis. Nach dem Ergebnis einer Person wird mit einem exklusiven Gateway verzweigt.",
+    "unknown-rule-kind": "„{{element}}“ hat ein unbekanntes Regel-Kennzeichen „{{kind}}“.",
+    "rule-kind-not-allowed": "„{{element}}“ wird nicht von einer Person abgeschlossen und kann deshalb nur Start- und Folgeaktionen haben, nicht „{{kind}}“.",
+    "script-task-with-script": "Die Skriptaufgabe „{{element}}“ enthält Skripttext. Eine Skriptaufgabe verweist auf eine Aktion und enthält keinen eigenen Code."
   },
   "panel": {
     "translations": "Übersetzungen",
@@ -89,7 +97,31 @@
     "dataObjectIdDescription": "Gleich für alle Referenzen auf dieses Datenobjekt. Die ID unter „Allgemein“ gehört zur einzelnen Referenz.",
     "processName": "Name",
     "processDocumentation": "Beschreibung des Prozesses (Markdown)",
-    "statusDescriptionFree": "Status aus dem Modell wählen oder einen neuen eingeben. Er steht in eckigen Klammern im Namen."
+    "statusDescriptionFree": "Status aus dem Modell wählen oder einen neuen eingeben. Er steht in eckigen Klammern im Namen.",
+    "condition": "Bedingung",
+    "conditionResult": "Ergebnis der Aufgabe davor",
+    "conditionResultDescription": "Dieser Weg wird genommen, wenn die Aufgabe davor mit diesem Ergebnis abgeschlossen wird.",
+    "conditionNone": "(keine Bedingung)",
+    "conditionCustom": "(eigener Ausdruck)",
+    "conditionExpression": "Ausdruck",
+    "conditionExpressionDescription": "Wird aus dem Ergebnis erzeugt. Für Feldwerte von Hand, z. B. ${betrag > 10000}.",
+    "conditionDefault": "Standardfluss: Er wird genommen, wenn keine andere Bedingung zutrifft, und hat selbst keine.",
+    "conditionNoResults": "Die Aufgabe davor setzt keinen Status. Ohne Ergebnis lässt sich nur ein eigener Ausdruck eintragen.",
+    "rules": "Regeln",
+    "rulesDescription": "Beschreibung der Regeln",
+    "rulesDescriptionHint": "Was beim Übergang geprüft oder getan wird, in Worten.",
+    "rulesOnlyActions": "Diese Aufgabe schließt niemand ab; sie hat nur Start- und Folgeaktionen."
+  },
+  "ruleKind": {
+    "condition": "Bedingung",
+    "validator": "Prüfung",
+    "screen": "Maske",
+    "start_action": "Startaktion",
+    "follow_action": "Folgeaktion"
+  },
+  "gateway": {
+    "person": "Entscheidung einer Person (Ergebnis der Aufgabe davor)",
+    "system": "Automatische Entscheidung (Feldwerte)"
   },
   "raci": {
     "title": "Verantwortlichkeiten (DEMI)",
@@ -141,8 +173,8 @@
       "custom": "Eigene Auswahl"
     },
     "profileHint": {
-      "document": "Für Diagramme, die nur dokumentieren, etwa aus bpmn.io: Aufgaben brauchen kein D und Lanes keine Rolle.",
-      "complete": "Alle Regeln. Jede Benutzeraufgabe braucht ein D, jede Lane eine Rolle oder Gruppe.",
+      "document": "Für Diagramme, die nur dokumentieren, etwa aus bpmn.io: Aufgaben brauchen kein D, Lanes keine Rolle und Wege nach einer Verzweigung keine Bedingung.",
+      "complete": "Alle Regeln. Jede Benutzeraufgabe braucht ein D, jede Lane eine Rolle oder Gruppe, jeder Weg nach einer Verzweigung eine Bedingung.",
       "custom": "Einzelne Regeln sind ab- oder zugeschaltet."
     },
     "rule": {
@@ -160,7 +192,15 @@
       "raci-multiple-accountable": "Höchstens ein E je Aufgabe",
       "raci-unknown-assignee": "Rollen und Gruppen müssen im Katalog stehen (nur mit Katalog)",
       "lane-without-role": "Jede Lane hat eine Rolle oder Gruppe",
-      "task-without-service": "Jede Benutzer- und Serviceaufgabe hat einen IT-Service"
+      "task-without-service": "Jede Benutzer- und Serviceaufgabe hat einen IT-Service",
+      "flow-without-condition": "Nach einer Verzweigung hat jeder Weg eine Bedingung (außer dem Standardfluss)",
+      "conditional-flows-without-default": "Aufgaben mit nur bedingten Wegen haben einen Standardfluss",
+      "unknown-result-condition": "Bedingungen nennen nur Ergebnisse, die die Aufgabe davor setzt",
+      "either-or-at-task": "Entweder-oder mit einem Gateway, nicht direkt an der Aufgabe",
+      "result-condition-at-task": "Nach dem Ergebnis einer Person mit einem Gateway verzweigen",
+      "unknown-rule-kind": "Nur bekannte Regel-Kennzeichen",
+      "rule-kind-not-allowed": "Aufgaben ohne Person haben nur Start- und Folgeaktionen",
+      "script-task-with-script": "Skriptaufgaben enthalten keinen Skripttext"
     }
   },
   "catalog": {

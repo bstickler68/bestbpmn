@@ -102,6 +102,20 @@ describe('Gesamtdokument', () => {
     expect(notes.some((n) => /zurück zu \d+/.test(n!))).toBe(true);
     expect(notes.some((n) => /: weiter bei \d+/.test(n!))).toBe(true);
   });
+
+  it('nennt Regel-Kennzeichen und ihre Beschreibung beim Prozessschritt', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bestadd="urn:bestadd:schema:1.0" id="D" targetNamespace="t">
+  <bpmn:process id="P" name="Mit Regeln">
+    <bpmn:userTask id="U" name="Freigeben"><bpmn:extensionElements><bestadd:rules kinds="follow_action condition">Vier-Augen-Prinzip &amp; Ablage</bestadd:rules></bpmn:extensionElements></bpmn:userTask>
+    <bpmn:task id="T" name="Ablegen" />
+  </bpmn:process>
+</bpmn:definitions>`;
+    const doc = parse(fullHtml({ t, language: 'de', definitions: await definitions(xml), now, statusModels: [] }));
+    const rules = [...doc.querySelectorAll('p.rules')];
+    expect(rules.map((p) => p.textContent)).toEqual(['Regeln (Bedingung, Folgeaktion): Vier-Augen-Prinzip & Ablage']);
+    expect(rules[0]!.closest('tr')!.getAttribute('data-element-id')).toBe('U');
+  });
 });
 
 describe('Verweistexte', () => {

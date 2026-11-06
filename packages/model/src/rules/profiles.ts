@@ -17,18 +17,34 @@ export const ISSUE_CODES: readonly IssueCode[] = [
   'raci-unknown-assignee',
   'lane-without-role',
   'task-without-service',
+  'flow-without-condition',
+  'conditional-flows-without-default',
+  'unknown-result-condition',
+  'either-or-at-task',
+  'result-condition-at-task',
+  'unknown-rule-kind',
+  'rule-kind-not-allowed',
+  'script-task-with-script',
 ];
 
 /**
  * Regelprofile. `document` passt zu Diagrammen, die nur dokumentieren, etwa aus bpmn.io übernommene
  * Modelle ohne Zuständigkeiten: Es verlangt kein D an jeder Benutzeraufgabe, keine Rolle an jeder Lane, keine zwei D an
- * Multi-Instanz-Aufgaben und keinen IT-Service an Benutzer- und Serviceaufgaben.
+ * Multi-Instanz-Aufgaben, keinen IT-Service an Benutzer- und Serviceaufgaben und keine Bedingung an jedem Weg
+ * nach einer Verzweigung.
  * `complete` prüft alles.
  */
 export type RuleProfile = 'document' | 'complete';
 
 export const RULE_PROFILES: Record<RuleProfile, readonly IssueCode[]> = {
-  document: ['raci-missing-responsible', 'multi-instance-single-responsible', 'lane-without-role', 'task-without-service'],
+  document: [
+    'raci-missing-responsible',
+    'multi-instance-single-responsible',
+    'lane-without-role',
+    'task-without-service',
+    'flow-without-condition',
+    'conditional-flows-without-default',
+  ],
   complete: [],
 };
 

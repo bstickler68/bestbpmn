@@ -178,6 +178,16 @@ export function referenceText(ref: FlowReference, t: TFunction): string {
   return label ? t('report.next.labelled', { label, rest }) : rest;
 }
 
+/** Regel-Kennzeichen und Beschreibung, z. B. „Regeln (Bedingung, Folgeaktion): Vier-Augen-Prinzip“. */
+function rulesText(row: ElementRow, t: TFunction): string {
+  if (!row.rules) {
+    return '';
+  }
+  const kinds = row.rules.kinds.map((k) => t(`ruleKind.${k}`)).join(', ');
+  const head = kinds ? `${t('panel.rules')} (${kinds})` : t('panel.rules');
+  return `<p class="rules"><strong>${escape(head)}</strong>${row.rules.description ? `: ${escape(row.rules.description)}` : ''}</p>`;
+}
+
 function elementRow(row: ElementRow, t: TFunction): string {
   const kind = [
     t(`report.kind.${row.kind}`),
@@ -195,7 +205,7 @@ function elementRow(row: ElementRow, t: TFunction): string {
 <td>${escape(kind)}</td>
 <td class="name">${escape(row.name ?? '')}</td>
 <td>${systems(row.services)}</td>
-<td class="description">${paragraphs(row.description)}${next}</td>
+<td class="description">${paragraphs(row.description)}${rulesText(row, t)}${next}</td>
 <td>${row.links.length ? `<ul>${row.links.map((l) => `<li>${link(l)}</li>`).join('')}</ul>` : ''}</td>
 </tr>`;
 }

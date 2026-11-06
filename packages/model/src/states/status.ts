@@ -5,6 +5,7 @@ import { modelLanguage, readStateTranslations } from '../i18n/translations.js';
 import { stateKey } from './key.js';
 import { checkLanes, checkRaci, findParticipant, laneMap } from '../raci/check.js';
 import { checkTaskServices } from '../rules/services.js';
+import { checkRuleMarks, checkScriptTasks, checkSequenceFlows } from '../rules/transitions.js';
 import { parseStateLabel } from './label.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
@@ -228,8 +229,12 @@ function deriveModel(
       ...checkLanes(process, participant),
       ...checkRaci(collectFlowElements(process), laneMap(process, participant), catalog.roles),
       ...checkTaskServices(collectFlowElements(process)),
+      ...checkRuleMarks(collectFlowElements(process)),
+      ...checkScriptTasks(collectFlowElements(process)),
     );
   }
+  // Nach den Statuswechseln, weil Bedingungen auf Ergebnisse die Outputs der Aufgaben davor brauchen.
+  issues.push(...checkSequenceFlows(elements, changes));
 
   const dataObject = processObjects[0];
   const statusTranslations: Record<string, Record<string, string>> = {};
