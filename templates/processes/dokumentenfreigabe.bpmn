@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   xmlns:raci="urn:bestadd:raci:1.0"
@@ -86,7 +87,7 @@
       </bpmn:potentialOwner>
     </bpmn:userTask>
 
-    <bpmn:exclusiveGateway id="Ok" name="In Ordnung?">
+    <bpmn:exclusiveGateway id="Ok" name="In Ordnung?" default="Flow_5">
       <bpmn:incoming>Flow_3</bpmn:incoming>
       <bpmn:outgoing>Flow_4</bpmn:outgoing>
       <bpmn:outgoing>Flow_5</bpmn:outgoing>
@@ -138,7 +139,9 @@
     <bpmn:sequenceFlow id="Flow_1" sourceRef="Start" targetRef="Erstellen" />
     <bpmn:sequenceFlow id="Flow_2" sourceRef="Erstellen" targetRef="Pruefen" />
     <bpmn:sequenceFlow id="Flow_3" sourceRef="Pruefen" targetRef="Ok" />
-    <bpmn:sequenceFlow id="Flow_4" name="ja" sourceRef="Ok" targetRef="Freigeben" />
+    <bpmn:sequenceFlow id="Flow_4" name="ja" sourceRef="Ok" targetRef="Freigeben">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == 'reviewed'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_5" name="nein" sourceRef="Ok" targetRef="Ueberarbeiten" />
     <bpmn:sequenceFlow id="Flow_6" sourceRef="Ueberarbeiten" targetRef="Pruefen" />
     <bpmn:sequenceFlow id="Flow_7" sourceRef="Freigeben" targetRef="Ende" />

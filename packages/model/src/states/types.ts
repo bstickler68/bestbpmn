@@ -15,7 +15,15 @@ export type IssueCode =
   | 'raci-unknown-assignee'
   | 'lane-without-role'
   | 'multi-instance-single-responsible'
-  | 'task-without-service';
+  | 'task-without-service'
+  | 'flow-without-condition'
+  | 'conditional-flows-without-default'
+  | 'unknown-result-condition'
+  | 'either-or-at-task'
+  | 'result-condition-at-task'
+  | 'unknown-rule-kind'
+  | 'rule-kind-not-allowed'
+  | 'script-task-with-script';
 
 /**
  * Ein Verstoß gegen die Modellierregeln. Enthält nur Code und Parameter;

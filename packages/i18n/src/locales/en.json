@@ -68,7 +68,15 @@
     "raci-multiple-accountable": "“{{element}}” has more than one A: {{assignees}}. At most one is allowed.",
     "raci-unknown-assignee": "“{{element}}”: {{assignee}} is not in the catalog.",
     "lane-without-role": "The lane “{{element}}” has no role or group. Every lane needs one.",
-    "task-without-service": "The task “{{element}}” has no IT service. User and service tasks need at least one."
+    "task-without-service": "The task “{{element}}” has no IT service. User and service tasks need at least one.",
+    "flow-without-condition": "The path “{{flow}}” after “{{element}}” has no condition. After a split every path except the default flow needs one, otherwise an engine always takes the first.",
+    "conditional-flows-without-default": "“{{element}}” has only conditional paths. Without a default flow the process stops if no condition applies.",
+    "unknown-result-condition": "The path “{{flow}}” branches on the result “{{state}}”, which the task before it cannot set.",
+    "either-or-at-task": "“{{element}}” has a conditional path and a default flow. An either-or belongs in an exclusive gateway; conditional paths on a task only for “additionally, if …” next to the normal path.",
+    "result-condition-at-task": "The path “{{flow}}” branches directly at “{{element}}” on the result. Branching on a person's result uses an exclusive gateway.",
+    "unknown-rule-kind": "“{{element}}” has an unknown rule marker “{{kind}}”.",
+    "rule-kind-not-allowed": "“{{element}}” is not completed by a person and can therefore only have start and follow-up actions, not “{{kind}}”.",
+    "script-task-with-script": "The script task “{{element}}” contains script text. A script task refers to an action and contains no code of its own."
   },
   "panel": {
     "translations": "Translations",
@@ -89,7 +97,31 @@
     "dataObjectIdDescription": "The same for all references to this data object. The ID under “General” belongs to the individual reference.",
     "processName": "Name",
     "processDocumentation": "Process description (Markdown)",
-    "statusDescriptionFree": "Pick a status used in the model or type a new one. It appears in square brackets in the name."
+    "statusDescriptionFree": "Pick a status used in the model or type a new one. It appears in square brackets in the name.",
+    "condition": "Condition",
+    "conditionResult": "Result of the previous task",
+    "conditionResultDescription": "This path is taken when the previous task is completed with this result.",
+    "conditionNone": "(no condition)",
+    "conditionCustom": "(custom expression)",
+    "conditionExpression": "Expression",
+    "conditionExpressionDescription": "Generated from the result. For field values by hand, e.g. ${amount > 10000}.",
+    "conditionDefault": "Default flow: taken when no other condition applies; it has no condition itself.",
+    "conditionNoResults": "The previous task sets no status. Without a result only a custom expression can be entered.",
+    "rules": "Rules",
+    "rulesDescription": "Description of the rules",
+    "rulesDescriptionHint": "What is checked or done at the transition, in words.",
+    "rulesOnlyActions": "Nobody completes this task; it only has start and follow-up actions."
+  },
+  "ruleKind": {
+    "condition": "Condition",
+    "validator": "Validation",
+    "screen": "Screen",
+    "start_action": "Start action",
+    "follow_action": "Follow-up action"
+  },
+  "gateway": {
+    "person": "Decision by a person (result of the previous task)",
+    "system": "Automatic decision (field values)"
   },
   "raci": {
     "title": "Responsibilities (RACI)",
@@ -141,8 +173,8 @@
       "custom": "Custom"
     },
     "profileHint": {
-      "document": "For diagrams that only document, for example from bpmn.io: tasks need no R and lanes no role.",
-      "complete": "All checks. Every user task needs an R, every lane a role or group.",
+      "document": "For diagrams that only document, for example from bpmn.io: tasks need no R, lanes no role and paths after a split no condition.",
+      "complete": "All checks. Every user task needs an R, every lane a role or group, every path after a split a condition.",
       "custom": "Individual checks are switched on or off."
     },
     "rule": {
@@ -160,7 +192,15 @@
       "raci-multiple-accountable": "At most one A per task",
       "raci-unknown-assignee": "Roles and groups must be in the catalog (catalog only)",
       "lane-without-role": "Every lane has a role or group",
-      "task-without-service": "Every user and service task has an IT service"
+      "task-without-service": "Every user and service task has an IT service",
+      "flow-without-condition": "After a split every path has a condition (except the default flow)",
+      "conditional-flows-without-default": "Tasks with only conditional paths have a default flow",
+      "unknown-result-condition": "Conditions only name results the previous task sets",
+      "either-or-at-task": "Either-or with a gateway, not directly at the task",
+      "result-condition-at-task": "Branch on a person's result with a gateway",
+      "unknown-rule-kind": "Only known rule markers",
+      "rule-kind-not-allowed": "Tasks without a person only have start and follow-up actions",
+      "script-task-with-script": "Script tasks contain no script text"
     }
   },
   "catalog": {

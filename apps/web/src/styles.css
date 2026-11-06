@@ -36,6 +36,8 @@ body { display: flex; flex-direction: column; }
 .djs-element.bestbpmn-warning .djs-visual > :first-child { stroke: #bf8700 !important; }
 
 .bestbpmn-services { font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 8px; background: #ddf4ff; border: 1px solid #54aeff; color: #0550ae; white-space: nowrap; cursor: default; }
+.bestbpmn-rules { font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 8px; background: #fff8c5; border: 1px solid #d4a72c; color: #7d4e00; white-space: nowrap; cursor: default; }
+.bestbpmn-gateway { font-size: 12px; line-height: 14px; cursor: default; white-space: nowrap; }
 .bestbpmn-services--names { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .bestbpmn-empty { padding: 4px 12px 12px; }
 

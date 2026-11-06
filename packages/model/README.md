@@ -10,7 +10,7 @@ Kern des Modellierers ohne Oberfläche: Namensräume, Statusmodell, RACI/DEMI un
   - die möglichen Anfangsstatus: je Startereignis die Status der ersten Aktivität mit Output auf „Prozess“,
   - je Schritt die Status, die er beim Abschluss setzen kann (`outputs`), und die nur dokumentierten Status aus Input-Verknüpfungen (`documentedInputs`).
 - **Katalog-Datei** (`parseCatalog`, `serializeCatalog`): eine JSON-Datei mit `states`, `roles` und `services`, jede Tabelle freiwillig. Ungültige Einträge werden übersprungen und gemeldet; leere Tabellen gelten als nicht vorhanden, damit ohne Statustabelle jeder Status erlaubt ist.
-- **Regelprofile** (`RULE_PROFILES`, `disabledRulesOf`, `matchRuleProfile`): `document` verlangt kein D an jeder Benutzeraufgabe und keine Rolle an jeder Lane, `complete` prüft alles. `deriveStatusModels(xml, catalog, { disabledRules })` lässt abgeschaltete Regeln weg.
+- **Regelprofile** (`RULE_PROFILES`, `disabledRulesOf`, `matchRuleProfile`): `document` verlangt kein D an jeder Benutzeraufgabe, keine Rolle an jeder Lane, keinen IT-Service und keine Bedingung an jedem Weg nach einer Verzweigung; `complete` prüft alles. `deriveStatusModels(xml, catalog, { disabledRules })` lässt abgeschaltete Regeln weg.
 - **Modellierregeln** als Meldungen am Ergebnis:
 
 | Code | Stufe | Bedeutung |
@@ -30,12 +30,22 @@ Kern des Modellierers ohne Oberfläche: Namensräume, Statusmodell, RACI/DEMI un
 | `lane-without-role` | Fehler | eine Swimlane oder ein Pool ohne Lanes hat keine Rolle oder Gruppe (`raci:assignee`) |
 | `task-without-service` | Fehler | eine Benutzer- oder Serviceaufgabe hat keinen IT-Service |
 | `raci-unknown-assignee` | Warnung | eine Gruppe oder Rolle fehlt in der Rollen- und Gruppentabelle |
+| `flow-without-condition` | Fehler | nach einem exklusiven oder inklusiven Gateway hat ein Weg (außer dem Standardfluss) keine Bedingung, oder eine Bedingung ist leer (nur „Vollständig“) |
+| `conditional-flows-without-default` | Warnung | alle Wege einer Aufgabe sind bedingt, und es gibt keinen Standardfluss (nur „Vollständig“) |
+| `unknown-result-condition` | Fehler | ein Weg verzweigt nach einem Ergebnis, das keine Aufgabe davor setzt |
+| `either-or-at-task` | Warnung | eine Aufgabe hat einen bedingten Weg und einen Standardfluss; ein Entweder-oder gehört in ein Gateway |
+| `result-condition-at-task` | Warnung | ein Weg direkt aus einer Aufgabe verzweigt nach dem Ergebnis |
+| `unknown-rule-kind` | Fehler | `bestadd:rules` enthält ein unbekanntes Kennzeichen |
+| `rule-kind-not-allowed` | Fehler | Bedingung, Prüfung oder Maske an einer Aufgabe, die niemand abschließt |
+| `script-task-with-script` | Fehler | eine Skriptaufgabe enthält Skripttext |
 
 Meldungen enthalten nur `code` und `params`. Die Texte in Englisch und Deutsch liegen in `@bestbpmn/i18n` unter `issue.<code>`.
 
 Maßgeblich ist der `bpmn:dataState`. Fehlt er, gilt der Status aus der Beschriftung, damit Modelle aus anderen Werkzeugen lesbar bleiben.
 
 Hat ein Schritt mehrere Outputs, sind das alternative Ergebnisse: Die bearbeitende Person wählt beim Abschluss einen davon, ein Gateway danach verzweigt nach diesem Status.
+
+- **Bedingungen und Regeln** (`src/rules/transitions.ts`): `resultCondition(key)` schreibt `${result == 'key'}`, `parseResultCondition` liest das und ältere Namen der Variable (`LEGACY_RESULT_VARIABLES`). `resultsForFlow` liefert die Ergebnisse der Aufgaben vor einem Weg, auch über Gateways hinweg, `gatewayDeciders` sagt, ob an einem Gateway eine Person oder das System entscheidet. `readRuleMarks` liest `bestadd:rules` (Kennzeichen `condition validator screen start_action follow_action` und eine Beschreibung), `allowedRuleKinds` die an einer Aktivität erlaubten Kennzeichen.
 
 - **Mehrsprachigkeit**: `modelLanguage` liest die Hauptsprache des Modells, `readTranslations` die Übersetzungen eines Elements, `readStateTranslations` die Statusübersetzungen älterer Modelle am DataObject (neue Modelle übersetzen Status in der Statustabelle). `stateKey` bildet aus einem Namen den technischen Schlüssel, `localize` und `pickText` wählen den Text für eine Sprache mit Rückfall.
 - **RACI / DEMI**: `readRaci` liest R aus `potentialOwner` und A/C/I aus dem `raci`-Namensraum. Einträge der Rollen- und Gruppentabelle (`RoleDefinition`, `findRole`) stehen als `group(id)` bzw. `role(id)`; Lanes und Pools tragen ihre Zuordnung in `raci:assignee`, und die Lane geht der Aufgabe vor (`resolveRaci`, `laneMap`, `findParticipant`). Multi-Instanz-Aufgaben (`isMultiInstance`) dürfen mehrere D haben. `parseAssignees` und `formatAssignees` übersetzen zwischen Objekten und der Schreibweise `group(Autoren), field(autor), notPerformerOf(Erstellen)`. `deriveRaciMatrices` liefert je Prozess die Matrix mit Rollen je Zelle, D notfalls aus der Swimlane (`resolveRaci`, `laneMap`); die Buchstaben (R/A/C/I bzw. D/E/M/I) setzt die Anzeige. Ein Pool ohne Lanes gilt selbst als Lane, auch sein Name zählt als Gruppe. `combineRaciMatrices` fasst alle Pools zu einer Tabelle mit einer Spalte je Rolle oder Gruppe zusammen.

@@ -2,6 +2,7 @@ import { readAttributes, readDescription } from '../attributes/read.js';
 import type { LinkValue, ServiceRefValue } from '../attributes/types.js';
 import type { ModdleElement } from '../states/types.js';
 import { incoming, outgoing } from './graph.js';
+import { readRuleMarks, type RuleKind } from '../rules/transitions.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -50,6 +51,8 @@ export interface ElementRow {
   description?: string;
   services: ServiceRefValue[];
   links: LinkValue[];
+  /** Regel-Kennzeichen und ihre Beschreibung. */
+  rules?: { kinds: RuleKind[]; description?: string };
   /**
    * Wo es weitergeht, wenn nicht einfach mit der nächsten Nummer: alle Zweige eines Gateways oder
    * einer Verzweigung, Sprünge, Rücksprünge und angeheftete Ereignisse. Leer = nächste Nummer oder Ende.
@@ -196,6 +199,7 @@ function numberContainer(container: El, prefix: string, depth: number, where: Ma
     const info = classify(el)!;
     const attributes = readAttributes(el);
     const description = readDescription(el);
+    const marks = readRuleMarks(el);
     rows.push({
       number: numbers.get(el)!,
       id: el.id ?? '',
@@ -207,6 +211,9 @@ function numberContainer(container: El, prefix: string, depth: number, where: Ma
       ...(description ? { description } : {}),
       services: dedupe(attributes.flatMap((a) => a.services), (s) => s.ref || s.name || ''),
       links: dedupe(attributes.flatMap((a) => a.links), (l) => l.href),
+      ...(marks && (marks.kinds.length || marks.description)
+        ? { rules: { kinds: marks.kinds, ...(marks.description ? { description: marks.description } : {}) } }
+        : {}),
       next: references(el, nodes, numbers, indexOf, where),
       depth,
     });

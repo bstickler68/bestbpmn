@@ -90,6 +90,19 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
   bzw. nächste Element derselben Art aus (Aktivitäten, Ereignisse, Gateways, Daten, Pools und
   Lanes, Textanmerkungen), in Modellierungsreihenfolge: bei waagrechten Prozessen von links nach
   rechts, bei senkrechten von oben nach unten; Pools und Lanes quer dazu.
+- **Bedingungen an Wegen.** Wählt man einen Sequenzfluss nach einem exklusiven oder
+  inklusiven Gateway oder direkt nach einer Aufgabe, zeigt die Gruppe „Bedingung“ die Ergebnisse
+  der Aufgabe davor (die Status ihrer Outputs auf „Prozess“). Die Auswahl schreibt
+  `${result == 'schlüssel'}` als Standard-BPMN-Bedingung; ein namenloser Weg bekommt den Namen
+  des Ergebnisses. Für Feldwerte lässt sich ein eigener Ausdruck eintragen, z. B.
+  `${betrag > 10000}`. Ältere Modelle mit einem anderen Namen der Ergebnisvariable werden ebenso erkannt.
+  Am Gateway zeigt 👤, dass eine Person über ihr Ergebnis entscheidet, ⚙ eine Entscheidung
+  nach Feldwerten.
+- **Regeln an Aktivitäten.** Die Gruppe „Regeln“ kennzeichnet, ob es beim Übergang eine
+  Bedingung, Prüfung, Maske, Start- oder Folgeaktion gibt, und beschreibt sie in Worten.
+  Aufgaben, die niemand abschließt (z. B. Service- oder Skriptaufgaben), haben nur Start- und
+  Folgeaktionen. Im Diagramm steht dann „§ n“ an der Aktivität, im Gesamtdokument ein Absatz
+  „Regeln (…)“ beim Schritt.
 - **Eigenschaften ausblenden.** Die schmale Leiste links vom Eigenschaftenbereich klappt ihn
   auf und zu, damit das Diagramm auf kleinen Bildschirmen mehr Platz hat.
 
@@ -111,7 +124,8 @@ Browsers, dort auch „Als PDF speichern“:
   Dokumentation. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
   weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
   Am Schluss steht immer das Endereignis des Hauptwegs; Seitenzweige wie Abbrüche, Rücksprünge
-  und angeheftete Ereignisse kommen davor.
+  und angeheftete Ereignisse kommen davor. Regel-Kennzeichen stehen als Absatz unter der
+  Beschreibung.
 
 Alles kommt aus dem Modell; das Datenobjekt „Prozess“ trägt nur den Status und zählt nicht
 als Input, Output oder Dokument. Gedruckt wird auf A4; Grafik und Elementtabelle stehen im
@@ -125,8 +139,8 @@ Querformat.
   und IT-Services als Tabellen pflegen, als `bestbpmn-katalog.json` exportieren und
   importieren. Der Katalog liegt nur im Browser des jeweiligen PCs.
 - **Prüfregeln als Profil.** „Dokumentieren“ (Standard) verlangt kein D an jeder Aufgabe,
-  keine Rolle an jeder Lane und keinen IT-Service an Benutzer- und Serviceaufgaben, passend für
-  Diagramme aus bpmn.io. „Vollständig“ prüft alles.
+  keine Rolle an jeder Lane, keinen IT-Service an Benutzer- und Serviceaufgaben und keine
+  Bedingung an jedem Weg nach einer Verzweigung, passend für Diagramme aus bpmn.io. „Vollständig“ prüft alles.
   Jede Regel lässt sich auch einzeln ab- oder zuschalten.
 
 ## Aufbau

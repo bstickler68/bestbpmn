@@ -88,6 +88,25 @@ export {
   type RaciRole,
 } from './raci/read.js';
 export { combineRaciMatrices, deriveRaciMatrices, type RaciMatrix, type RaciRow } from './raci/matrix.js';
+export {
+  ACTION_RULE_KINDS,
+  LEGACY_RESULT_VARIABLES,
+  RESULT_VARIABLE,
+  RULE_KINDS,
+  allowedRuleKinds,
+  checkRuleMarks,
+  checkScriptTasks,
+  checkSequenceFlows,
+  conditionBody,
+  gatewayDeciders,
+  parseResultCondition,
+  precedingActivities,
+  readRuleMarks,
+  resultCondition,
+  resultsForFlow,
+  type RuleKind,
+  type RuleMarks,
+} from './rules/transitions.js';
 export { checkLanes, checkRaci, findParticipant, hasLanes, isMultiInstance, laneAssignee, laneMap, resolveRaci } from './raci/check.js';
 export {
   classify,
