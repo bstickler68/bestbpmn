@@ -57,8 +57,8 @@ describe('deriveStatusModels – Vorlage Dokumentenfreigabe', () => {
     expect(model!.changes.map((c) => [c.elementId, c.outputs, c.documentedInputs])).toEqual([
       ['Erstellen', ['in_review'], []],
       ['Pruefen', ['reviewed'], ['in_review']],
-      ['Freigeben', ['approved'], ['reviewed']],
       ['Ueberarbeiten', ['in_review'], ['reviewed']],
+      ['Freigeben', ['approved'], ['reviewed']],
     ]);
   });
 
@@ -288,6 +288,31 @@ describe('deriveStatusModels – Modellierregeln', () => {
     );
     expect(m!.changes.map((c) => c.elementId)).toEqual(['Innen']);
     expect(m!.statuses).toEqual(['offen', 'erledigt']);
+  });
+
+  it('ordnet Status und Statuswechsel nach dem Ablauf, nicht nach der Reihenfolge in der Datei', async () => {
+    const flow = (id: string, from: string, to: string) =>
+      `<bpmn:sequenceFlow id="${id}" sourceRef="${from}" targetRef="${to}" />`;
+    const [m] = await deriveStatusModels(
+      model(
+        `<bpmn:dataObject id="Vorgang" name="Prozess" />${ref('R1', 'Erledigt')}${ref('R2', 'In Prüfung')}${ref('R3', 'Neu')}
+         ${ref('R4', 'Nachgebessert')}
+         ${task('Abschliessen', [], ['R1'])}
+         ${task('Nachbessern', [], ['R4'])}
+         ${task('Pruefen', [], ['R2'])}
+         ${task('Erfassen', [], ['R3'])}
+         <bpmn:endEvent id="Ende" />
+         <bpmn:exclusiveGateway id="G" />
+         <bpmn:startEvent id="Start" />
+         ${flow('F1', 'Start', 'Erfassen')}${flow('F2', 'Erfassen', 'Pruefen')}${flow('F3', 'Pruefen', 'G')}
+         ${flow('F4', 'G', 'Abschliessen')}${flow('F5', 'G', 'Nachbessern')}${flow('F6', 'Nachbessern', 'Pruefen')}
+         ${flow('F7', 'Abschliessen', 'Ende')}`,
+      ),
+    );
+    expect(m!.initialStatuses).toEqual(['neu']);
+    // Der Rücksprung zum Prüfen zählt nicht; der Endstatus steht am Schluss.
+    expect(m!.statuses).toEqual(['neu', 'in_pruefung', 'nachgebessert', 'erledigt']);
+    expect(m!.changes.map((c) => c.elementId)).toEqual(['Erfassen', 'Pruefen', 'Nachbessern', 'Abschliessen']);
   });
 });
 

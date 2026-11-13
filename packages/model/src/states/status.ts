@@ -10,6 +10,7 @@ import { parseStateLabel } from './label.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
 import { filterIssues } from '../rules/profiles.js';
+import { positions, tableOrder } from '../report/elements.js';
 import type { IssueCode, ModdleElement, Moddle, ModelIssue, StatusChange, StatusModel } from './types.js';
 
 /** Einstellungen der Prüfung. */
@@ -42,6 +43,7 @@ export async function deriveStatusModels(xml: string, catalog: Catalog = {}, opt
 export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catalog = {}, options: CheckOptions = {}): StatusModel[] {
   const roots = ((definitions as El).rootElements ?? []) as El[];
   const language = modelLanguage(definitions);
+  const where = positions(definitions);
   const models: StatusModel[] = [];
   const covered = new Set<El>();
   for (const collaboration of roots.filter((el) => el.$type === 'bpmn:Collaboration')) {
@@ -57,6 +59,7 @@ export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catal
         pools.map((p) => ({ process: p.processRef as El, participant: p })),
         language,
         catalog,
+        where,
       ),
     );
   }
@@ -67,6 +70,7 @@ export function deriveFromDefinitions(definitions: ModdleElement, catalog: Catal
         [{ process, participant: findParticipant(definitions, process) }],
         language,
         catalog,
+        where,
       ),
     );
   }
@@ -93,6 +97,7 @@ function deriveModel(
   pools: PoolProcess[],
   language: string,
   catalog: Catalog,
+  where: Map<string, { x: number; y: number }>,
 ): StatusModel {
   const elements = pools.flatMap(({ process }) => collectFlowElements(process));
   const issues: ModelIssue[] = [];
@@ -236,6 +241,8 @@ function deriveModel(
   // Nach den Statuswechseln, weil Bedingungen auf Ergebnisse die Outputs der Aufgaben davor brauchen.
   issues.push(...checkSequenceFlows(elements, changes));
 
+  sortByFlow(statuses, changes, initialStatuses, pools, where);
+
   const dataObject = processObjects[0];
   const statusTranslations: Record<string, Record<string, string>> = {};
   for (const object of processObjects) {
@@ -266,6 +273,49 @@ function deriveModel(
     changes,
     issues,
   };
+}
+
+/**
+ * Bringt Status und Statuswechsel in die Reihenfolge des Ablaufs, vom Anfangs- bis zum Endstatus.
+ * Die Elemente folgen der Reihenfolge der Elementtabelle im Gesamtdokument (Sequenzfluss ab den
+ * Startereignissen, Zweige nacheinander, Rücksprünge zählen nicht, Teilprozesse direkt nach sich selbst).
+ * Ein Status steht dort, wo er zum ersten Mal gesetzt wird; wird er nie gesetzt, dort, wo er zuerst
+ * gelesen wird; sonst am Schluss. Bei Gleichstand bleibt die bisherige Reihenfolge.
+ * Bei mehreren Pools kommt der Pool mit dem Anfangsstatus zuerst, die übrigen in Modellreihenfolge.
+ */
+function sortByFlow(
+  statuses: string[],
+  changes: StatusChange[],
+  initialStatuses: string[],
+  pools: PoolProcess[],
+  where: Map<string, { x: number; y: number }>,
+): void {
+  const orders = pools.map(({ process }) => tableOrder(process, where).map((el) => el.id ?? ''));
+  const startsHere = (ids: string[]) =>
+    changes.some((c) => ids.includes(c.elementId) && c.outputs.some((s) => initialStatuses.includes(s)));
+  const ordered = [...orders.filter(startsHere), ...orders.filter((ids) => !startsHere(ids))].flat();
+  const rankOf = new Map<string, number>();
+  ordered.forEach((id, index) => {
+    if (!rankOf.has(id)) {
+      rankOf.set(id, index);
+    }
+  });
+  const rank = (change: StatusChange) => rankOf.get(change.elementId) ?? Number.MAX_SAFE_INTEGER;
+  changes.sort((a, b) => rank(a) - rank(b));
+
+  const statusRank = new Map<string, number>();
+  for (const pick of [(c: StatusChange) => c.outputs, (c: StatusChange) => c.documentedInputs]) {
+    for (const change of changes) {
+      for (const status of pick(change)) {
+        if (!statusRank.has(status)) {
+          statusRank.set(status, rank(change));
+        }
+      }
+    }
+  }
+  const before = new Map(statuses.map((s, index) => [s, index]));
+  const position = (s: string) => statusRank.get(s) ?? Number.MAX_SAFE_INTEGER;
+  statuses.sort((a, b) => position(a) - position(b) || before.get(a)! - before.get(b)!);
 }
 
 /** Zeigt die Referenz auf das Datenobjekt „Prozess“? Ohne DataObject zählt die Beschriftung `Prozess [...]`. */
