@@ -9,7 +9,7 @@ export interface RoleOption {
 /**
  * Auswahl für Rollen und Gruppen. Wert ist die Schreibweise `group(id)` bzw. `role(id)`.
  * Zuerst kommen die Einträge des Katalogs, dann Rollen und Gruppen, die im Modell schon vorkommen,
- * damit man sie beim nächsten Mal nicht neu tippen muss. Vorhandene Zuordnungen anderer Art
+ * damit man sie beim nächsten Mal nicht neu tippen muss; beide Teile nach dem angezeigten Namen sortiert. Vorhandene Zuordnungen anderer Art
  * (z. B. `initiator()`) bleiben als eigene Einträge sichtbar.
  */
 export function roleOptions(
@@ -19,18 +19,28 @@ export function roleOptions(
   used: Assignee[] = [],
 ): RoleOption[] {
   const { t, language } = i18n;
-  const options: RoleOption[] = roles.map((role) => ({
-    value: formatAssignee({ kind: role.kind, ref: role.id }),
-    label: `${catalogLabel(role, language)} (${t(`lane.kind.${role.kind}`)})`,
-  }));
+  const options: RoleOption[] = sortByLabel(
+    roles.map((role) => ({
+      value: formatAssignee({ kind: role.kind, ref: role.id }),
+      label: `${catalogLabel(role, language)} (${t(`lane.kind.${role.kind}`)})`,
+    })),
+    language,
+  );
+  const extra: RoleOption[] = [];
   for (const assignee of [...used, ...current]) {
     const value = formatAssignee(assignee);
-    if (findRole(roles, assignee) || options.some((o) => o.value === value)) {
+    if (findRole(roles, assignee) || options.some((o) => o.value === value) || extra.some((o) => o.value === value)) {
       continue;
     }
-    options.push({ value, label: assigneeLabel(assignee, roles, i18n) });
+    extra.push({ value, label: assigneeLabel(assignee, roles, i18n) });
   }
-  return options;
+  return [...options, ...sortByLabel(extra, language)];
+}
+
+/** Sortiert nach dem angezeigten Namen in der Sprache der Oberfläche (Umlaute, Groß/klein, Zahlen). */
+export function sortByLabel<T extends { label: string }>(items: T[], language: string): T[] {
+  const collator = new Intl.Collator(language, { sensitivity: 'base', numeric: true });
+  return [...items].sort((a, b) => collator.compare(a.label, b.label));
 }
 
 /** Anzeige einer Zuordnung, die der Katalog nicht kennt: `Einkauf (Gruppe)` oder die Schreibweise. */

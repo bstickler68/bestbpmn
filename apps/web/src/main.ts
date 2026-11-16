@@ -176,8 +176,10 @@ function applyStaticTexts(language: string) {
 /**
  * bpmn-js übersetzt nur beim Aufbau. Ein Sprachwechsel baut den Modellierer deshalb neu auf
  * und lädt das aktuelle Modell wieder hinein; Rückgängig beginnt danach von vorn.
+ * Ausschnitt und Zoom bleiben dabei erhalten, die Grafik springt also nicht.
  */
 async function createModeler(lang: string, xml: string) {
+  const view = modeler ? currentView() : undefined;
   language = lang;
   t = createI18n(language).t;
   applyStaticTexts(language);
@@ -225,6 +227,24 @@ async function createModeler(lang: string, xml: string) {
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
   renderSettings();
   showSidebar(!layout.classList.contains('sidebar-collapsed'));
+  if (view) restoreView(view);
+}
+
+/**
+ * Linke obere Ecke und Zoom des sichtbaren Ausschnitts. Breite und Höhe merken wir nicht: bpmn-js
+ * rechnet sie aus einer zwischengespeicherten Fenstergröße, die nach einem Wechsel der Reiter
+ * veraltet sein kann; der Zoom stimmte dann nach dem Neuaufbau nicht mehr.
+ */
+function currentView() {
+  const { x, y, scale } = modeler.get('canvas').viewbox();
+  return { x, y, scale };
+}
+
+function restoreView({ x, y, scale }: { x: number; y: number; scale: number }) {
+  const canvas = modeler.get('canvas');
+  canvas.resized();
+  const { outer } = canvas.viewbox();
+  canvas.viewbox({ x, y, width: outer.width / scale, height: outer.height / scale });
 }
 
 /** Einstellungen: Prüfregeln gelten sofort, ein geänderter Katalog baut den Modellierer neu auf. */
