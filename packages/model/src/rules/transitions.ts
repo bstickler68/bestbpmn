@@ -34,6 +34,26 @@ const RESULT_PATTERN = new RegExp(
   `^\\s*\\$\\{\\s*(?:${[RESULT_VARIABLE, ...LEGACY_RESULT_VARIABLES].join('|')})\\s*==\\s*(['"])([^'"]+)\\1\\s*\\}\\s*$`,
 );
 
+/** Variable mit der ID des Wegs, den der Bearbeiter der Aufgabe davor am Gateway gewählt hat. */
+export const CHOICE_VARIABLE = 'choice';
+
+/** Andere Namen derselben Variable, die beim Lesen ebenfalls erkannt werden. */
+export const LEGACY_CHOICE_VARIABLES: readonly string[] = ['praxiqChoice'];
+
+/** Bedingung für einen Weg, den der Bearbeiter der Aufgabe davor wählt: `${choice == '<eigene ID>'}`. */
+export function choiceCondition(flowId: string): string {
+  return `\${${CHOICE_VARIABLE} == '${flowId}'}`;
+}
+
+const CHOICE_PATTERN = new RegExp(
+  `^\\s*\\$\\{\\s*(?:${[CHOICE_VARIABLE, ...LEGACY_CHOICE_VARIABLES].join('|')})\\s*==\\s*(['"])([^'"]+)\\1\\s*\\}\\s*$`,
+);
+
+/** Liest die Weg-ID aus `${choice == 'Flow_1'}`; sonst `undefined`. */
+export function parseChoiceCondition(body: string | undefined): string | undefined {
+  return CHOICE_PATTERN.exec(body ?? '')?.[2];
+}
+
 /** Liest den Statusschlüssel aus `${result == 'key'}`; sonst `undefined`. */
 export function parseResultCondition(body: string | undefined): string | undefined {
   return RESULT_PATTERN.exec(body ?? '')?.[2];
@@ -213,16 +233,96 @@ export function checkSequenceFlows(elements: ModdleElement[], changes: StatusCha
       issues.push({ code: 'unknown-result-condition', severity: 'error', elementId: flow.id, params: { flow: describe(flow), state: key } });
     }
   }
+  issues.push(...checkChoices(elements, changes));
   return issues;
 }
 
-/** Wer an einem Gateway entscheidet: eine Person über ihr Ergebnis, das System über Feldwerte, oder beides. */
-export function gatewayDeciders(gateway: ModdleElement, flows?: ModdleElement[]): { person: boolean; system: boolean } {
+/**
+ * Wahl am Gateway: Die Wege eines exklusiven Gateways direkt nach einer Benutzeraufgabe tragen
+ * `${choice == '<eigene ID>'}`; ihre Namen sind die Texte der Auswahl. Wahl und alternative
+ * Ergebnisse der Aufgabe schließen sich aus, ebenso Wahl und andere Bedingungen am selben Gateway.
+ */
+export function checkChoices(elements: ModdleElement[], changes: StatusChange[]): ModelIssue[] {
+  const issues: ModelIssue[] = [];
+  const flows = (elements as El[]).filter((el) => el.$type === 'bpmn:SequenceFlow');
+  const gateways = new Set<El>();
+  for (const flow of flows) {
+    const chosen = parseChoiceCondition(conditionBody(flow));
+    if (chosen === undefined) {
+      continue;
+    }
+    if (chosen !== flow.id) {
+      issues.push({ code: 'unknown-choice-condition', severity: 'error', elementId: flow.id, params: { flow: describe(flow), choice: chosen } });
+    }
+    if (!String(flow.name ?? '').trim()) {
+      issues.push({ code: 'choice-without-name', severity: 'error', elementId: flow.id, params: { flow: describe(flow) } });
+    }
+    const source = flow.sourceRef as El | undefined;
+    if (!source || source.$type !== 'bpmn:ExclusiveGateway' || !choiceTaskOf(source, flows)) {
+      issues.push({ code: 'choice-not-after-user-task', severity: 'error', elementId: flow.id, params: { flow: describe(flow) } });
+    } else {
+      gateways.add(source);
+    }
+  }
+  for (const gateway of gateways) {
+    const outgoing = flows.filter((f) => f.sourceRef === gateway);
+    const otherConditions = outgoing.some((f) => {
+      const body = conditionBody(f)?.trim();
+      return !!body && parseChoiceCondition(body) === undefined;
+    });
+    const task = choiceTaskOf(gateway, flows)!;
+    const results = changes.find((c) => c.elementId === task.id)?.outputs ?? [];
+    if (otherConditions || results.length > 1) {
+      issues.push({ code: 'choice-mixed', severity: 'error', elementId: gateway.id, params: { element: describe(gateway), task: describe(task) } });
+    }
+  }
+  return issues;
+}
+
+/** Die Benutzeraufgabe, deren Bearbeiter an diesem Gateway wählt: genau ein eingehender Weg, direkt von ihr. */
+export function choiceTaskOf(gateway: ModdleElement, flows: ModdleElement[]): ModdleElement | undefined {
+  const incoming = (flows as El[]).filter((f) => f.$type === 'bpmn:SequenceFlow' && f.targetRef === gateway);
+  const source = incoming.length === 1 ? (incoming[0]!.sourceRef as El | undefined) : undefined;
+  return source?.$type === 'bpmn:UserTask' ? source : undefined;
+}
+
+/** Eine Wahlmöglichkeit am Gateway nach einer Aufgabe. */
+export interface Choice {
+  flowId: string;
+  /** Name des Wegs in der Hauptsprache des Modells. */
+  name: string;
+}
+
+/**
+ * Die Wahlmöglichkeiten, die der Bearbeiter dieser Aufgabe beim Abschluss bekommt: die Wege mit
+ * `choice` am exklusiven Gateway direkt danach, in der Reihenfolge des Modells.
+ */
+export function choicesForTask(task: ModdleElement, elements: ModdleElement[]): Choice[] {
+  const flows = (elements as El[]).filter((el) => el.$type === 'bpmn:SequenceFlow');
+  const next = flows.filter((f) => f.sourceRef === task).map((f) => f.targetRef as El | undefined);
+  if (task.$type !== 'bpmn:UserTask' || next.length !== 1 || next[0]?.$type !== 'bpmn:ExclusiveGateway') {
+    return [];
+  }
+  const gateway = next[0];
+  if (choiceTaskOf(gateway, flows) !== task) {
+    return [];
+  }
+  return flows
+    .filter((f) => f.sourceRef === gateway && parseChoiceCondition(conditionBody(f)) === f.id && f.id)
+    .map((f) => ({ flowId: f.id as string, name: String(f.name ?? '').trim() }));
+}
+
+/**
+ * Wer an einem Gateway entscheidet: eine Person über ihr Ergebnis, das System über Feldwerte, oder
+ * beides; `choice`, wenn der Bearbeiter der Aufgabe davor einen Weg wählt.
+ */
+export function gatewayDeciders(gateway: ModdleElement, flows?: ModdleElement[]): { person: boolean; system: boolean; choice: boolean } {
   const outgoing = flows
     ? (flows as El[]).filter((f) => f.$type === 'bpmn:SequenceFlow' && f.sourceRef === gateway)
     : (((gateway as El).outgoing ?? []) as El[]);
   let person = false;
   let system = false;
+  let choice = false;
   for (const flow of outgoing) {
     const body = conditionBody(flow)?.trim();
     if (!body) {
@@ -230,9 +330,11 @@ export function gatewayDeciders(gateway: ModdleElement, flows?: ModdleElement[])
     }
     if (parseResultCondition(body)) {
       person = true;
+    } else if (parseChoiceCondition(body) !== undefined) {
+      choice = true;
     } else {
       system = true;
     }
   }
-  return { person, system };
+  return { person, system, choice };
 }

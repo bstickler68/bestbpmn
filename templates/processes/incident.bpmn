@@ -45,7 +45,7 @@
 
     <bpmn:startEvent id="Start_Selbst" name="Störung bemerkt"><bpmn:outgoing>F1</bpmn:outgoing></bpmn:startEvent>
     <bpmn:startEvent id="Start_Mail" name="E-Mail eingegangen"><bpmn:outgoing>F3</bpmn:outgoing><bpmn:messageEventDefinition id="Msg_Mail" /></bpmn:startEvent>
-    <bpmn:startEvent id="Start_Anruf" name="Anruf eingegangen"><bpmn:outgoing>F5</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:startEvent id="Start_Anruf" name="Anruf eingegangen"><bpmn:outgoing>F5</bpmn:outgoing><bpmn:messageEventDefinition id="Msg_Anruf" /></bpmn:startEvent>
 
     <bpmn:userTask id="Selbst_erfassen" name="Incident selbst erfassen">
       <bpmn:incoming>F1</bpmn:incoming>
@@ -54,6 +54,15 @@
       <bpmn:potentialOwner id="Owner_Selbst_erfassen"><bpmn:resourceAssignmentExpression id="Expr_Selbst_erfassen"><bpmn:formalExpression id="Formal_Selbst_erfassen">group(users)</bpmn:formalExpression></bpmn:resourceAssignmentExpression></bpmn:potentialOwner>
     </bpmn:userTask>
     <bpmn:serviceTask id="Aus_Mail_anlegen" name="Incident aus E-Mail anlegen">
+      <bpmn:extensionElements>
+        <bestadd:attributes>
+          <bestadd:attribute key="services">
+            <bestadd:serviceRef ref="svc-itsm" name="IT-Service-Management">
+              <bestadd:actionRef ref="create_incident_from_mail" name="Incident aus E-Mail anlegen" />
+            </bestadd:serviceRef>
+          </bestadd:attribute>
+        </bestadd:attributes>
+      </bpmn:extensionElements>
       <bpmn:incoming>F3</bpmn:incoming>
       <bpmn:outgoing>F4</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="Out_Aus_Mail_anlegen"><bpmn:targetRef>Ref_Neu</bpmn:targetRef></bpmn:dataOutputAssociation>

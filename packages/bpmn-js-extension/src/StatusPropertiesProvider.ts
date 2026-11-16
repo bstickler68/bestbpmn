@@ -1,5 +1,5 @@
 import { h } from '@bpmn-io/properties-panel/preact';
-import { TextFieldEntry } from '@bpmn-io/properties-panel';
+import { isTextFieldEntryEdited, TextFieldEntry } from '@bpmn-io/properties-panel';
 import { useService } from 'bpmn-js-properties-panel';
 import {
   canonicalProcessObjectName,
@@ -40,6 +40,9 @@ export default class StatusPropertiesProvider {
   getGroups(element: DiagramElement) {
     return (groups: any[]) => {
       const bo = element.businessObject;
+      if (is(bo, 'bpmn:DataOutputAssociation')) {
+        return this.resultLabelGroup(bo, groups);
+      }
       if (!is(bo, 'bpmn:DataObjectReference')) {
         return groups;
       }
@@ -69,6 +72,41 @@ export default class StatusPropertiesProvider {
       return groups;
     };
   }
+
+  /** Eigene Beschriftung einer Ausgabe auf „Prozess“ für die Auswahl beim Abschluss. */
+  private resultLabelGroup(bo: BusinessObject, groups: any[]) {
+    const target = bo.targetRef;
+    const isProcess =
+      is(target, 'bpmn:DataObjectReference') &&
+      isProcessObjectName(target.dataObjectRef?.name ?? parseStateLabel(target.name)?.object);
+    if (!isProcess) {
+      return groups;
+    }
+    const index = groups.findIndex((g) => g.id === 'general');
+    groups.splice(index >= 0 ? index + 1 : groups.length, 0, {
+      id: 'bestbpmn-result-label',
+      label: this.i18n.t('panel.status'),
+      entries: [{ id: 'bestbpmn-result-label-text', component: ResultLabelEntry, i18n: this.i18n, isEdited: isTextFieldEntryEdited }],
+    });
+    return groups;
+  }
+}
+
+function ResultLabelEntry(props: { element: DiagramElement; id: string; i18n: BestbpmnI18n }) {
+  const { element, id, i18n } = props;
+  const modeling = useService('modeling');
+  const debounce = useService('debounceInput');
+  const bo: BusinessObject = element.businessObject;
+  return h(TextFieldEntry, {
+    element,
+    id,
+    label: i18n.t('panel.resultLabel'),
+    description: i18n.t('panel.resultLabelDescription'),
+    debounce,
+    getValue: () => bo.resultLabel ?? '',
+    setValue: (value: string) =>
+      modeling.updateModdleProperties(element, bo, { resultLabel: value?.trim() ? value : undefined }),
+  });
 }
 
 function StatusEntry(props: { element: DiagramElement; id: string; states: StatusDefinition[]; i18n: BestbpmnI18n }) {

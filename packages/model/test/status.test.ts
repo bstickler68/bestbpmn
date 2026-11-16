@@ -77,6 +77,27 @@ describe('deriveStatusModels – Vorlage Dokumentenfreigabe', () => {
     expect(m!.statuses).toEqual(['new', 'resolved', 'closed']);
   });
 
+  it('öffnet und speichert die Vorlage Periodische Aufgabe ohne Verlust und ohne Fehler', async () => {
+    const xml = template('periodische-aufgabe.bpmn');
+    const [m] = await deriveStatusModels(xml);
+    expect(m!.issues.filter((i) => i.severity === 'error')).toEqual([]);
+    expect(m!.changes.find((c) => c.elementId === 'Durchfuehren')!.outputLabels).toEqual({
+      active: { label: 'Nächste Runde', translations: { en: 'Next round' } },
+      closed: { label: 'Aufgabe einstellen', translations: { en: 'Discontinue task' } },
+    });
+    const moddle = createModdle();
+    const { rootElement } = await moddle.fromXML(xml);
+    const { xml: saved } = await moddle.toXML(rootElement, { format: true });
+    for (const part of [
+      'bestadd:resultLabel="Nächste Runde"',
+      'firstOf(field(assigned_person), initiator())',
+      'bestadd:businessCalendar="always"',
+      '<raci:dynamic initiator="true" />',
+    ]) {
+      expect(saved).toContain(part);
+    }
+  });
+
   it('liest die RACI-Erweiterungen als typisierte Elemente', async () => {
     const { elementsById } = await createModdle().fromXML(template('dokumentenfreigabe.bpmn'));
     const pruefen = elementsById['Pruefen'] as any;
@@ -162,7 +183,7 @@ describe('deriveStatusModels – Modellierregeln', () => {
     const [m] = await deriveStatusModels(
       model(
         `<bpmn:dataObject id="Vorgang" name="Prozess" />${ref('R1', 'Neu')}${ref('R2', 'In Arbeit')}
-         <bpmn:startEvent id="Mail" /><bpmn:startEvent id="Telefon" />
+         <bpmn:startEvent id="Mail" /><bpmn:startEvent id="Telefon"><bpmn:messageEventDefinition /></bpmn:startEvent>
          <bpmn:exclusiveGateway id="G" />
          ${task('AusMail', [], ['R1'])}${task('AmTelefon', [], ['R2'])}${task('Bearbeiten', [], [])}
          <bpmn:sequenceFlow id="f1" sourceRef="Mail" targetRef="G" />

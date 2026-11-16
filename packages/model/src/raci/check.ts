@@ -1,6 +1,6 @@
 import type { ModdleElement, ModelIssue } from '../states/types.js';
 import { findRole, type RoleDefinition } from '../catalog/types.js';
-import { formatAssignee, formatAssignees, parseAssignee, type Assignee } from './assignees.js';
+import { fieldsOf, formatAssignee, formatAssignees, parseAssignee, type Assignee } from './assignees.js';
 import { readRaci, type Raci } from './read.js';
 
 type El = ModdleElement & Record<string, any>;
@@ -147,9 +147,10 @@ export function resolveRaci(
  * - Multi-Instanz-Aufgaben (nicht Teilprozesse) brauchen mindestens zwei D. Fehlt D ganz, meldet das bei
  *   Benutzeraufgaben schon `raci-missing-responsible`.
  * - Höchstens ein E je Aktivität. M und I dürfen mehrfach vorkommen.
- * - Mit Rollen- und Gruppentabelle: unbekannte `group(…)` und `role(…)` sind eine Warnung.
+ * - Mit Rollen- und Gruppentabelle: unbekannte `group(…)` und `role(…)` sind eine Warnung, auch in `firstOf(…)`.
+ * - Mit den Feldern des Vorgangs (`fields` im Katalog): unbekannte `field(…)` sind eine Warnung (`raci-unknown-field`).
  */
-export function checkRaci(elements: El[], lanes: Map<El, El>, roles?: RoleDefinition[]): ModelIssue[] {
+export function checkRaci(elements: El[], lanes: Map<El, El>, roles?: RoleDefinition[], fields?: string[]): ModelIssue[] {
   const issues: ModelIssue[] = [];
   for (const el of elements) {
     if (!el.$instanceOf?.('bpmn:Activity')) {
@@ -193,7 +194,7 @@ export function checkRaci(elements: El[], lanes: Map<El, El>, roles?: RoleDefini
       });
     }
     if (roles) {
-      const all = [...raci.responsible, ...raci.accountable, ...raci.consulted, ...raci.informed];
+      const all = [...raci.responsible, ...raci.accountable, ...raci.consulted, ...raci.informed].flatMap(nested);
       const unknown = all.filter((a) => (a.kind === 'group' || a.kind === 'role') && !findRole(roles, a));
       for (const assignee of new Map(unknown.map((a) => [formatAssignee(a), a])).values()) {
         issues.push({
@@ -204,6 +205,21 @@ export function checkRaci(elements: El[], lanes: Map<El, El>, roles?: RoleDefini
         });
       }
     }
+    if (fields) {
+      const all = [...raci.responsible, ...raci.accountable, ...raci.consulted, ...raci.informed];
+      for (const field of new Set(all.flatMap(fieldsOf))) {
+        if (!fields.includes(field)) {
+          issues.push({ code: 'raci-unknown-field', severity: 'warning', elementId: el.id, params: { element, field } });
+        }
+      }
+    }
   }
   return issues;
+}
+
+/** Die Zuordnung selbst und, bei `firstOf(…)` und `approvalChain(…)`, alles darin. */
+function nested(assignee: Assignee): Assignee[] {
+  if (assignee.kind === 'firstOf') return [assignee, ...assignee.of.flatMap(nested)];
+  if (assignee.kind === 'approvalChain') return [assignee, ...nested(assignee.start)];
+  return [assignee];
 }

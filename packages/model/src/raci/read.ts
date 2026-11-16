@@ -1,5 +1,5 @@
 import type { ModdleElement } from '../states/types.js';
-import { parseAssignees, type Assignee } from './assignees.js';
+import { formatAssignee, parseAssignee, parseAssignees, type Assignee } from './assignees.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -55,6 +55,7 @@ export function toAssignee(el: El): Assignee | undefined {
       if (el.initiator) return { kind: 'initiator' };
       if (el.performerOf) return { kind: 'performerOf', ref: el.performerOf };
       if (el.excludePerformerOf) return { kind: 'notPerformerOf', ref: el.excludePerformerOf };
+      if (el.expression) return parseAssignee(el.expression);
       if (el.orgRole) return el.of ? { kind: 'orgRole', ref: el.orgRole, of: el.of } : { kind: 'orgRole', ref: el.orgRole };
       return undefined;
     default:
@@ -81,6 +82,10 @@ export function fromAssignee(assignee: Assignee): { type: string; attrs: Record<
       return { type: 'raci:Dynamic', attrs: { excludePerformerOf: assignee.ref } };
     case 'orgRole':
       return { type: 'raci:Dynamic', attrs: assignee.of ? { orgRole: assignee.ref, of: assignee.of } : { orgRole: assignee.ref } };
+    case 'firstOf':
+    case 'approvalChain':
+      // Verschachtelte Schreibweisen stehen als Text.
+      return { type: 'raci:Dynamic', attrs: { expression: formatAssignee(assignee) } };
   }
 }
 

@@ -22,6 +22,11 @@ export interface RolePickerProps {
    * Sie erscheinen nach den Treffern, sofern es den Wert nicht schon gibt.
    */
   custom?: (query: string) => RoleOption[];
+  /**
+   * Macht aus dem Getippten einen eigenen Eintrag, z. B. `firstOf(field(coach), field(owner))` an einer
+   * Lane. Er steht ganz oben; der Freitext aus `custom` entfällt dann.
+   */
+  parse?: (query: string) => RoleOption | undefined;
   onChange: (values: string[]) => void;
 }
 
@@ -31,7 +36,7 @@ export interface RolePickerProps {
  * Hält auch Hunderte Rollen und Gruppen aus, weil nur die Treffer angezeigt werden.
  */
 export function RolePicker(props: RolePickerProps) {
-  const { id, label, description, options, values, multiple, disabled, locked = [], texts, custom, onChange } = props;
+  const { id, label, description, options, values, multiple, disabled, locked = [], texts, custom, parse, onChange } = props;
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -39,15 +44,16 @@ export function RolePicker(props: RolePickerProps) {
 
   const labelOf = (value: string) => options.find((o) => o.value === value)?.label ?? value;
   const needle = query.trim().toLowerCase();
+  const parsed = query.trim() ? parse?.(query.trim()) : undefined;
+  const fresh = (o: RoleOption) => !values.includes(o.value) && !options.some((other) => other.value === o.value);
+  const typed = parsed && fresh(parsed) ? [parsed] : [];
   const matches = options
     .filter((o) => !values.includes(o.value))
     .filter((o) => !needle || o.label.toLowerCase().includes(needle) || o.value.toLowerCase().includes(needle))
     .slice(0, MAX_RESULTS);
-  const extra =
-    needle && custom
-      ? custom(query.trim()).filter((c) => !values.includes(c.value) && !options.some((o) => o.value === c.value))
-      : [];
-  const results = [...matches, ...extra];
+  // Eine gültige Schreibweise steht ganz oben; Freitext gibt es nur, wenn das Getippte keine ist.
+  const extra = [...typed, ...(needle && custom && !parsed ? custom(query.trim()).filter(fresh) : [])];
+  const results = [...typed, ...matches, ...extra.slice(typed.length)];
   const canAdd = !disabled && (multiple || values.length === 0);
 
   const choose = (option: RoleOption) => {

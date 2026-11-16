@@ -37,7 +37,9 @@
       "previous": "Previous element of this kind",
       "next": "Next element of this kind",
       "position": "{{index}} of {{count}}"
-    }
+    },
+    "planning": "Planning values",
+    "planningTitle": "Show or hide planning values (effort, duration, probability) and the calculation"
   },
   "status": {
     "noProcess": "No process in the model.",
@@ -67,7 +69,7 @@
     "multi-instance-single-responsible": "“{{element}}” is a multi-instance task and needs at least two R.",
     "raci-multiple-accountable": "“{{element}}” has more than one A: {{assignees}}. At most one is allowed.",
     "raci-unknown-assignee": "“{{element}}”: {{assignee}} is not in the catalog.",
-    "lane-without-role": "The lane “{{element}}” has no role or group. Every lane needs one.",
+    "lane-without-role": "“{{element}}” has no assignment. Every lane and every pool without lanes needs a role or group or a dynamic assignment such as field(…) or firstOf(…).",
     "task-without-service": "The task “{{element}}” has no IT service. User and service tasks need at least one.",
     "flow-without-condition": "The path “{{flow}}” after “{{element}}” has no condition. After a split every path except the default flow needs one, otherwise an engine always takes the first.",
     "conditional-flows-without-default": "“{{element}}” has only conditional paths. Without a default flow the process stops if no condition applies.",
@@ -76,7 +78,22 @@
     "result-condition-at-task": "The path “{{flow}}” branches directly at “{{element}}” on the result. Branching on a person's result uses an exclusive gateway.",
     "unknown-rule-kind": "“{{element}}” has an unknown rule marker “{{kind}}”.",
     "rule-kind-not-allowed": "“{{element}}” is not completed by a person and can therefore only have start and follow-up actions, not “{{kind}}”.",
-    "script-task-with-script": "The script task “{{element}}” contains script text. A script task refers to an action and contains no code of its own."
+    "script-task-with-script": "The script task “{{element}}” contains script text. A script task refers to an action and contains no code of its own.",
+    "script-task-without-action": "The script task “{{element}}” names no internal action. In the model it needs the attribute “internalAction” with the action type, e.g. log_entry.",
+    "internal-action-not-on-script-task": "“{{element}}” names an internal action but is not a script task. Internal actions exist only on script tasks.",
+    "multiple-actions": "“{{element}}” has several actions. An activity has at most one action.",
+    "invalid-planning-value": "The planning value “{{value}}” ({{attribute}}) at “{{element}}” cannot be read.",
+    "gateway-without-probabilities": "Not every outgoing flow of “{{element}}” has a probability; cycle time and staffing calculations stay incomplete.",
+    "boundary-without-probability": "The boundary event “{{element}}” has no probability on its outgoing flow; the calculation assumes it never occurs.",
+    "probabilities-not-100": "The probabilities of the outgoing flows of “{{element}}” add up to {{sum}} %, not 100 %.",
+    "accountable-without-effort": "“{{element}}” has an A but no effort for it. If the approval is modelled as its own task, enter 0 here.",
+    "choice-without-name": "The path “{{flow}}” is a choice of the assignee but has no name. The name is the text of the choice.",
+    "choice-not-after-user-task": "The path “{{flow}}” is a choice of the assignee. A choice is only possible at an exclusive gateway directly after a user task.",
+    "choice-mixed": "At the gateway “{{element}}”, the assignee’s choice is mixed with results of “{{task}}” or with field conditions. A task has either results or a choice.",
+    "unknown-choice-condition": "The path “{{flow}}” asks for the choice “{{choice}}”. A path with a choice always asks for its own ID.",
+    "raci-unknown-field": "“{{element}}”: the field {{field}} is not in the field list.",
+    "multiple-none-start-events": "“{{element}}” is another start event without a trigger. A process has only one (“{{first}}”); further paths start with a message start event.",
+    "service-task-without-action": "The automated task “{{element}}” has no action. To be executed it needs an IT service with an action (bestadd:actionRef) the system runs."
   },
   "panel": {
     "translations": "Translations",
@@ -110,7 +127,52 @@
     "rules": "Rules",
     "rulesDescription": "Description of the rules",
     "rulesDescriptionHint": "What is checked or done at the transition, in words.",
-    "rulesOnlyActions": "Nobody completes this task; it only has start and follow-up actions."
+    "rulesOnlyActions": "Nobody completes this task; it only has start and follow-up actions.",
+    "timing": "Planning values",
+    "timingEffort": "Effort {{assignee}} (R) per run",
+    "timingEffortHint": "Working time for one run, e.g. 30, 1h30m or 2d (working days). Basis for staffing.",
+    "timingAccountableEffort": "Effort {{assignee}} (A) per run",
+    "timingAccountableHint": "Effort for the decision or approval. 0 if the approval is modelled as its own task.",
+    "timingConsultedEffort": "Effort {{assignee}} (C) per run",
+    "timingConsultedHint": "Optional.",
+    "timingDuration": "Duration",
+    "timingDurationHint": "From being ready to completion including waiting time, in working time. Empty = same as the effort of R.",
+    "timingWaiting": "Waiting time",
+    "timingWaitingHint": "Expected time until the event occurs, in working time.",
+    "timingInstances": "Expected number of instances",
+    "timingInstancesHint": "Only needed if the number does not follow from the number of R.",
+    "timingProbability": "Probability (%)",
+    "timingProbabilityHint": "How often this path is taken. At an exclusive gateway all outgoing flows add up to 100 %.",
+    "timingInvalid": "Not a duration, e.g. 30, 45m, 1h30m or 2d",
+    "timingInvalidNumber": "A number above 0",
+    "timingInvalidProbability": "A number from 0 to 100",
+    "timingUnitDays": "WD",
+    "timingBoundaryProbabilityHint": "How often this event occurs per execution of the activity.",
+    "calculation": "Calculation from planning values",
+    "calcCycleTime": "Cycle time",
+    "calcCycleTimeValue": "mean {{mean}}, median {{median}}, 85 % {{p85}}, 95 % {{p95}}",
+    "calcEffort": "Effort per run",
+    "calcUnassigned": "unassigned",
+    "calcCriticalPath": "Critical path",
+    "calcMissing": "Missing values",
+    "calcComplete": "All required planning values are present.",
+    "calcIncomplete": "Incomplete: the calculation uses what is there.",
+    "calcNone": "No planning values yet. Enter effort and duration at the tasks.",
+    "calcVisits": "On average {{visits}} executions per run",
+    "calcHint": "In working time; a working day has {{hours}} h. The cycle time comes from {{runs}} simulated runs.",
+    "calcMissing_effort": "effort of R",
+    "calcMissing_accountable-effort": "effort of A",
+    "calcMissing_duration": "waiting time",
+    "calcMissing_probability": "probabilities",
+    "calcMissing_boundary-probability": "probability of the boundary event",
+    "calcMissing_instances": "number of instances",
+    "calcMissing_called-process": "called process not found",
+    "calcMissing_endless-loop": "loop without exit",
+    "conditionChoice": "(choice of the assignee)",
+    "conditionChoiceDescription": "The assignee of the task before picks this path on completion. The name of the path is the text of the choice; the status does not change.",
+    "resultLabel": "Text in the choice",
+    "resultLabelDescription": "Text the assignee sees for this result on completion, e.g. “Send back”. Empty: name of the status.",
+    "resultLabelTranslation": "Text in the choice ({{language}})"
   },
   "ruleKind": {
     "condition": "Condition",
@@ -121,7 +183,8 @@
   },
   "gateway": {
     "person": "Decision by a person (result of the previous task)",
-    "system": "Automatic decision (field values)"
+    "system": "Automatic decision (field values)",
+    "choice": "Choice of the assignee (names of the paths)"
   },
   "raci": {
     "title": "Responsibilities (RACI)",
@@ -145,13 +208,15 @@
   "lane": {
     "title": "Role/group",
     "role": "Role or group",
-    "description": "From the catalog or typed freely. It is R for all tasks on the lane.",
+    "description": "From the catalog or typed in. Is R for all tasks on the lane. Dynamic assignments work too: field(…), firstOf(field(coach), field(responsible_person)) or approvalChain(…); the lane name is then free.",
     "poolDescription": "From the catalog or typed freely. It is R for all tasks as long as the pool has no lanes.",
     "kind": {
       "group": "group",
       "role": "role"
     },
-    "poolHasLanes": "The pool has lanes. R always comes from the lane of the task."
+    "poolHasLanes": "The pool has lanes. R always comes from the lane of the task.",
+    "dynamic": "{{expression}} (dynamic)",
+    "placeholder": "Search or type a role or group, or type firstOf(…) …"
   },
   "picker": {
     "placeholder": "Search or type a role or group …",
@@ -200,7 +265,22 @@
       "result-condition-at-task": "Branch on a person's result with a gateway",
       "unknown-rule-kind": "Only known rule markers",
       "rule-kind-not-allowed": "Tasks without a person only have start and follow-up actions",
-      "script-task-with-script": "Script tasks contain no script text"
+      "script-task-with-script": "Script tasks contain no script text",
+      "raci-unknown-field": "Fields in field(…) are in the field list (only with a field list)",
+      "multiple-none-start-events": "Only one start event without a trigger per process",
+      "service-task-without-action": "Automated tasks have an action",
+      "multiple-actions": "At most one action per activity",
+      "script-task-without-action": "Script tasks name an internal action (internalAction)",
+      "internal-action-not-on-script-task": "Internal actions only on script tasks",
+      "choice-without-name": "Paths chosen by the assignee have a name",
+      "choice-not-after-user-task": "Choice of the assignee only at an exclusive gateway directly after a user task",
+      "choice-mixed": "Do not mix the assignee’s choice with results or field conditions",
+      "unknown-choice-condition": "A path with a choice asks for its own ID",
+      "invalid-planning-value": "Planning values can be read (only with planning values)",
+      "gateway-without-probabilities": "Every outgoing flow of a gateway has a probability (only with planning values)",
+      "probabilities-not-100": "Probabilities at an either-or gateway add up to 100 % (only with planning values)",
+      "boundary-without-probability": "Boundary events have a probability (only with planning values)",
+      "accountable-without-effort": "Tasks with an A have an effort for the A (only with planning values)"
     }
   },
   "catalog": {

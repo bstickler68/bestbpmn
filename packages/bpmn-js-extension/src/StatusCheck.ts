@@ -46,7 +46,12 @@ export default class StatusCheck {
     const definitions = this.bpmnjs.getDefinitions();
     this.models = definitions ? deriveFromDefinitions(
           definitions,
-          { states: this.config?.states?.length ? this.config.states : undefined, roles: this.config?.roles?.length ? this.config.roles : undefined },
+          {
+            states: this.config?.states?.length ? this.config.states : undefined,
+            roles: this.config?.roles?.length ? this.config.roles : undefined,
+            fields: this.config?.fields?.length ? this.config.fields : undefined,
+            planningValues: this.config?.planning?.enabled ?? false,
+          },
           { disabledRules: this.disabledRules },
         ) : [];
     this.mark(this.models.flatMap((m) => m.issues));

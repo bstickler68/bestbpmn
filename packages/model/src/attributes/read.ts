@@ -24,7 +24,11 @@ export function readAttributes(element: ModdleElement): AttributeValue[] {
         .map((item) => ({ href: item.href, title: item.title })),
       services: items
         .filter((item) => item.$type === 'bestadd:ServiceRef')
-        .map((item) => ({ ref: item.ref, name: item.name })),
+        .map((item) => ({
+          ref: item.ref,
+          name: item.name,
+          ...(item.actionRef ? { action: { ref: item.actionRef.ref, name: item.actionRef.name } } : {}),
+        })),
     };
   });
 }
@@ -34,4 +38,18 @@ export function readDescription(element: ModdleElement): string | undefined {
   const docs = ((element as El).documentation ?? []) as El[];
   const text = docs.map((doc) => doc.text ?? '').join('\n\n').trim();
   return text || undefined;
+}
+
+/** Alle Aktionen eines Elements mit ihrem IT-Service. Erlaubt ist höchstens eine. */
+export function readActions(element: ModdleElement): { service: string; serviceName?: string; action: string; actionName?: string }[] {
+  return readAttributes(element).flatMap((attribute) =>
+    attribute.services
+      .filter((service) => service.action?.ref)
+      .map((service) => ({
+        service: service.ref,
+        serviceName: service.name,
+        action: service.action!.ref,
+        actionName: service.action!.name,
+      })),
+  );
 }

@@ -77,6 +77,25 @@
           "name": "name",
           "isAttr": true,
           "type": "String"
+        },
+        {
+          "name": "actionRef",
+          "type": "ActionRef"
+        }
+      ]
+    },
+    {
+      "name": "ActionRef",
+      "properties": [
+        {
+          "name": "ref",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "name",
+          "isAttr": true,
+          "type": "String"
         }
       ]
     },
@@ -88,6 +107,19 @@
       "properties": [
         {
           "name": "key",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "TimerBusinessCalendar",
+      "extends": [
+        "bpmn:TimerEventDefinition"
+      ],
+      "properties": [
+        {
+          "name": "businessCalendar",
           "isAttr": true,
           "type": "String"
         }
@@ -181,6 +213,80 @@
         {
           "name": "description",
           "isBody": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "Timing",
+      "superClass": [
+        "Element"
+      ],
+      "properties": [
+        {
+          "name": "effort",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "accountableEffort",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "duration",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "instances",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "consultedEfforts",
+          "type": "ConsultedEffort",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "ConsultedEffort",
+      "properties": [
+        {
+          "name": "assignee",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "effort",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "SequenceFlowProbability",
+      "extends": [
+        "bpmn:SequenceFlow"
+      ],
+      "properties": [
+        {
+          "name": "probability",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "DataOutputAssociationResultLabel",
+      "extends": [
+        "bpmn:DataOutputAssociation"
+      ],
+      "properties": [
+        {
+          "name": "resultLabel",
+          "isAttr": true,
           "type": "String"
         }
       ]

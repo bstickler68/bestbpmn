@@ -36,8 +36,16 @@ export interface LinkValue {
 }
 
 export interface ServiceRefValue {
+  /** Kennung des IT-Service, z. B. `svc-itsm`. */
   ref: string;
   /** Name zum Zeitpunkt der Auswahl, damit das Modell auch ohne Katalog lesbar bleibt. */
+  name?: string;
+  /** Gewählte Aktion des IT-Service, z. B. `create_issue`. */
+  action?: ActionRefValue;
+}
+
+export interface ActionRefValue {
+  ref: string;
   name?: string;
 }
 

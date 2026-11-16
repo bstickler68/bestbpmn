@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  choiceCondition,
+  choicesForTask,
   createModdle,
   deriveElementTables,
   deriveStatusModels,
   disabledRulesOf,
   gatewayDeciders,
+  parseChoiceCondition,
   parseResultCondition,
   readRuleMarks,
   resultCondition,
@@ -20,6 +23,10 @@ const NEW_CODES: IssueCode[] = [
   'unknown-rule-kind',
   'rule-kind-not-allowed',
   'script-task-with-script',
+  'choice-without-name',
+  'choice-not-after-user-task',
+  'choice-mixed',
+  'unknown-choice-condition',
 ];
 
 const head = `<?xml version="1.0" encoding="UTF-8"?>
@@ -127,8 +134,8 @@ describe('Bedingungen an Sequenzflüssen', () => {
     const { rootElement } = await createModdle().fromXML(review(flows));
     const elements = (rootElement as any).rootElements[0].flowElements;
     const gateway = elements.find((e: any) => e.id === 'G');
-    expect(gatewayDeciders(gateway, elements)).toEqual({ person: true, system: true });
-    expect(gatewayDeciders(gateway, elements.filter((e: any) => e.id !== 'N'))).toEqual({ person: true, system: false });
+    expect(gatewayDeciders(gateway, elements)).toEqual({ person: true, system: true, choice: false });
+    expect(gatewayDeciders(gateway, elements.filter((e: any) => e.id !== 'N'))).toEqual({ person: true, system: false, choice: false });
   });
 });
 
@@ -180,5 +187,86 @@ describe('Regel-Kennzeichen an Aktivitäten', () => {
     const definitions = moddle.create('bpmn:Definitions', { id: 'D', targetNamespace: 't', rootElements: [process] });
     const { xml } = await moddle.toXML(definitions);
     expect(xml).toContain('<bestadd:rules kinds="validator screen magic">Begründung bei Ablehnung</bestadd:rules>');
+  });
+});
+
+describe('Wahl des Bearbeiters am Gateway', () => {
+  /** Eine Benutzeraufgabe ohne Ergebnis, danach ein exklusives Gateway mit den Wegen J und N. */
+  const choose = (flows: string, outputs = '', task = 'userTask') => `${head}
+    <bpmn:process id="P" isExecutable="true">
+      <bpmn:dataObject id="Prozess" name="Prozess" />
+      <bpmn:dataObjectReference id="Ok" name="Prozess [reviewed]" dataObjectRef="Prozess"><bpmn:dataState id="S1" name="reviewed" /></bpmn:dataObjectReference>
+      <bpmn:dataObjectReference id="Nok" name="Prozess [rejected]" dataObjectRef="Prozess"><bpmn:dataState id="S2" name="rejected" /></bpmn:dataObjectReference>
+      <bpmn:startEvent id="Start" />
+      <bpmn:${task} id="T" name="Weiter?">${outputs}</bpmn:${task}>
+      <bpmn:exclusiveGateway id="G" />
+      <bpmn:userTask id="A" />
+      <bpmn:userTask id="B" />
+      <bpmn:sequenceFlow id="F0" sourceRef="Start" targetRef="T" />
+      <bpmn:sequenceFlow id="F1" sourceRef="T" targetRef="G" />
+      ${flows}
+    </bpmn:process></bpmn:definitions>`;
+  const choice = (id: string, name: string, target: string, body = `\${choice == '${id}'}`) =>
+    `<bpmn:sequenceFlow id="${id}" name="${name}" sourceRef="G" targetRef="${target}">${cond(body)}</bpmn:sequenceFlow>`;
+
+  it('schreibt neutral choice und liest auch praxiqChoice', () => {
+    expect(choiceCondition('Flow_1')).toBe("${choice == 'Flow_1'}");
+    expect(parseChoiceCondition(' ${ choice == "Flow_1" } ')).toBe('Flow_1');
+    expect(parseChoiceCondition("${praxiqChoice == 'Flow_1'}")).toBe('Flow_1');
+    expect(parseChoiceCondition("${result == 'x'}")).toBeUndefined();
+    expect(parseResultCondition("${choice == 'x'}")).toBeUndefined();
+  });
+
+  it('akzeptiert eine Wahl ohne Status und ohne Feldbedingung und liefert die Namen der Wege', async () => {
+    const xml = choose(choice('J', 'Weiter', 'A') + choice('N', 'Zurück an Ersteller', 'B'));
+    expect(await issues(xml)).toEqual([]);
+    const { rootElement } = await createModdle().fromXML(xml);
+    const elements = (rootElement as any).rootElements[0].flowElements;
+    const task = elements.find((e: any) => e.id === 'T');
+    expect(choicesForTask(task, elements)).toEqual([
+      { flowId: 'J', name: 'Weiter' },
+      { flowId: 'N', name: 'Zurück an Ersteller' },
+    ]);
+    expect(gatewayDeciders(elements.find((e: any) => e.id === 'G'), elements)).toEqual({ person: false, system: false, choice: true });
+  });
+
+  it('verlangt Namen, die eigene ID und eine Benutzeraufgabe davor, auch im Profil „Dokumentieren“', async () => {
+    expect(await issues(choose(choice('J', '', 'A') + choice('N', 'Nein', 'B', "\${choice == 'J'}")), 'document')).toEqual([
+      ['choice-without-name', 'J', 'error'],
+      ['unknown-choice-condition', 'N', 'error'],
+    ]);
+    expect((await issues(choose(choice('J', 'Ja', 'A') + choice('N', 'Nein', 'B'), '', 'manualTask'))).map((i) => i[0])).toEqual([
+      'choice-not-after-user-task',
+      'choice-not-after-user-task',
+    ]);
+  });
+
+  it('lehnt eine Wahl neben Ergebnissen oder Feldbedingungen ab', async () => {
+    const outputs = `<bpmn:dataOutputAssociation id="O1"><bpmn:targetRef>Ok</bpmn:targetRef></bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="O2"><bpmn:targetRef>Nok</bpmn:targetRef></bpmn:dataOutputAssociation>`;
+    expect(await issues(choose(choice('J', 'Ja', 'A') + choice('N', 'Nein', 'B'), outputs))).toEqual([['choice-mixed', 'G', 'error']]);
+    const mixed = choice('J', 'Ja', 'A') + `<bpmn:sequenceFlow id="N" name="Nein" sourceRef="G" targetRef="B">${cond('${betrag > 10}')}</bpmn:sequenceFlow>`;
+    expect(await issues(choose(mixed))).toEqual([['choice-mixed', 'G', 'error']]);
+  });
+});
+
+describe('Text in der Auswahl an einem Ergebnis', () => {
+  it('liest den eigenen Text eines Ergebnisses mit Übersetzung', async () => {
+    const xml = `${head}<bpmn:process id="P">
+      <bpmn:dataObject id="Prozess" name="Prozess" />
+      <bpmn:dataObjectReference id="Ok" name="Prozess [reviewed]" dataObjectRef="Prozess"><bpmn:dataState id="S1" name="reviewed" /></bpmn:dataObjectReference>
+      <bpmn:dataObjectReference id="Nok" name="Prozess [rejected]" dataObjectRef="Prozess"><bpmn:dataState id="S2" name="rejected" /></bpmn:dataObjectReference>
+      <bpmn:userTask id="T">
+        <bpmn:dataOutputAssociation id="O1"><bpmn:targetRef>Ok</bpmn:targetRef></bpmn:dataOutputAssociation>
+        <bpmn:dataOutputAssociation id="O2" bestadd:resultLabel="Zurückweisen">
+          <bpmn:extensionElements><bestadd:translations><bestadd:translation lang="en" name="Send back" /></bestadd:translations></bpmn:extensionElements>
+          <bpmn:targetRef>Nok</bpmn:targetRef>
+        </bpmn:dataOutputAssociation>
+      </bpmn:userTask>
+    </bpmn:process></bpmn:definitions>`;
+    const [model] = await deriveStatusModels(xml);
+    const change = model!.changes.find((c) => c.elementId === 'T')!;
+    expect(change.outputs).toEqual(['reviewed', 'rejected']);
+    expect(change.outputLabels).toEqual({ rejected: { label: 'Zurückweisen', translations: { en: 'Send back' } } });
   });
 });

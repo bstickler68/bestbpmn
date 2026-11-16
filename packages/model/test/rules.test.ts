@@ -51,14 +51,17 @@ describe('Regelprofile', () => {
         'multi-instance-single-responsible',
         'raci-missing-responsible',
         'task-without-service',
+        'multiple-none-start-events',
+        'service-task-without-action',
+        'script-task-without-action',
       ]),
     ).toBe('document');
     expect(matchRuleProfile([])).toBe('complete');
     expect(matchRuleProfile(['unknown-state'])).toBeUndefined();
   });
 
-  it('kennt alle 23 Regeln', () => {
-    expect(new Set(ISSUE_CODES).size).toBe(23);
+  it('kennt alle 38 Regeln', () => {
+    expect(new Set(ISSUE_CODES).size).toBe(38);
   });
 });
 

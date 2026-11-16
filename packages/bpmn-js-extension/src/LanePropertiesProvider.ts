@@ -1,6 +1,6 @@
 import { h } from '@bpmn-io/properties-panel/preact';
 import { useService } from 'bpmn-js-properties-panel';
-import { findRole, formatAssignee, hasLanes, parseAssignee, type RoleDefinition } from '@bestbpmn/model';
+import { findRole, formatAssignee, hasLanes, LANE_KINDS, parseAssignee, type RoleDefinition } from '@bestbpmn/model';
 import type { BestbpmnConfig } from './attributes';
 import { resolveI18n, type BestbpmnI18n } from './i18n';
 import { RolePicker } from './RolePicker';
@@ -12,16 +12,20 @@ const LOW_PRIORITY = 600;
 /**
  * Rolle oder Gruppe einer Swimlane oder eines Pools, aus dem Katalog oder frei eingegeben.
  * Bei einem Eintrag aus dem Katalog wird der Name von dort übernommen; das Namensfeld entfällt dann.
+ * Außerdem nimmt eine Lane dynamische Zuordnungen an: `field(…)`, `firstOf(…)` und `approvalChain(…)`;
+ * ihr Name ist dann frei.
  */
 export default class LanePropertiesProvider {
   static $inject = ['propertiesPanel', 'config.bestbpmn'];
 
   private i18n: BestbpmnI18n;
   private roles: RoleDefinition[];
+  private fields: string[];
 
   constructor(propertiesPanel: any, config: BestbpmnConfig | undefined) {
     this.i18n = resolveI18n(config);
     this.roles = config?.roles ?? [];
+    this.fields = config?.fields ?? [];
     propertiesPanel.registerProvider(LOW_PRIORITY, this);
   }
 
@@ -43,15 +47,15 @@ export default class LanePropertiesProvider {
         entries:
           is(bo, 'bpmn:Participant') && bo.processRef && hasLanes(bo.processRef) && !bo.assignee
             ? [{ id: 'bestbpmn-lane-hint', component: Hint, text: this.i18n.t('lane.poolHasLanes') }]
-            : [{ id: 'bestbpmn-lane-role', component: LaneRoleEntry, roles: this.roles, i18n: this.i18n }],
+            : [{ id: 'bestbpmn-lane-role', component: LaneRoleEntry, roles: this.roles, fields: this.fields, i18n: this.i18n }],
       });
       return groups;
     };
   }
 }
 
-function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: RoleDefinition[]; i18n: BestbpmnI18n }) {
-  const { element, id, roles, i18n } = props;
+function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: RoleDefinition[]; fields: string[]; i18n: BestbpmnI18n }) {
+  const { element, id, roles, fields, i18n } = props;
   const modeling = useService('modeling');
   const bpmnjs = useService('bpmnjs');
   const bo: BusinessObject = element.businessObject;
@@ -60,11 +64,26 @@ function LaneRoleEntry(props: { element: DiagramElement; id: string; roles: Role
     id,
     label: i18n.t('lane.role'),
     description: i18n.t(is(bo, 'bpmn:Participant') ? 'lane.poolDescription' : 'lane.description'),
-    options: roleOptions(roles, current ? [current] : [], i18n, usedAssignees(bpmnjs.getDefinitions())),
+    options: [
+      ...roleOptions(roles, current ? [current] : [], i18n, usedAssignees(bpmnjs.getDefinitions())),
+      ...fields
+        .map((field) => `field(${field})`)
+        .filter((value) => value !== (current && formatAssignee(current)))
+        .map((value) => ({ value, label: i18n.t('lane.dynamic', { expression: value }) })),
+    ],
     custom: customRoleOptions(i18n),
     values: current ? [formatAssignee(current)] : [],
     multiple: false,
-    texts: pickerTexts(i18n),
+    texts: { ...pickerTexts(i18n), placeholder: i18n.t('lane.placeholder') },
+    // Getippte Schreibweise wie `firstOf(field(coach), field(responsible_person))`.
+    parse: (query: string) => {
+      const assignee = parseAssignee(query);
+      if (!assignee || !LANE_KINDS.includes(assignee.kind) || assignee.kind === 'role' || assignee.kind === 'group') {
+        return undefined;
+      }
+      const expression = formatAssignee(assignee);
+      return { value: expression, label: i18n.t('lane.dynamic', { expression }) };
+    },
     // Den Namen setzt LaneBehavior aus der Tabelle, in der Hauptsprache des Modells.
     onChange: (values: string[]) => modeling.updateModdleProperties(element, bo, { assignee: values[0] || undefined }),
   });

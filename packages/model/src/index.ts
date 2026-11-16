@@ -52,12 +52,13 @@ export type {
   Moddle,
   ModdleElement,
   ModelIssue,
+  ResultLabel,
   StatusChange,
   StatusModel,
 } from './states/types.js';
 export { default as raciModdle } from './moddle/raci.json' with { type: 'json' };
 export { default as bestaddModdle } from './moddle/bestadd.json' with { type: 'json' };
-export { readAttributes, readDescription, findAttributesContainer } from './attributes/read.js';
+export { readActions, readAttributes, readDescription, findAttributesContainer } from './attributes/read.js';
 export { DEFAULT_ATTRIBUTE_DEFINITIONS } from './attributes/defaults.js';
 export type {
   AttributeDefinition,
@@ -67,8 +68,13 @@ export type {
   LinkValue,
   Service,
   ServiceRefValue,
+  ActionRefValue,
 } from './attributes/types.js';
 export {
+  CHAIN_START_KINDS,
+  FIRST_OF_KINDS,
+  LANE_KINDS,
+  fieldsOf,
   formatAssignee,
   formatAssignees,
   parseAssignee,
@@ -89,21 +95,38 @@ export {
 } from './raci/read.js';
 export { combineRaciMatrices, deriveRaciMatrices, type RaciMatrix, type RaciRow } from './raci/matrix.js';
 export {
+  AUTOMATED_TASK_TYPES,
+  INTERNAL_ACTION_ATTRIBUTE,
+  checkTaskActions,
+  checkTaskServices,
+  parseInternalActions,
+  readInternalActions,
+} from './rules/services.js';
+export { checkStartEvents } from './rules/starts.js';
+export {
   ACTION_RULE_KINDS,
+  CHOICE_VARIABLE,
+  LEGACY_CHOICE_VARIABLES,
   LEGACY_RESULT_VARIABLES,
   RESULT_VARIABLE,
   RULE_KINDS,
   allowedRuleKinds,
+  checkChoices,
   checkRuleMarks,
   checkScriptTasks,
   checkSequenceFlows,
+  choiceCondition,
+  choicesForTask,
+  choiceTaskOf,
   conditionBody,
   gatewayDeciders,
+  parseChoiceCondition,
   parseResultCondition,
   precedingActivities,
   readRuleMarks,
   resultCondition,
   resultsForFlow,
+  type Choice,
   type RuleKind,
   type RuleMarks,
 } from './rules/transitions.js';
@@ -119,3 +142,29 @@ export {
   type FlowReference,
 } from './report/elements.js';
 export { deriveProfile, type ProcessProfile, type ProfileData, type ProfileEntry } from './report/profile.js';
+export {
+  TIMING_TYPES,
+  checkTiming,
+  describeTimeSpan,
+  findTiming,
+  formatTimeSpan,
+  parseTimeInput,
+  parseTimeSpan,
+  readProbability,
+  readTiming,
+  usesPlanningValues,
+  type TimeSpan,
+  type Timing,
+} from './timing/read.js';
+export {
+  calculateDefinitions,
+  calculateProcess,
+  type CalculationOptions,
+  type CalculationOverrides,
+  type ElementResult,
+  type HolderEffort,
+  type MissingCode,
+  type MissingValue,
+  type Percentiles,
+  type ProcessCalculation,
+} from './timing/calc.js';

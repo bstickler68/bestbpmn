@@ -37,7 +37,9 @@
       "previous": "Vorheriges Element dieser Art",
       "next": "Nächstes Element dieser Art",
       "position": "{{index}} von {{count}}"
-    }
+    },
+    "planning": "Planwerte",
+    "planningTitle": "Planwerte (Aufwand, Dauer, Wahrscheinlichkeit) und Rechnung ein- oder ausblenden"
   },
   "status": {
     "noProcess": "Kein Prozess im Modell.",
@@ -67,7 +69,7 @@
     "multi-instance-single-responsible": "„{{element}}“ ist eine Multi-Instanz-Aufgabe und braucht mindestens zwei D.",
     "raci-multiple-accountable": "„{{element}}“ hat mehr als ein E: {{assignees}}. Erlaubt ist höchstens eins.",
     "raci-unknown-assignee": "„{{element}}“: {{assignee}} gibt es im Katalog nicht.",
-    "lane-without-role": "Die Lane „{{element}}“ hat keine Rolle oder Gruppe. Jede Lane braucht eine.",
+    "lane-without-role": "„{{element}}“ hat keine Zuordnung. Jede Lane und jeder Pool ohne Lanes braucht eine Rolle oder Gruppe oder eine dynamische Zuordnung wie field(…) oder firstOf(…).",
     "task-without-service": "Die Aufgabe „{{element}}“ hat keinen IT-Service. Benutzer- und Serviceaufgaben brauchen mindestens einen.",
     "flow-without-condition": "Der Weg „{{flow}}“ nach „{{element}}“ hat keine Bedingung. Nach einer Verzweigung braucht jeder Weg außer dem Standardfluss eine, sonst nimmt eine Engine immer den ersten.",
     "conditional-flows-without-default": "„{{element}}“ hat nur bedingte Wege. Ohne Standardfluss bleibt der Ablauf stehen, wenn keine Bedingung zutrifft.",
@@ -76,7 +78,22 @@
     "result-condition-at-task": "Der Weg „{{flow}}“ verzweigt direkt an „{{element}}“ nach dem Ergebnis. Nach dem Ergebnis einer Person wird mit einem exklusiven Gateway verzweigt.",
     "unknown-rule-kind": "„{{element}}“ hat ein unbekanntes Regel-Kennzeichen „{{kind}}“.",
     "rule-kind-not-allowed": "„{{element}}“ wird nicht von einer Person abgeschlossen und kann deshalb nur Start- und Folgeaktionen haben, nicht „{{kind}}“.",
-    "script-task-with-script": "Die Skriptaufgabe „{{element}}“ enthält Skripttext. Eine Skriptaufgabe verweist auf eine Aktion und enthält keinen eigenen Code."
+    "script-task-with-script": "Die Skriptaufgabe „{{element}}“ enthält Skripttext. Eine Skriptaufgabe verweist auf eine Aktion und enthält keinen eigenen Code.",
+    "script-task-without-action": "Die Skriptaufgabe „{{element}}“ nennt keine interne Aktion. Im Modell braucht sie das Attribut „internalAction“ mit dem Aktionstyp, z. B. log_entry.",
+    "internal-action-not-on-script-task": "„{{element}}“ nennt eine interne Aktion, ist aber keine Skriptaufgabe. Interne Aktionen gibt es nur an Skriptaufgaben.",
+    "multiple-actions": "„{{element}}“ hat mehrere Aktionen. Eine Aktivität hat höchstens eine Aktion.",
+    "invalid-planning-value": "Der Planwert „{{value}}“ ({{attribute}}) an „{{element}}“ lässt sich nicht lesen.",
+    "gateway-without-probabilities": "Nicht jeder Ausgang von „{{element}}“ hat eine Wahrscheinlichkeit; die Rechnung von Durchlaufzeit und Personalbedarf bleibt unvollständig.",
+    "boundary-without-probability": "Für das Grenzereignis „{{element}}“ fehlt die Wahrscheinlichkeit an seinem ausgehenden Fluss; die Rechnung nimmt an, dass es nie eintritt.",
+    "probabilities-not-100": "Die Wahrscheinlichkeiten der Ausgänge von „{{element}}“ ergeben {{sum}} %, nicht 100 %.",
+    "accountable-without-effort": "„{{element}}“ hat ein E, aber keinen Aufwand dafür. Ist die Freigabe als eigene Aufgabe modelliert, hier 0 eintragen.",
+    "choice-without-name": "Der Weg „{{flow}}“ ist eine Wahl des Bearbeiters, hat aber keinen Namen. Der Name ist der Text der Auswahl.",
+    "choice-not-after-user-task": "Der Weg „{{flow}}“ ist eine Wahl des Bearbeiters. Eine Wahl gibt es nur an einem exklusiven Gateway direkt nach einer Benutzeraufgabe.",
+    "choice-mixed": "Am Gateway „{{element}}“ ist die Wahl des Bearbeiters mit Ergebnissen von „{{task}}“ oder mit Feldbedingungen gemischt. Eine Aufgabe hat entweder Ergebnisse oder eine Wahl.",
+    "unknown-choice-condition": "Der Weg „{{flow}}“ fragt die Wahl „{{choice}}“ ab. Ein Weg mit Wahl fragt immer seine eigene ID ab.",
+    "raci-unknown-field": "„{{element}}“: Das Feld {{field}} steht nicht in der Feldliste.",
+    "multiple-none-start-events": "„{{element}}“ ist ein weiteres Startereignis ohne Auslöser. Ein Prozess hat nur eines („{{first}}“); weitere Wege beginnen mit einem Nachrichtenstartereignis.",
+    "service-task-without-action": "Die automatische Aufgabe „{{element}}“ hat keine Aktion. Zur Ausführung braucht sie einen IT-Service mit einer Aktion (bestadd:actionRef), die das System ausführt."
   },
   "panel": {
     "translations": "Übersetzungen",
@@ -110,7 +127,52 @@
     "rules": "Regeln",
     "rulesDescription": "Beschreibung der Regeln",
     "rulesDescriptionHint": "Was beim Übergang geprüft oder getan wird, in Worten.",
-    "rulesOnlyActions": "Diese Aufgabe schließt niemand ab; sie hat nur Start- und Folgeaktionen."
+    "rulesOnlyActions": "Diese Aufgabe schließt niemand ab; sie hat nur Start- und Folgeaktionen.",
+    "timing": "Planwerte",
+    "timingEffort": "Aufwand {{assignee}} (D) je Ausführung",
+    "timingEffortHint": "Arbeitszeit für eine Ausführung, z. B. 30, 1h30m oder 2d (Arbeitstage). Grundlage für den Personalbedarf.",
+    "timingAccountableEffort": "Aufwand {{assignee}} (E) je Ausführung",
+    "timingAccountableHint": "Aufwand für Entscheidung oder Freigabe. 0, wenn die Freigabe als eigene Aufgabe modelliert ist.",
+    "timingConsultedEffort": "Aufwand {{assignee}} (M) je Ausführung",
+    "timingConsultedHint": "Optional.",
+    "timingDuration": "Dauer",
+    "timingDurationHint": "Vom Bereitstellen bis zum Abschluss einschließlich Liegezeit, in Arbeitszeit. Leer = gleich dem Aufwand des D.",
+    "timingWaiting": "Wartezeit",
+    "timingWaitingHint": "Erwartete Zeit bis das Ereignis eintritt, in Arbeitszeit.",
+    "timingInstances": "Erwartete Anzahl Instanzen",
+    "timingInstancesHint": "Nur nötig, wenn die Anzahl nicht aus der Zahl der D folgt.",
+    "timingProbability": "Wahrscheinlichkeit (%)",
+    "timingProbabilityHint": "Wie oft dieser Weg genommen wird. An einem Entweder-oder-Gateway ergeben alle Ausgänge zusammen 100 %.",
+    "timingInvalid": "Keine Dauer, z. B. 30, 45m, 1h30m oder 2d",
+    "timingInvalidNumber": "Eine Zahl über 0",
+    "timingInvalidProbability": "Eine Zahl von 0 bis 100",
+    "timingUnitDays": "AT",
+    "timingBoundaryProbabilityHint": "Wie oft dieses Ereignis je Ausführung der Aktivität eintritt.",
+    "calculation": "Rechnung aus den Planwerten",
+    "calcCycleTime": "Durchlaufzeit",
+    "calcCycleTimeValue": "Mittel {{mean}}, Median {{median}}, 85 % {{p85}}, 95 % {{p95}}",
+    "calcEffort": "Aufwand je Durchlauf",
+    "calcUnassigned": "ohne Zuständigkeit",
+    "calcCriticalPath": "Kritischer Pfad",
+    "calcMissing": "Fehlende Angaben",
+    "calcComplete": "Alle nötigen Planwerte sind eingetragen.",
+    "calcIncomplete": "Unvollständig: Es wird mit dem gerechnet, was da ist.",
+    "calcNone": "Noch keine Planwerte. Trage Aufwand und Dauer an den Aufgaben ein.",
+    "calcVisits": "Im Mittel {{visits}} Ausführungen je Durchlauf",
+    "calcHint": "In Arbeitszeit; ein Arbeitstag hat {{hours}} h. Die Durchlaufzeit kommt aus {{runs}} simulierten Durchläufen.",
+    "calcMissing_effort": "Aufwand des D",
+    "calcMissing_accountable-effort": "Aufwand des E",
+    "calcMissing_duration": "Wartezeit",
+    "calcMissing_probability": "Wahrscheinlichkeiten",
+    "calcMissing_boundary-probability": "Wahrscheinlichkeit des Grenzereignisses",
+    "calcMissing_instances": "Anzahl Instanzen",
+    "calcMissing_called-process": "aufgerufener Prozess nicht gefunden",
+    "calcMissing_endless-loop": "Schleife ohne Ausgang",
+    "conditionChoice": "(Wahl des Bearbeiters)",
+    "conditionChoiceDescription": "Der Bearbeiter der Aufgabe davor wählt diesen Weg beim Abschluss. Der Name des Wegs ist der Text der Auswahl; der Status ändert sich nicht.",
+    "resultLabel": "Text in der Auswahl",
+    "resultLabelDescription": "Text, den der Bearbeiter beim Abschluss für dieses Ergebnis sieht, z. B. „Zurückweisen“. Leer: Name des Status.",
+    "resultLabelTranslation": "Text in der Auswahl ({{language}})"
   },
   "ruleKind": {
     "condition": "Bedingung",
@@ -121,7 +183,8 @@
   },
   "gateway": {
     "person": "Entscheidung einer Person (Ergebnis der Aufgabe davor)",
-    "system": "Automatische Entscheidung (Feldwerte)"
+    "system": "Automatische Entscheidung (Feldwerte)",
+    "choice": "Wahl des Bearbeiters (Namen der Wege)"
   },
   "raci": {
     "title": "Verantwortlichkeiten (DEMI)",
@@ -145,13 +208,15 @@
   "lane": {
     "title": "Rolle/Gruppe",
     "role": "Rolle oder Gruppe",
-    "description": "Aus dem Katalog oder frei eingegeben. Ist D für alle Aufgaben auf der Lane.",
+    "description": "Aus dem Katalog oder frei eingegeben. Ist D für alle Aufgaben auf der Lane. Dynamisch geht auch field(…), firstOf(field(coach), field(responsible_person)) oder approvalChain(…); der Name der Lane ist dann frei.",
     "poolDescription": "Aus dem Katalog oder frei eingegeben. Ist D für alle Aufgaben, solange der Pool keine Lanes hat.",
     "kind": {
       "group": "Gruppe",
       "role": "Rolle"
     },
-    "poolHasLanes": "Der Pool hat Lanes. D kommt immer aus der Lane der Aufgabe."
+    "poolHasLanes": "Der Pool hat Lanes. D kommt immer aus der Lane der Aufgabe.",
+    "dynamic": "{{expression}} (dynamisch)",
+    "placeholder": "Rolle oder Gruppe suchen, eingeben oder firstOf(…) tippen …"
   },
   "picker": {
     "placeholder": "Rolle oder Gruppe suchen oder eingeben …",
@@ -200,7 +265,22 @@
       "result-condition-at-task": "Nach dem Ergebnis einer Person mit einem Gateway verzweigen",
       "unknown-rule-kind": "Nur bekannte Regel-Kennzeichen",
       "rule-kind-not-allowed": "Aufgaben ohne Person haben nur Start- und Folgeaktionen",
-      "script-task-with-script": "Skriptaufgaben enthalten keinen Skripttext"
+      "script-task-with-script": "Skriptaufgaben enthalten keinen Skripttext",
+      "raci-unknown-field": "Felder in field(…) stehen in der Feldliste (nur mit Feldliste)",
+      "multiple-none-start-events": "Nur ein Startereignis ohne Auslöser je Prozess",
+      "service-task-without-action": "Automatische Aufgaben haben eine Aktion",
+      "multiple-actions": "Höchstens eine Aktion je Aktivität",
+      "script-task-without-action": "Skriptaufgaben nennen eine interne Aktion (internalAction)",
+      "internal-action-not-on-script-task": "Interne Aktionen nur an Skriptaufgaben",
+      "choice-without-name": "Wege mit Wahl des Bearbeiters haben einen Namen",
+      "choice-not-after-user-task": "Wahl des Bearbeiters nur am exklusiven Gateway direkt nach einer Benutzeraufgabe",
+      "choice-mixed": "Wahl des Bearbeiters nicht mit Ergebnissen oder Feldbedingungen mischen",
+      "unknown-choice-condition": "Ein Weg mit Wahl fragt seine eigene ID ab",
+      "invalid-planning-value": "Planwerte sind lesbar (nur mit Planwerten)",
+      "gateway-without-probabilities": "Jeder Ausgang eines Gateways hat eine Wahrscheinlichkeit (nur mit Planwerten)",
+      "probabilities-not-100": "Wahrscheinlichkeiten am Entweder-oder ergeben 100 % (nur mit Planwerten)",
+      "boundary-without-probability": "Grenzereignisse haben eine Wahrscheinlichkeit (nur mit Planwerten)",
+      "accountable-without-effort": "Aufgaben mit E haben einen Aufwand des E (nur mit Planwerten)"
     }
   },
   "catalog": {

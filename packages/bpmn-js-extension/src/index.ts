@@ -18,6 +18,8 @@ import { RaciCommands } from './raci';
 import { RuleCommands } from './rules';
 import RuleOverlays from './RuleOverlays';
 import RulesPropertiesProvider from './RulesPropertiesProvider';
+import { TimingCommands } from './timing';
+import TimingPropertiesProvider from './TimingPropertiesProvider';
 import RaciPropertiesProvider from './RaciPropertiesProvider';
 import { TranslationCommands } from './translations';
 import TranslationsPropertiesProvider from './TranslationsPropertiesProvider';
@@ -34,6 +36,7 @@ export const bestbpmnModule = {
     'bestbpmnRaciCommands',
     'bestbpmnServiceOverlays',
     'bestbpmnRuleCommands',
+    'bestbpmnTimingCommands',
     'bestbpmnRuleOverlays',
     'bestbpmnGatewayOverlays',
   ],
@@ -47,6 +50,7 @@ export const bestbpmnModule = {
   bestbpmnRaciCommands: ['type', RaciCommands],
   bestbpmnServiceOverlays: ['type', ServiceOverlays],
   bestbpmnRuleCommands: ['type', RuleCommands],
+  bestbpmnTimingCommands: ['type', TimingCommands],
   bestbpmnRuleOverlays: ['type', RuleOverlays],
   bestbpmnGatewayOverlays: ['type', GatewayOverlays],
 };
@@ -67,6 +71,7 @@ export const bestbpmnPropertiesProviderModule = {
     'bestbpmnReadOnlyIdsProvider',
     'bestbpmnConditionProvider',
     'bestbpmnRulesProvider',
+    'bestbpmnTimingProvider',
   ],
   bestbpmnStatusProvider: ['type', StatusPropertiesProvider],
   bestbpmnLaneProvider: ['type', LanePropertiesProvider],
@@ -77,6 +82,7 @@ export const bestbpmnPropertiesProviderModule = {
   bestbpmnReadOnlyIdsProvider: ['type', ReadOnlyIdsProvider],
   bestbpmnConditionProvider: ['type', ConditionPropertiesProvider],
   bestbpmnRulesProvider: ['type', RulesPropertiesProvider],
+  bestbpmnTimingProvider: ['type', TimingPropertiesProvider],
 };
 
 /** moddle-Erweiterungen, die der Modellierer kennen muss. */
@@ -88,6 +94,7 @@ export { UPDATE_ATTRIBUTE, type BestbpmnConfig } from './attributes';
 export { translateModule, resolveI18n } from './i18n';
 export { UPDATE_RACI } from './raci';
 export { UPDATE_RULES } from './rules';
+export { UPDATE_TIMING } from './timing';
 export { UPDATE_TRANSLATION } from './translations';
 export { fileNameFor, modelName, singleParticipant } from './processRoot';
 export type { default as StatusCheck } from './StatusCheck';
