@@ -7,7 +7,8 @@ const OVERLAY_TYPE = 'bestbpmn-gateway';
 
 /**
  * Zeigt an exklusiven und inklusiven Gateways, wer entscheidet: 👤 verzweigt nach dem Ergebnis einer
- * Person, ⚙ nach Feldwerten. Erkannt wird das an den Bedingungen der Wege; gespeichert wird nichts.
+ * Person, ☑ nach der Wahl des Bearbeiters, ⚙ nach Feldwerten. Erkannt wird das an den Bedingungen der
+ * Wege; gespeichert wird nichts.
  */
 export default class GatewayOverlays {
   static $inject = ['eventBus', 'overlays', 'elementRegistry', 'config.bestbpmn'];
@@ -33,14 +34,20 @@ export default class GatewayOverlays {
       if (element.labelTarget || !(is(bo, 'bpmn:ExclusiveGateway') || is(bo, 'bpmn:InclusiveGateway'))) {
         continue;
       }
-      const { person, system } = gatewayDeciders(bo as any);
-      if (!person && !system) {
+      const { person, system, choice } = gatewayDeciders(bo as any);
+      if (!person && !system && !choice) {
         continue;
       }
       const node = document.createElement('div');
       node.className = 'bestbpmn-gateway';
-      node.textContent = [person ? '👤' : '', system ? '⚙' : ''].join('');
-      node.title = [person ? this.i18n.t('gateway.person') : '', system ? this.i18n.t('gateway.system') : ''].filter(Boolean).join('\n');
+      node.textContent = [person ? '👤' : '', choice ? '☑' : '', system ? '⚙' : ''].join('');
+      node.title = [
+        person ? this.i18n.t('gateway.person') : '',
+        choice ? this.i18n.t('gateway.choice') : '',
+        system ? this.i18n.t('gateway.system') : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
       this.overlays.add(element.id, OVERLAY_TYPE, { position: { top: -14, right: 2 }, html: node });
     }
   }

@@ -6,7 +6,11 @@ import {
   deriveElementTables,
   deriveRaciMatrices,
   deriveStatusModels,
+  fieldsOf,
+  formatAssignee,
   formatAssignees,
+  fromAssignee,
+  parseAssignee,
   parseAssignees,
   readRaci,
 } from '../src/index.js';
@@ -33,6 +37,46 @@ describe('RACI-Schreibweise', () => {
       invalid: ['Autoren', 'foo(x)', 'initiator(x)'],
     });
     expect(parseAssignees('')).toEqual({ assignees: [], invalid: [] });
+  });
+});
+
+describe('firstOf(…) und approvalChain(…)', () => {
+  it('liest und schreibt verschachtelte Zuordnungen', () => {
+    const first = parseAssignee('firstOf(field(coach), field(responsible_person))');
+    expect(first).toEqual({ kind: 'firstOf', of: [{ kind: 'field', ref: 'coach' }, { kind: 'field', ref: 'responsible_person' }] });
+    expect(formatAssignee(first!)).toBe('firstOf(field(coach), field(responsible_person))');
+    expect(fieldsOf(first!)).toEqual(['coach', 'responsible_person']);
+    const chain = parseAssignee('approvalChain(review, performerOf(Erstellen))');
+    expect(chain).toEqual({ kind: 'approvalChain', name: 'review', start: { kind: 'performerOf', ref: 'Erstellen' } });
+    expect(formatAssignee(parseAssignee('approvalChain( field(responsible_person) )')!)).toBe('approvalChain(field(responsible_person))');
+    // In einer Liste trennt nur das Komma außerhalb der Klammern.
+    expect(parseAssignees('firstOf(field(a), initiator()), group(x)').assignees.map(formatAssignee)).toEqual([
+      'firstOf(field(a), initiator())',
+      'group(x)',
+    ]);
+  });
+
+  it('lehnt verschachteltes firstOf, Ketten in firstOf und unbekannte Starts ab', () => {
+    expect(parseAssignee('firstOf(firstOf(field(a)))')).toBeUndefined();
+    expect(parseAssignee('firstOf(approvalChain(field(a)))')).toBeUndefined();
+    expect(parseAssignee('firstOf()')).toBeUndefined();
+    expect(parseAssignee('approvalChain(group(x))')).toBeUndefined();
+    expect(parseAssignee('approvalChain(a, b, field(c))')).toBeUndefined();
+    expect(parseAssignee('field(field(a))')).toBeUndefined();
+  });
+
+  it('schreibt verschachtelte Zuordnungen in raci:dynamic als Ausdruck und liest sie wieder', async () => {
+    expect(fromAssignee(parseAssignee('firstOf(field(a), role(b))')!)).toEqual({
+      type: 'raci:Dynamic',
+      attrs: { expression: 'firstOf(field(a), role(b))' },
+    });
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:raci="urn:bestadd:raci:1.0" id="D" targetNamespace="t">
+  <bpmn:process id="P"><bpmn:userTask id="A"><bpmn:extensionElements>
+    <raci:consulted><raci:dynamic expression="firstOf(field(coach), role(owner))" /></raci:consulted>
+  </bpmn:extensionElements></bpmn:userTask></bpmn:process></bpmn:definitions>`;
+    const { elementsById } = await createModdle().fromXML(xml);
+    expect(formatAssignees(readRaci(elementsById['A'] as any).consulted)).toBe('firstOf(field(coach), role(owner))');
   });
 });
 
@@ -71,9 +115,9 @@ describe('RACI-Prüfregeln', () => {
     `<bpmn:potentialOwner><bpmn:resourceAssignmentExpression><bpmn:formalExpression>${text}</bpmn:formalExpression></bpmn:resourceAssignmentExpression></bpmn:potentialOwner>`;
   const codes = async (body: string, lanes = '') => {
     const { deriveStatusModels: derive } = await import('../src/index.js');
-    // Die Regel für IT-Services hat eigene Tests.
+    // Die Regeln für IT-Services und Aktionen haben eigene Tests.
     const deriveStatusModels = (...[xml, catalog, options]: Parameters<typeof derive>) =>
-      derive(xml, catalog, { ...options, disabledRules: ['task-without-service', ...(options?.disabledRules ?? [])] });
+      derive(xml, catalog, { ...options, disabledRules: ['task-without-service', 'service-task-without-action', ...(options?.disabledRules ?? [])] });
     const [m] = await deriveStatusModels(
       `${head}<bpmn:process id="P"><bpmn:dataObject id="V" name="Prozess" />${lanes}${body}</bpmn:process></bpmn:definitions>`,
     );
@@ -170,9 +214,9 @@ describe('RACI-Prüfregeln', () => {
 
   it('warnt bei Rollen und Gruppen, die die Tabelle nicht kennt', async () => {
     const { deriveStatusModels: derive } = await import('../src/index.js');
-    // Die Regel für IT-Services hat eigene Tests.
+    // Die Regeln für IT-Services und Aktionen haben eigene Tests.
     const deriveStatusModels = (...[xml, catalog, options]: Parameters<typeof derive>) =>
-      derive(xml, catalog, { ...options, disabledRules: ['task-without-service', ...(options?.disabledRules ?? [])] });
+      derive(xml, catalog, { ...options, disabledRules: ['task-without-service', 'service-task-without-action', ...(options?.disabledRules ?? [])] });
     const [m] = await deriveStatusModels(
       `${head}<bpmn:process id="P"><bpmn:userTask id="A">${owner('group(gibts_nicht)')}</bpmn:userTask>
        <bpmn:userTask id="B">${owner('role(process_owner)')}</bpmn:userTask></bpmn:process></bpmn:definitions>`,
@@ -195,6 +239,33 @@ describe('RACI-Prüfregeln', () => {
         ),
       ),
     ).toEqual([]);
+  });
+
+  it('nimmt field(…), firstOf(…) und approvalChain(…) als Zuordnung einer Lane', async () => {
+    const lanes = `<bpmn:laneSet id="LS">
+      <bpmn:lane id="Bearbeitung" raci:assignee="firstOf(field(coach), field(responsible_person))"><bpmn:flowNodeRef>A</bpmn:flowNodeRef></bpmn:lane>
+      <bpmn:lane id="Freigabe" raci:assignee="approvalChain(field(responsible_person))"><bpmn:flowNodeRef>B</bpmn:flowNodeRef></bpmn:lane>
+      <bpmn:lane id="Owner" raci:assignee="field(responsible_person)"><bpmn:flowNodeRef>C</bpmn:flowNodeRef></bpmn:lane></bpmn:laneSet>`;
+    const body = `<bpmn:userTask id="A" /><bpmn:userTask id="B" /><bpmn:userTask id="C" />`;
+    expect(await codes(body, lanes)).toEqual([]);
+    const xml = `${head}<bpmn:process id="P">${lanes}${body}</bpmn:process></bpmn:definitions>`;
+    const { rootElement } = await createModdle().fromXML(xml);
+    expect(deriveRaciMatrices(rootElement)[0]!.rows.map((r) => [r.elementId, formatAssignees(r.raci.responsible)])).toEqual([
+      ['A', 'firstOf(field(coach), field(responsible_person))'],
+      ['B', 'approvalChain(field(responsible_person))'],
+      ['C', 'field(responsible_person)'],
+    ]);
+    // Nur mit einer Feldliste meldet die Prüfung unbekannte Felder, auch in firstOf(…).
+    const unknownFields = async (catalog: { fields?: string[] }) =>
+      (await deriveStatusModels(xml, catalog))[0]!.issues.filter((i) => i.code === 'raci-unknown-field').map((i) => [i.elementId, i.params.field]);
+    expect(await unknownFields({ fields: ['responsible_person'] })).toEqual([['A', 'coach']]);
+    expect(await unknownFields({})).toEqual([]);
+  });
+
+  it('meldet unbekannte Rollen und Gruppen auch in firstOf(…)', async () => {
+    const xml = `${head}<bpmn:process id="P"><bpmn:userTask id="A">${owner('firstOf(field(coach), group(gibtsnicht))')}</bpmn:userTask></bpmn:process></bpmn:definitions>`;
+    const [m] = await deriveStatusModels(xml, { roles: [{ id: 'owner', name: 'Owner', kind: 'role' }] });
+    expect(m!.issues.filter((i) => i.code === 'raci-unknown-assignee').map((i) => i.params.assignee)).toEqual(['group(gibtsnicht)']);
   });
 });
 

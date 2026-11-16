@@ -172,7 +172,7 @@ describe('Einstellungen', () => {
     const onChange = vi.fn();
     renderRulesPanel(div, disabledRulesOf('document'), t, onChange);
     expect(div.querySelector<HTMLSelectElement>('#rule-profile')!.value).toBe('document');
-    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(23);
+    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(38);
     expect(div.querySelector<HTMLInputElement>('[data-rule="lane-without-role"]')!.checked).toBe(false);
 
     const box = div.querySelector<HTMLInputElement>('[data-rule="unknown-state"]')!;
@@ -183,7 +183,10 @@ describe('Einstellungen', () => {
       'flow-without-condition',
       'lane-without-role',
       'multi-instance-single-responsible',
+      'multiple-none-start-events',
       'raci-missing-responsible',
+      'script-task-without-action',
+      'service-task-without-action',
       'task-without-service',
       'unknown-state',
     ]);

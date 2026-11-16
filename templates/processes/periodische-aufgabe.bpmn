@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:raci="urn:bestadd:raci:1.0"
+                  xmlns:bestadd="urn:bestadd:schema:1.0"
+                  id="Definitions_PeriodischeAufgabe"
+                  bestadd:language="de"
+                  targetNamespace="urn:bestadd:templates">
+  <!--
+    Beispiel für eine periodische Aufgabe: Texte in der Auswahl an den Ergebnissen, dynamisches D mit firstOf(…), Zeitgeber mit Kalender.
+    Eine Aufgabe, die wiederholt anfällt, bleibt ein Vorgang; jede Runde ist eine neue Ausführung von „Aufgabe durchführen“.
+    Nach jeder Runde wartet der Timer eine Woche (P7D), dann beginnt die nächste. Wer beim Erledigen „Aufgabe einstellen“ wählt, beendet
+    die Schleife; der Vorgang geht auf „Geschlossen“. Den Takt ändert man am Timer (z. B. P1D, P1M); mit dem Attribut
+    Geschäftskalender rechnet er in Arbeitszeit.
+  -->
+  <bpmn:process id="periodische_aufgabe" name="Periodische Aufgabe" isExecutable="true">
+    <bpmn:documentation textFormat="text/markdown">Eine wiederkehrende Aufgabe: Jede Runde ist eine eigene Ausführung. Nach dem Erledigen wartet der Ablauf bis zur nächsten Runde, bis jemand die Aufgabe einstellt.</bpmn:documentation>
+    <bpmn:extensionElements>
+      <bestadd:translations>
+        <bestadd:translation lang="en" name="Periodic task">A recurring task: every round is its own run. After completion the flow waits for the next round until someone discontinues the task.</bestadd:translation>
+      </bestadd:translations>
+    </bpmn:extensionElements>
+    <bpmn:dataObject id="Prozess" name="Prozess" />
+    <bpmn:dataObjectReference id="Ref_Aktiv" name="Prozess [active]" dataObjectRef="Prozess">
+      <bpmn:dataState id="State_Aktiv" bestadd:key="active" name="active" />
+    </bpmn:dataObjectReference>
+    <bpmn:dataObjectReference id="Ref_Geschlossen" name="Prozess [closed]" dataObjectRef="Prozess">
+      <bpmn:dataState id="State_Geschlossen" bestadd:key="closed" name="closed" />
+    </bpmn:dataObjectReference>
+
+    <bpmn:startEvent id="Start" name="Aufgabe angelegt">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Durchfuehren" name="Aufgabe durchführen">
+      <bpmn:documentation textFormat="text/markdown">Führe die Aufgabe für diese Runde durch und hake die Checkliste ab. Wähle „Nächste Runde“, wenn die Aufgabe weiterläuft, oder „Aufgabe einstellen“, wenn sie endet.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <raci:informed><raci:dynamic initiator="true" /></raci:informed>
+        <bestadd:translations>
+          <bestadd:translation lang="en" name="Perform task">Perform the task for this round and tick off the checklist. Choose "Next round" if the task continues or "Discontinue task" if it ends.</bestadd:translation>
+        </bestadd:translations>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="Out_Aktiv" bestadd:resultLabel="Nächste Runde">
+        <bpmn:extensionElements>
+          <bestadd:translations><bestadd:translation lang="en" name="Next round" /></bestadd:translations>
+        </bpmn:extensionElements>
+        <bpmn:targetRef>Ref_Aktiv</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="Out_Geschlossen" bestadd:resultLabel="Aufgabe einstellen">
+        <bpmn:extensionElements>
+          <bestadd:translations><bestadd:translation lang="en" name="Discontinue task" /></bestadd:translations>
+        </bpmn:extensionElements>
+        <bpmn:targetRef>Ref_Geschlossen</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:potentialOwner id="Owner_Durchfuehren">
+        <bpmn:resourceAssignmentExpression id="Expr_Durchfuehren">
+          <bpmn:formalExpression id="Formal_Durchfuehren">firstOf(field(assigned_person), initiator())</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:potentialOwner>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Weiter" name="Weiter?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:intermediateCatchEvent id="Naechste_Runde" name="Eine Woche bis zur nächsten Runde">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Timer_Woche" bestadd:businessCalendar="always">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P7D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:endEvent id="Ende" name="Aufgabe eingestellt">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start" targetRef="Durchfuehren" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Durchfuehren" targetRef="Weiter" />
+    <bpmn:sequenceFlow id="Flow_3" name="weiter" sourceRef="Weiter" targetRef="Naechste_Runde">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == 'active'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_4" name="einstellen" sourceRef="Weiter" targetRef="Ende">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == 'closed'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Naechste_Runde" targetRef="Durchfuehren" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_PeriodischeAufgabe">
+    <bpmndi:BPMNPlane id="Plane_PeriodischeAufgabe" bpmnElement="periodische_aufgabe">
+      <bpmndi:BPMNShape id="Start_di" bpmnElement="Start">
+        <dc:Bounds x="152" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Durchfuehren_di" bpmnElement="Durchfuehren">
+        <dc:Bounds x="250" y="160" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Weiter_di" bpmnElement="Weiter" isMarkerVisible="true">
+        <dc:Bounds x="435" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Naechste_Runde_di" bpmnElement="Naechste_Runde">
+        <dc:Bounds x="442" y="302" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ende_di" bpmnElement="Ende">
+        <dc:Bounds x="562" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_Aktiv_di" bpmnElement="Ref_Aktiv">
+        <dc:Bounds x="222" y="40" width="36" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_Geschlossen_di" bpmnElement="Ref_Geschlossen">
+        <dc:Bounds x="362" y="40" width="36" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="200" />
+        <di:waypoint x="250" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="370" y="200" />
+        <di:waypoint x="435" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="460" y="225" />
+        <di:waypoint x="460" y="302" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="485" y="200" />
+        <di:waypoint x="562" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="442" y="320" />
+        <di:waypoint x="310" y="320" />
+        <di:waypoint x="310" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Aktiv_di" bpmnElement="Out_Aktiv">
+        <di:waypoint x="290" y="160" />
+        <di:waypoint x="250" y="90" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Out_Geschlossen_di" bpmnElement="Out_Geschlossen">
+        <di:waypoint x="330" y="160" />
+        <di:waypoint x="370" y="90" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

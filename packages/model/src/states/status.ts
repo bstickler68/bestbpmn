@@ -1,17 +1,20 @@
 import { BpmnModdle } from 'bpmn-moddle';
 import raci from '../moddle/raci.json' with { type: 'json' };
 import bestadd from '../moddle/bestadd.json' with { type: 'json' };
-import { modelLanguage, readStateTranslations } from '../i18n/translations.js';
+import { modelLanguage, readStateTranslations, readTranslations } from '../i18n/translations.js';
 import { stateKey } from './key.js';
 import { checkLanes, checkRaci, findParticipant, laneMap } from '../raci/check.js';
-import { checkTaskServices } from '../rules/services.js';
+import { checkTaskActions, checkTaskServices } from '../rules/services.js';
+import { checkStartEvents } from '../rules/starts.js';
+import { readRaci } from '../raci/read.js';
+import { checkTiming } from '../timing/read.js';
 import { checkRuleMarks, checkScriptTasks, checkSequenceFlows } from '../rules/transitions.js';
 import { parseStateLabel } from './label.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
 import { filterIssues } from '../rules/profiles.js';
 import { positions, tableOrder } from '../report/elements.js';
-import type { IssueCode, ModdleElement, Moddle, ModelIssue, StatusChange, StatusModel } from './types.js';
+import type { IssueCode, ModdleElement, Moddle, ModelIssue, ResultLabel, StatusChange, StatusModel } from './types.js';
 
 /** Einstellungen der Prüfung. */
 export interface CheckOptions {
@@ -187,11 +190,27 @@ function deriveModel(
       continue;
     }
 
+    const outputLabels: Record<string, ResultLabel> = {};
+    for (const association of (el.dataOutputAssociations ?? []) as El[]) {
+      const key = statusOf.get(association.targetRef as El);
+      const label = typeof association.resultLabel === 'string' ? association.resultLabel.trim() : '';
+      if (!key || !label || outputLabels[key]) {
+        continue;
+      }
+      const translations: Record<string, string> = {};
+      for (const [lang, text] of Object.entries(readTranslations(association))) {
+        if (text.name?.trim()) {
+          translations[lang] = text.name.trim();
+        }
+      }
+      outputLabels[key] = { label, translations };
+    }
     const change: StatusChange = {
       elementId: el.id ?? '',
       ...(el.name ? { elementName: el.name } : {}),
       elementType: el.$type,
       outputs: unique(outputs.map((ref) => statusOf.get(ref))),
+      ...(Object.keys(outputLabels).length ? { outputLabels } : {}),
       documentedInputs: unique(inputs.map((ref) => statusOf.get(ref))),
     };
     change.documentedInputs.forEach(addStatus);
@@ -207,7 +226,11 @@ function deriveModel(
   // Aktivitäten ohne Status geben, z. B. manuelle Tätigkeiten.
   const settingStatus = new Set(changes.filter((c) => c.outputs.length > 0).map((c) => c.elementId));
   const initialStatuses: string[] = [];
+  const initialActivities: string[] = [];
   for (const activity of firstStatusActivities(pools, root.collaboration, settingStatus)) {
+    if (activity.id && !initialActivities.includes(activity.id)) {
+      initialActivities.push(activity.id);
+    }
     for (const status of changes.find((c) => c.elementId === activity.id)?.outputs ?? []) {
       if (!initialStatuses.includes(status)) {
         initialStatuses.push(status);
@@ -232,10 +255,14 @@ function deriveModel(
   for (const { process, participant } of pools) {
     issues.push(
       ...checkLanes(process, participant),
-      ...checkRaci(collectFlowElements(process), laneMap(process, participant), catalog.roles),
+      ...checkRaci(collectFlowElements(process), laneMap(process, participant), catalog.roles, catalog.fields),
       ...checkTaskServices(collectFlowElements(process)),
+      ...checkTaskActions(collectFlowElements(process)),
+      ...checkStartEvents(process),
       ...checkRuleMarks(collectFlowElements(process)),
       ...checkScriptTasks(collectFlowElements(process)),
+      // Planwerte sind abschaltbar und standardmäßig aus; ohne sie gibt es keine Hinweise dazu.
+      ...(catalog.planningValues === true ? checkTiming(collectFlowElements(process), (el) => readRaci(el).accountable.length > 0) : []),
     );
   }
   // Nach den Statuswechseln, weil Bedingungen auf Ergebnisse die Outputs der Aufgaben davor brauchen.
@@ -270,6 +297,7 @@ function deriveModel(
     statusNames,
     statusTranslations,
     initialStatuses,
+    initialActivities,
     changes,
     issues,
   };

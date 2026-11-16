@@ -13,17 +13,34 @@ export type IssueCode =
   | 'raci-multiple-responsible'
   | 'raci-multiple-accountable'
   | 'raci-unknown-assignee'
+  | 'raci-unknown-field'
   | 'lane-without-role'
   | 'multi-instance-single-responsible'
   | 'task-without-service'
+  | 'multiple-none-start-events'
+  | 'service-task-without-action'
+  | 'multiple-actions'
   | 'flow-without-condition'
   | 'conditional-flows-without-default'
   | 'unknown-result-condition'
   | 'either-or-at-task'
   | 'result-condition-at-task'
+  // Wahl des Bearbeiters am Gateway.
+  | 'choice-without-name'
+  | 'choice-not-after-user-task'
+  | 'choice-mixed'
+  | 'unknown-choice-condition'
   | 'unknown-rule-kind'
   | 'rule-kind-not-allowed'
-  | 'script-task-with-script';
+  | 'script-task-with-script'
+  | 'script-task-without-action'
+  | 'internal-action-not-on-script-task'
+  // Planwerte für Durchlaufzeit und Personalbedarf; nur Hinweise, nur wenn die Planwerte eingeschaltet sind.
+  | 'invalid-planning-value'
+  | 'gateway-without-probabilities'
+  | 'probabilities-not-100'
+  | 'accountable-without-effort'
+  | 'boundary-without-probability';
 
 /**
  * Ein Verstoß gegen die Modellierregeln. Enthält nur Code und Parameter;
@@ -51,8 +68,19 @@ export interface StatusChange {
    * Mehr als einer = alternative Ergebnisse; die bearbeitende Person wählt einen davon.
    */
   outputs: string[];
+  /**
+   * Eigener Text eines Ergebnisses für die Auswahl beim Abschluss (`bestadd:resultLabel`), je Statusschlüssel.
+   * Fehlt er, zeigt die Auswahl den Namen des Status.
+   */
+  outputLabels?: Record<string, ResultLabel>;
   /** Schlüssel der Status aus Input-Verknüpfungen. Nur Dokumentation, steuert nichts. */
   documentedInputs: string[];
+}
+
+/** Text eines Ergebnisses in der Auswahl: in der Hauptsprache und übersetzt. */
+export interface ResultLabel {
+  label: string;
+  translations: Record<string, string>;
 }
 
 /**
@@ -82,6 +110,8 @@ export interface StatusModel {
    * Bis sie abgeschlossen ist, hat der Vorgang keinen Status.
    */
   initialStatuses: string[];
+  /** IDs der Aktivitäten, die den Anfangsstatus setzen (je Startereignis die erste mit Output auf „Prozess“). */
+  initialActivities: string[];
   changes: StatusChange[];
   issues: ModelIssue[];
 }

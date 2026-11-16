@@ -12,6 +12,8 @@
  * | `performerOf(Erstellen)` | wer eine frühere Aktivität bearbeitet hat |
  * | `notPerformerOf(Erstellen)` | Vier-Augen-Prinzip: nicht, wer diese Aktivität bearbeitet hat |
  * | `orgRole(Leitung, autor)` | eine Rolle in der Organisationseinheit der Person aus einem Feld |
+ * | `firstOf(field(coach), field(responsible_person))` | der erste Eintrag, der jemanden ergibt |
+ * | `approvalChain(field(responsible_person))` | die Freigabekette ab einer Person; mit Name `approvalChain(review, …)` |
  */
 export type Assignee =
   | { kind: 'user'; ref: string }
@@ -21,11 +23,21 @@ export type Assignee =
   | { kind: 'initiator' }
   | { kind: 'performerOf'; ref: string }
   | { kind: 'notPerformerOf'; ref: string }
-  | { kind: 'orgRole'; ref: string; of?: string };
+  | { kind: 'orgRole'; ref: string; of?: string }
+  | { kind: 'firstOf'; of: Assignee[] }
+  | { kind: 'approvalChain'; start: Assignee; name?: string };
+
+/** Was in `firstOf(…)` stehen darf: kein weiteres `firstOf(…)`, keine Kette. */
+export const FIRST_OF_KINDS: AssigneeKind[] = ['field', 'role', 'group', 'initiator', 'performerOf'];
+/** Womit eine Freigabekette beginnen kann. */
+export const CHAIN_START_KINDS: AssigneeKind[] = ['field', 'initiator', 'performerOf', 'role'];
+/** Was eine Swimlane als D annimmt. */
+export const LANE_KINDS: AssigneeKind[] = ['role', 'group', 'field', 'firstOf', 'approvalChain'];
 
 export type AssigneeKind = Assignee['kind'];
 
-const CALL = /^\s*([A-Za-z]+)\s*\(\s*([^()]*)\s*\)\s*$/;
+const CALL = /^\s*([A-Za-z]+)\s*\(([\s\S]*)\)\s*$/;
+const NAME = /^[A-Za-z_][\w-]*$/;
 
 /** Ergebnis von `parseAssignees`: erkannte Zuordnungen und nicht lesbare Teile. */
 export interface ParsedAssignees {
@@ -54,10 +66,26 @@ export function parseAssignee(text: string): Assignee | undefined {
     return undefined;
   }
   const kind = match[1]!;
-  const args = match[2]!
-    .split(',')
+  const inner = match[2]!;
+  const args = splitTopLevel(inner)
     .map((a) => a.trim())
     .filter(Boolean);
+  if (kind === 'firstOf') {
+    const of = args.map(parseAssignee);
+    return of.length && of.every((a): a is Assignee => !!a && FIRST_OF_KINDS.includes(a.kind)) ? { kind, of } : undefined;
+  }
+  if (kind === 'approvalChain') {
+    const [name, startText] = args.length === 2 ? args : [undefined, args[0]];
+    const start = args.length === 1 || args.length === 2 ? parseAssignee(startText ?? '') : undefined;
+    if (!start || !CHAIN_START_KINDS.includes(start.kind) || (name !== undefined && !NAME.test(name))) {
+      return undefined;
+    }
+    return name ? { kind, start, name } : { kind, start };
+  }
+  // Die übrigen Schreibweisen haben nur einfache Argumente.
+  if (/[()]/.test(inner)) {
+    return undefined;
+  }
   const [first, second] = args;
   switch (kind) {
     case 'user':
@@ -83,6 +111,10 @@ export function formatAssignee(assignee: Assignee): string {
       return 'initiator()';
     case 'orgRole':
       return assignee.of ? `orgRole(${assignee.ref}, ${assignee.of})` : `orgRole(${assignee.ref})`;
+    case 'firstOf':
+      return `firstOf(${assignee.of.map(formatAssignee).join(', ')})`;
+    case 'approvalChain':
+      return `approvalChain(${assignee.name ? `${assignee.name}, ` : ''}${formatAssignee(assignee.start)})`;
     default:
       return `${assignee.kind}(${assignee.ref})`;
   }
@@ -109,4 +141,20 @@ function splitTopLevel(text: string): string[] {
   }
   parts.push(current);
   return parts;
+}
+
+/** Alle Felder, die eine Zuordnung liest, auch in `firstOf(…)` und `approvalChain(…)`, z. B. `['coach']`. */
+export function fieldsOf(assignee: Assignee): string[] {
+  switch (assignee.kind) {
+    case 'field':
+      return [assignee.ref];
+    case 'orgRole':
+      return assignee.of ? [assignee.of] : [];
+    case 'firstOf':
+      return assignee.of.flatMap(fieldsOf);
+    case 'approvalChain':
+      return fieldsOf(assignee.start);
+    default:
+      return [];
+  }
 }

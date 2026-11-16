@@ -52,7 +52,22 @@ export default class TranslationsPropertiesProvider {
       }
       // Ein Prozess mit Swimlanes ist eine Collaboration mit einem Pool; übersetzt wird der Prozess.
       const target = is(bo, 'bpmn:Participant') ? bo.processRef : (processOfRoot(bo) ?? bo);
-      if (target && (is(target, 'bpmn:FlowNode') || is(target, 'bpmn:Process'))) {
+      // Beschriftung einer Ausgabe auf „Prozess“: übersetzt wird nur der Text in der Auswahl.
+      if (is(bo, 'bpmn:DataOutputAssociation') && bo.resultLabel) {
+        for (const lang of others) {
+          entries.push({
+            id: `bestbpmn-translation-${lang}-result-label`,
+            component: TranslationEntry,
+            target: bo,
+            lang,
+            field: 'name',
+            label: t('panel.resultLabelTranslation', { language: t(`language.${lang}`) }),
+            isEdited: isTextFieldEntryEdited,
+          });
+        }
+      }
+      // Namen von Wegen sind die Texte einer Wahl am Gateway.
+      if (target && (is(target, 'bpmn:FlowNode') || is(target, 'bpmn:Process') || is(target, 'bpmn:SequenceFlow'))) {
         for (const lang of others) {
           const language = t(`language.${lang}`);
           entries.push(

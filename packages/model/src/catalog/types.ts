@@ -56,6 +56,16 @@ export function findRole(
 export interface Catalog {
   states?: StatusDefinition[];
   roles?: RoleDefinition[];
+  /**
+   * Felder des Vorgangs, die `field(…)` lesen darf, z. B. `['coach', 'responsible_person']`.
+   * Ohne Angabe werden Felder nicht geprüft.
+   */
+  fields?: string[];
+  /**
+   * Planwerte prüfen? Nur mit `true` gibt es Hinweise zu Aufwand, Dauer und Wahrscheinlichkeiten;
+   * in bestbpmn folgt das dem Schalter „Planwerte“.
+   */
+  planningValues?: boolean;
 }
 
 /** Name eines Tabelleneintrags in einer Sprache; ohne Übersetzung der englische Name. */

@@ -15,10 +15,17 @@ export interface BestbpmnConfig {
   roles?: RoleDefinition[];
   /** Abgeschaltete Prüfregeln, z. B. `disabledRulesOf('document')` aus `@bestbpmn/model`. */
   disabledRules?: IssueCode[];
+  /** Felder des Vorgangs für `field(…)` an Lanes; ohne Angabe werden Felder nicht geprüft. */
+  fields?: string[];
   /** Sprache der Oberfläche, z. B. `de`. Standard ist Englisch. */
   language?: string;
   /** Übersetzungsfunktion aus `@bestbpmn/i18n`; fehlt sie, erzeugt der Modellierer eine eigene. */
   t?: TFunction;
+  /**
+   * Planwerte: `enabled` blendet Bereich, Rechnung und Hinweise ein (Vorgabe aus, in der App der Schalter
+   * „Planwerte“), dazu Minuten je Arbeitstag (Vorgabe 480) und simulierte Durchläufe (Vorgabe 2000).
+   */
+  planning?: { enabled?: boolean; minutesPerDay?: number; runs?: number };
 }
 
 export const UPDATE_ATTRIBUTE = 'bestbpmn.attribute.update';

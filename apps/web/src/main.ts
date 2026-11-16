@@ -43,6 +43,14 @@ const statusPanel = document.querySelector<HTMLElement>('#status')!;
 const raciPanel = document.querySelector<HTMLElement>('#raci')!;
 const languageSelect = document.querySelector<HTMLSelectElement>('#language')!;
 const showServices = document.querySelector<HTMLInputElement>('#show-services')!;
+/** Planwerte (Aufwand, Dauer, Wahrscheinlichkeit) und ihre Rechnung; standardmäßig aus, im Browser gemerkt. */
+const PLANNING_KEY = 'bestbpmn.planning';
+const planningToggle = document.querySelector<HTMLInputElement>('#planning')!;
+try {
+  planningToggle.checked = localStorage.getItem(PLANNING_KEY) === 'on';
+} catch {
+  // Ohne Speicher bleiben die Planwerte aus.
+}
 const nameLabel = document.querySelector<HTMLElement>('#model-name')!;
 const rulesPanel = document.querySelector<HTMLElement>('#rules')!;
 const catalogPanel = document.querySelector<HTMLElement>('#catalog')!;
@@ -187,7 +195,7 @@ async function createModeler(lang: string, xml: string) {
     moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: '#properties' },
     colorPicker: COLOR_PICKER,
-    bestbpmn: { ...catalog, disabledRules, language, t },
+    bestbpmn: { ...catalog, disabledRules, language, t, planning: { enabled: planningToggle.checked } },
   });
   mountNavigation(document.querySelector<HTMLElement>('#properties')!, modeler, t);
   modeler.on(STATUS_CHANGED, ({ models }: { models: StatusModel[] }) => {
@@ -304,6 +312,16 @@ document.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((tab) =>
 
 showServices.addEventListener('change', () => {
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
+});
+
+planningToggle.addEventListener('change', async () => {
+  try {
+    localStorage.setItem(PLANNING_KEY, planningToggle.checked ? 'on' : 'off');
+  } catch {
+    // Ohne Speicher gilt die Wahl nur bis zum Neuladen.
+  }
+  const { xml } = await modeler.saveXML();
+  await createModeler(language, xml);
 });
 
 languageSelect.addEventListener('change', async () => {

@@ -128,3 +128,10 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .element-nav button:hover:not(:disabled) { background: #eaeef2; }
 .element-nav button:disabled { color: #b0b7bf; cursor: default; }
 .element-nav-position { min-width: 44px; text-align: center; white-space: nowrap; }
+/* Rechnung aus den Planwerten am Prozess. */
+.bestbpmn-calc { padding: 4px 12px 12px; font-size: 12px; }
+.bestbpmn-calc-process + .bestbpmn-calc-process { margin-top: 12px; }
+.bestbpmn-calc-title { font-weight: 600; margin-bottom: 4px; }
+.bestbpmn-calc-row { display: flex; gap: 8px; justify-content: space-between; padding: 2px 0; }
+.bestbpmn-calc-label { color: #57606a; white-space: pre; }
+.bestbpmn-calc-status { margin: 6px 0 2px; font-weight: 600; }

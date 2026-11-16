@@ -161,3 +161,69 @@ describe('Regel-Kennzeichen an Aktivitäten', () => {
     expect(ids()).toEqual(['bestbpmn-rules-hint', 'bestbpmn-rules-start_action', 'bestbpmn-rules-follow_action', 'bestbpmn-rules-description']);
   });
 });
+
+const CHOICE_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="D" targetNamespace="urn:bestadd:test">
+  <bpmn:process id="P" name="Wahl" isExecutable="true">
+    <bpmn:startEvent id="S"><bpmn:outgoing>F0</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:userTask id="T" name="Prüfen"><bpmn:incoming>F0</bpmn:incoming><bpmn:outgoing>F1</bpmn:outgoing></bpmn:userTask>
+    <bpmn:exclusiveGateway id="G"><bpmn:incoming>F1</bpmn:incoming><bpmn:outgoing>A</bpmn:outgoing><bpmn:outgoing>B</bpmn:outgoing></bpmn:exclusiveGateway>
+    <bpmn:endEvent id="E"><bpmn:incoming>A</bpmn:incoming><bpmn:incoming>B</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="F0" sourceRef="S" targetRef="T" />
+    <bpmn:sequenceFlow id="F1" sourceRef="T" targetRef="G" />
+    <bpmn:sequenceFlow id="A" name="Weiter" sourceRef="G" targetRef="E" />
+    <bpmn:sequenceFlow id="B" name="Zurück an Ersteller" sourceRef="G" targetRef="E" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="DI"><bpmndi:BPMNPlane id="PL" bpmnElement="P">
+    <bpmndi:BPMNShape id="S_di" bpmnElement="S"><dc:Bounds x="100" y="100" width="36" height="36" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="T_di" bpmnElement="T"><dc:Bounds x="200" y="78" width="100" height="80" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="G_di" bpmnElement="G" isMarkerVisible="true"><dc:Bounds x="350" y="93" width="50" height="50" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="E_di" bpmnElement="E"><dc:Bounds x="500" y="100" width="36" height="36" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNEdge id="F0_di" bpmnElement="F0"><di:waypoint x="136" y="118" /><di:waypoint x="200" y="118" /></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="F1_di" bpmnElement="F1"><di:waypoint x="300" y="118" /><di:waypoint x="350" y="118" /></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="A_di" bpmnElement="A"><di:waypoint x="400" y="118" /><di:waypoint x="500" y="118" /></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="B_di" bpmnElement="B"><di:waypoint x="375" y="143" /><di:waypoint x="375" y="200" /><di:waypoint x="518" y="200" /><di:waypoint x="518" y="136" /></bpmndi:BPMNEdge>
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+describe('Wahl am Gateway und Text in der Auswahl', () => {
+  it('bietet die Wahl des Bearbeiters an, wenn die Aufgabe keine Ergebnisse hat, und zeigt ☑', async () => {
+    await setup(CHOICE_XML);
+    for (const id of ['A', 'B']) {
+      get('selection').select(element(id));
+      await nextTick();
+      const select = container.querySelector<HTMLSelectElement>('[data-entry-id="bestbpmn-condition-result"] select')!;
+      expect([...select.options].map((o) => o.value)).toContain('__choice');
+      choose(select, '__choice');
+      expect(element(id).businessObject.conditionExpression.body).toBe(`\${choice == '${id}'}`);
+    }
+    const all = get<StatusCheck>('bestbpmnStatusCheck').check().flatMap((m) => m.issues.map((i) => i.code));
+    expect(all.filter((code) => code.startsWith('choice') || code.includes('condition'))).toEqual([]);
+    expect(container.querySelector('.bestbpmn-gateway')!.textContent).toBe('☑');
+  });
+
+  it('bietet die Wahl nicht an, wenn die Aufgabe davor alternative Ergebnisse hat', async () => {
+    await setup();
+    get('selection').select(element('Flow_4'));
+    await nextTick();
+    expect([...resultSelect().options].map((o) => o.value)).not.toContain('__choice');
+  });
+
+  it('speichert den Text in der Auswahl an der Ausgabe auf „Prozess“', async () => {
+    await setup();
+    get('selection').select(element('Out_Pruefen'));
+    await nextTick();
+    await open('bestbpmn-result-label');
+    const input = container.querySelector<HTMLInputElement>('[data-entry-id="bestbpmn-result-label-text"] input')!;
+    input.value = 'Weiter zur Freigabe';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(element('Out_Pruefen').businessObject.resultLabel).toBe('Weiter zur Freigabe');
+    const { xml } = await modeler.saveXML();
+    expect(xml).toContain('bestadd:resultLabel="Weiter zur Freigabe"');
+    // Die Bedingung am Gateway zeigt Text und Status gemeinsam.
+    get('selection').select(element('Flow_4'));
+    await nextTick();
+    expect([...resultSelect().options].find((o) => o.value === 'reviewed')!.textContent).toBe('Weiter zur Freigabe · Geprüft (reviewed)');
+  });
+});

@@ -96,8 +96,27 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
   `${result == 'schlüssel'}` als Standard-BPMN-Bedingung; ein namenloser Weg bekommt den Namen
   des Ergebnisses. Für Feldwerte lässt sich ein eigener Ausdruck eintragen, z. B.
   `${betrag > 10000}`. Ältere Modelle mit einem anderen Namen der Ergebnisvariable werden ebenso erkannt.
-  Am Gateway zeigt 👤, dass eine Person über ihr Ergebnis entscheidet, ⚙ eine Entscheidung
-  nach Feldwerten.
+  Am Gateway zeigt 👤, dass eine Person über ihr Ergebnis entscheidet, ☑ eine Wahl des
+  Bearbeiters und ⚙ eine Entscheidung nach Feldwerten.
+- **Wahl des Bearbeiters.** Hat die Benutzeraufgabe vor einem exklusiven Gateway keine
+  alternativen Ergebnisse, bietet die Bedingung „(Wahl des Bearbeiters)“ an: Der Bearbeiter
+  wählt beim Abschluss einen Weg, ohne dass sich der Status ändert. Gespeichert wird
+  `${choice == '<ID des Wegs>'}`; der Name des Wegs ist der Text der Auswahl und lässt sich unter
+  „Übersetzungen“ übersetzen. Ältere Modelle mit `praxiqChoice` werden ebenso erkannt.
+- **Text in der Auswahl.** Wählt man eine Output-Verknüpfung auf „Prozess“, lässt sich unter
+  „Status“ ein eigener Text für die Auswahl beim Abschluss eintragen, z. B. „Zurückweisen“ statt
+  „Abgelehnt“ (`bestadd:resultLabel`). Die Bedingung am Weg zeigt dann „Zurückweisen · Abgelehnt“.
+- **Dynamische Lanes.** Im Suchfeld einer Lane oder eines Pools lässt sich statt einer Rolle oder
+  Gruppe auch `field(coach)`, `firstOf(field(coach), field(responsible_person))` oder
+  `approvalChain(field(responsible_person))` tippen; der Name der Lane bleibt dann frei.
+- **Planwerte** (standardmäßig aus). Der Schalter „Planwerte“ in der Kopfzeile blendet an
+  Aufgaben, wartenden Ereignissen und Wegen die Gruppe „Planwerte“ ein: Aufwand von D, E und M
+  je Ausführung, Dauer, Anzahl Instanzen und Wahrscheinlichkeiten (`bestadd:timing`,
+  `bestadd:probability`). Eingaben wie `30`, `45m`, `1,5h`, `1h30m` oder `2d` (Arbeitstage)
+  werden als ISO-8601-Dauer gespeichert. Am Prozess steht dann die „Rechnung aus den
+  Planwerten“: Durchlaufzeit (Mittel, Median, 85 %, 95 % aus 2000 simulierten Durchläufen),
+  Aufwand je Durchlauf und Zuständigem, kritischer Pfad und fehlende Angaben. Die Werte
+  beschreiben nur und steuern nichts; ausgeschaltet bleiben sie im Modell erhalten.
 - **Regeln an Aktivitäten.** Die Gruppe „Regeln“ kennzeichnet, ob es beim Übergang eine
   Bedingung, Prüfung, Maske, Start- oder Folgeaktion gibt, und beschreibt sie in Worten.
   Aufgaben, die niemand abschließt (z. B. Service- oder Skriptaufgaben), haben nur Start- und
@@ -139,8 +158,10 @@ Querformat.
   und IT-Services als Tabellen pflegen, als `bestbpmn-katalog.json` exportieren und
   importieren. Der Katalog liegt nur im Browser des jeweiligen PCs.
 - **Prüfregeln als Profil.** „Dokumentieren“ (Standard) verlangt kein D an jeder Aufgabe,
-  keine Rolle an jeder Lane, keinen IT-Service an Benutzer- und Serviceaufgaben und keine
-  Bedingung an jedem Weg nach einer Verzweigung, passend für Diagramme aus bpmn.io. „Vollständig“ prüft alles.
+  keine Rolle an jeder Lane, keinen IT-Service an Benutzer- und Serviceaufgaben, keine
+  Bedingung an jedem Weg nach einer Verzweigung, nur ein leeres Startereignis und keine Aktion
+  an automatischen Aufgaben, passend für Diagramme aus bpmn.io. „Vollständig“ prüft alles.
+  Hinweise zu Planwerten gibt es nur bei eingeschalteten Planwerten.
   Jede Regel lässt sich auch einzeln ab- oder zuschalten.
 
 ## Aufbau

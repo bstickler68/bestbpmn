@@ -269,6 +269,36 @@ describe('D aus der Swimlane', () => {
     expect(lane.businessObject.name).toBe('Autoren');
   });
 
+  it('nimmt an der Lane eine getippte dynamische Zuordnung wie firstOf(…) an', async () => {
+    await setup('de');
+    await modeler.importXML(LANE_XML);
+    await nextTick();
+    get('selection').select(element('Lane'));
+    await nextTick();
+    const entry = () => container.querySelector('[data-entry-id="bestbpmn-lane-role"]')!;
+    await type(entry().querySelector('input')!, 'firstOf(field(coach), field(responsible_person))');
+    const options = [...entry().querySelectorAll('.bestbpmn-picker-results li')].map((li) => li.textContent);
+    // Die gültige Schreibweise steht oben, Freitext als Gruppe oder Rolle gibt es dann nicht.
+    expect(options).toEqual(['firstOf(field(coach), field(responsible_person)) (dynamisch)']);
+    pick(entry(), 'firstOf(field(coach), field(responsible_person))');
+    const lane = element('Lane');
+    expect(lane.businessObject.assignee).toBe('firstOf(field(coach), field(responsible_person))');
+    // Der Name der Lane bleibt frei.
+    expect(lane.businessObject.name).toBe('Autoren');
+    expect(formatAssignees(readRaci(element('InLane').businessObject).responsible)).toBe('firstOf(field(coach), field(responsible_person))');
+    expect(issues()).toEqual([]);
+
+    // Eine Kette in firstOf(…) ist nicht erlaubt und wird nicht als dynamisch angeboten.
+    get('selection').select(null);
+    await nextTick();
+    get('selection').select(element('Lane2'));
+    await nextTick();
+    entry().querySelector<HTMLButtonElement>('.bestbpmn-chip-remove')!.click();
+    await nextTick();
+    await type(entry().querySelector('input')!, 'firstOf(approvalChain(field(a)))');
+    expect(entry().querySelector('.bestbpmn-picker-results li[data-value^="firstOf"]')).toBeNull();
+  });
+
   it('aktualisiert D beim Verschieben in eine andere Lane', async () => {
     await setup('en');
     await modeler.importXML(LANE_XML);
