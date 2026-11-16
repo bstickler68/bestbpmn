@@ -176,8 +176,10 @@ function applyStaticTexts(language: string) {
 /**
  * bpmn-js übersetzt nur beim Aufbau. Ein Sprachwechsel baut den Modellierer deshalb neu auf
  * und lädt das aktuelle Modell wieder hinein; Rückgängig beginnt danach von vorn.
+ * Ausschnitt und Zoom bleiben dabei erhalten, die Grafik springt also nicht.
  */
 async function createModeler(lang: string, xml: string) {
+  const view = modeler ? currentView() : undefined;
   language = lang;
   t = createI18n(language).t;
   applyStaticTexts(language);
@@ -225,6 +227,13 @@ async function createModeler(lang: string, xml: string) {
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
   renderSettings();
   showSidebar(!layout.classList.contains('sidebar-collapsed'));
+  if (view) modeler.get('canvas').viewbox(view);
+}
+
+/** Der sichtbare Ausschnitt des Diagramms, ohne die abgeleiteten Angaben von bpmn-js. */
+function currentView() {
+  const { x, y, width, height } = modeler.get('canvas').viewbox();
+  return { x, y, width, height };
 }
 
 /** Einstellungen: Prüfregeln gelten sofort, ein geänderter Katalog baut den Modellierer neu auf. */
