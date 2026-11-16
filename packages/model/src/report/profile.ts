@@ -4,7 +4,7 @@ import { deriveRaciMatrices } from '../raci/matrix.js';
 import { isProcessObjectName } from '../states/processObject.js';
 import type { ModdleElement } from '../states/types.js';
 import { incoming, outgoing } from './graph.js';
-import { dedupe, eventKind, flowOrder, positions, type ElementKind } from './elements.js';
+import { dedupe, eventKind, flowGroups, groupOrder, positions, type ElementKind } from './elements.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -134,7 +134,11 @@ export function deriveProfile(definitions: ModdleElement): ProcessProfile {
   const defs = definitions as El;
   const where = positions(definitions);
   const processes = ((defs.rootElements ?? []) as El[]).filter((el) => el.$type === 'bpmn:Process');
-  const orders = processes.map((p) => flowOrder(((p.flowElements ?? []) as El[]).filter((el) => el.$instanceOf?.('bpmn:FlowNode')), where));
+  // Nur die oberste Ebene: Start- und Endereignisse in Teilprozessen gehören nicht in den Steckbrief.
+  const orders = flowGroups(definitions).map((group) => {
+    const top = new Set(group.processes.flatMap((p) => (p.flowElements ?? []) as El[]));
+    return groupOrder(group, where).filter((el) => top.has(el));
+  });
   const nodes = processes.flatMap(allNodes);
 
   const starts = orders.flat().filter((el) => el.$type === 'bpmn:StartEvent');

@@ -13,7 +13,7 @@ import { parseStateLabel } from './label.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
 import { filterIssues } from '../rules/profiles.js';
-import { positions, tableOrder } from '../report/elements.js';
+import { groupOrder, positions } from '../report/elements.js';
 import type { IssueCode, ModdleElement, Moddle, ModelIssue, ResultLabel, StatusChange, StatusModel } from './types.js';
 
 /** Einstellungen der Prüfung. */
@@ -268,7 +268,7 @@ function deriveModel(
   // Nach den Statuswechseln, weil Bedingungen auf Ergebnisse die Outputs der Aufgaben davor brauchen.
   issues.push(...checkSequenceFlows(elements, changes));
 
-  sortByFlow(statuses, changes, initialStatuses, pools, where);
+  sortByFlow(statuses, changes, pools, root.collaboration, where);
 
   const dataObject = processObjects[0];
   const statusTranslations: Record<string, Record<string, string>> = {};
@@ -306,22 +306,22 @@ function deriveModel(
 /**
  * Bringt Status und Statuswechsel in die Reihenfolge des Ablaufs, vom Anfangs- bis zum Endstatus.
  * Die Elemente folgen der Reihenfolge der Elementtabelle im Gesamtdokument (Sequenzfluss ab den
- * Startereignissen, Zweige nacheinander, Rücksprünge zählen nicht, Teilprozesse direkt nach sich selbst).
+ * Startereignissen, bei mehreren Pools auch über die Nachrichtenflüsse; Pools und Lanes zählen nicht,
+ * Rücksprünge auch nicht; Teilprozesse direkt nach sich selbst).
  * Ein Status steht dort, wo er zum ersten Mal gesetzt wird; wird er nie gesetzt, dort, wo er zuerst
  * gelesen wird; sonst am Schluss. Bei Gleichstand bleibt die bisherige Reihenfolge.
- * Bei mehreren Pools kommt der Pool mit dem Anfangsstatus zuerst, die übrigen in Modellreihenfolge.
  */
 function sortByFlow(
   statuses: string[],
   changes: StatusChange[],
-  initialStatuses: string[],
   pools: PoolProcess[],
+  collaboration: El | undefined,
   where: Map<string, { x: number; y: number }>,
 ): void {
-  const orders = pools.map(({ process }) => tableOrder(process, where).map((el) => el.id ?? ''));
-  const startsHere = (ids: string[]) =>
-    changes.some((c) => ids.includes(c.elementId) && c.outputs.some((s) => initialStatuses.includes(s)));
-  const ordered = [...orders.filter(startsHere), ...orders.filter((ids) => !startsHere(ids))].flat();
+  const ordered = groupOrder(
+    { processes: pools.map(({ process }) => process), messageFlows: (collaboration?.messageFlows ?? []) as El[] },
+    where,
+  ).map((el) => el.id ?? '');
   const rankOf = new Map<string, number>();
   ordered.forEach((id, index) => {
     if (!rankOf.has(id)) {
