@@ -30,7 +30,8 @@ async function setup(xml = template) {
     ],
     moddleExtensions: bestbpmnModdleExtensions,
     propertiesPanel: { parent: container.querySelector('#p') },
-    bestbpmn: { services },
+    // Umgekehrt, damit die Sortierung im Panel auffällt.
+    bestbpmn: { services: [...services].reverse() },
   });
   await modeler.importXML(xml);
 }
@@ -101,6 +102,10 @@ describe('Eigenschaftenpanel', () => {
     expect(servicesGroup.textContent).toContain('Dokumentenmanagement');
     expect(servicesGroup.textContent).not.toContain('Datenbankcluster');
     expect(panel.textContent).toContain('Dokumentvorlagen');
+    // Nach dem angezeigten Namen sortiert, nicht in der Reihenfolge des Katalogs.
+    const names = [...servicesGroup.querySelectorAll('[data-entry-id^="bestbpmn-services-"] label')].map((l) => l.textContent!.trim());
+    expect(names.length).toBeGreaterThan(1);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base', numeric: true })));
   });
 
   it('beschriftet einen neuen Link mit „Web(URL)“ statt mit der Adresse', async () => {

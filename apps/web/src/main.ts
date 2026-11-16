@@ -227,13 +227,24 @@ async function createModeler(lang: string, xml: string) {
   (modeler.get('bestbpmnServiceOverlays') as ServiceOverlays).toggleNames(showServices.checked);
   renderSettings();
   showSidebar(!layout.classList.contains('sidebar-collapsed'));
-  if (view) modeler.get('canvas').viewbox(view);
+  if (view) restoreView(view);
 }
 
-/** Der sichtbare Ausschnitt des Diagramms, ohne die abgeleiteten Angaben von bpmn-js. */
+/**
+ * Linke obere Ecke und Zoom des sichtbaren Ausschnitts. Breite und Höhe merken wir nicht: bpmn-js
+ * rechnet sie aus einer zwischengespeicherten Fenstergröße, die nach einem Wechsel der Reiter
+ * veraltet sein kann; der Zoom stimmte dann nach dem Neuaufbau nicht mehr.
+ */
 function currentView() {
-  const { x, y, width, height } = modeler.get('canvas').viewbox();
-  return { x, y, width, height };
+  const { x, y, scale } = modeler.get('canvas').viewbox();
+  return { x, y, scale };
+}
+
+function restoreView({ x, y, scale }: { x: number; y: number; scale: number }) {
+  const canvas = modeler.get('canvas');
+  canvas.resized();
+  const { outer } = canvas.viewbox();
+  canvas.viewbox({ x, y, width: outer.width / scale, height: outer.height / scale });
 }
 
 /** Einstellungen: Prüfregeln gelten sofort, ein geänderter Katalog baut den Modellierer neu auf. */

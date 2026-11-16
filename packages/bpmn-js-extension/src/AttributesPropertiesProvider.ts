@@ -184,7 +184,10 @@ function LinkField(props: {
 function servicesGroup(element: DiagramElement, definition: AttributeDefinition, catalog: Service[], i18n: BestbpmnI18n) {
   const { key, serviceKinds } = definition;
   const { t, language } = i18n;
-  const offered = catalog.filter((s) => !serviceKinds?.length || serviceKinds.includes(s.kind));
+  const collator = new Intl.Collator(language, { sensitivity: 'base', numeric: true });
+  const offered = catalog
+    .filter((s) => !serviceKinds?.length || serviceKinds.includes(s.kind))
+    .sort((a, b) => collator.compare(a.name, b.name));
   const selected = itemsOf(element, key, 'bestadd:ServiceRef');
   const missing = selected.filter((ref) => !offered.some((s) => s.id === ref.ref));
 

@@ -127,6 +127,12 @@ describe('RACI an Aktivitäten', () => {
     await nextTick();
     expect(readRaci(element('Pruefen').businessObject).responsible).toEqual([]);
 
+    // Ohne Suchtext stehen alle Einträge des Katalogs da, nach dem angezeigten Namen sortiert.
+    await type(entry('responsible').querySelector('input')!, '');
+    const all = [...entry('responsible').querySelectorAll('.bestbpmn-picker-results li:not([data-custom])')].map((li) => li.textContent!);
+    expect(all.length).toBeGreaterThan(1);
+    expect(all).toEqual([...all].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base', numeric: true })));
+
     await type(entry('responsible').querySelector('input')!, 'prozess');
     const results = [...entry('responsible').querySelectorAll('.bestbpmn-picker-results li:not([data-custom])')].map((li) => li.textContent);
     expect(results).toEqual(['Prozessverantwortlicher (Rolle)']);
