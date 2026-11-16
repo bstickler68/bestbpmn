@@ -127,6 +127,9 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 
 ## Berichte
 
+Welche Elemente und Felder du pflegen musst, damit jeder Abschnitt der Berichte gefüllt
+ist, steht in der [Modellierungsanleitung](docs/modellierungsanleitung.md).
+
 Unter „Bericht“ gibt es das Modell in zwei Fassungen, jeweils als HTML-Datei (eine Datei,
 Grafik und Stil eingebettet, zum Ablegen und Verschicken) oder über den Druckdialog des
 Browsers, dort auch „Als PDF speichern“:
