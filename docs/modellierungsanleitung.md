@@ -144,7 +144,7 @@ Ereignisse liefern Auslöser und Endzustand im Steckbrief; Gateways und Sequenzf
 
 **Angeheftete Ereignisse** (Frist, Fehler, Eskalation): immer benennen, z. B. „Frist 5 Tage abgelaufen“. In der Tabelle steht an der Aufgabe „bei ‚Frist 5 Tage abgelaufen‘: weiter bei 10“, und das Ereignis bekommt eine eigene Zeile mit Beschreibung.
 
-**Ablauf und Nummerierung**: Die Nummern folgen den Sequenzflüssen, beginnend beim obersten Startereignis. Verbinde deshalb jedes Element mit Sequenzflüssen. Unverbundene Elemente landen nach ihrer Lage am Ende und zerreißen die Reihenfolge. Rücksprungschleifen erscheinen als „zurück zu …“.
+**Ablauf und Nummerierung**: Die Nummern folgen den Sequenzflüssen, beginnend beim ersten Startereignis in Modellierrichtung (links bzw. oben) bis zum Endereignis. Pools und Lanes spielen für die Reihenfolge keine Rolle: Mehrere Pools ergeben eine gemeinsame Tabelle, die über die Nachrichtenflüsse von Pool zu Pool weitergeht. Dieselbe Reihenfolge gilt für die DEMI-Matrix und die Status. Verbinde deshalb jedes Element mit Sequenzflüssen. Unverbundene Elemente landen nach ihrer Lage am Ende und zerreißen die Reihenfolge. Rücksprungschleifen erscheinen als „zurück zu …“.
 
 **Diagramm**: Das Gesamtdokument enthält das Diagramm so, wie es auf dem Bildschirm aussieht. Ein aufgeräumtes Layout von links nach rechts mit kurzen, kreuzungsfreien Kanten macht es im Ausdruck lesbar.
 

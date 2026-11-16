@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { createModdle, deriveElementTables, deriveProfile } from '../src/index.js';
+import { createModdle, deriveElementTables, deriveProfile, deriveRaciMatrices } from '../src/index.js';
 
 const shape = (id: string, x: number, y: number) =>
   `<bpmndi:BPMNShape id="${id}_di" bpmnElement="${id}"><dc:Bounds x="${x}" y="${y}" width="100" height="80" /></bpmndi:BPMNShape>`;
@@ -232,5 +232,52 @@ describe('Steckbrief', () => {
       const rows = deriveElementTables(definitions).flatMap((t) => t.rows);
       expect(new Set(rows.map((r) => r.number)).size).toBe(rows.length);
     }
+  });
+});
+
+describe('Reihenfolge über mehrere Pools', () => {
+  // Der Pool „Lieferant“ steht in der Datei und im Bild oben, der Ablauf beginnt aber beim Kunden.
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="D" targetNamespace="urn:test">
+  <bpmn:collaboration id="C" name="Bestellung">
+    <bpmn:participant id="PoolL" name="Lieferant" processRef="PL" />
+    <bpmn:participant id="PoolK" name="Kunde" processRef="PK" />
+    <bpmn:messageFlow id="M1" sourceRef="Bestellen" targetRef="LStart" />
+    <bpmn:messageFlow id="M2" sourceRef="LEnde" targetRef="Warten" />
+  </bpmn:collaboration>
+  <bpmn:process id="PL">
+    <bpmn:startEvent id="LStart" name="Bestellung da"><bpmn:messageEventDefinition id="E1" /></bpmn:startEvent>
+    <bpmn:userTask id="Liefern" name="Liefern" />
+    <bpmn:endEvent id="LEnde" name="Geliefert"><bpmn:messageEventDefinition id="E2" /></bpmn:endEvent>
+    ${flow('L1', 'LStart', 'Liefern')}${flow('L2', 'Liefern', 'LEnde')}
+  </bpmn:process>
+  <bpmn:process id="PK">
+    <bpmn:startEvent id="KStart" name="Bedarf" />
+    <bpmn:userTask id="Bestellen" name="Bestellen" />
+    <bpmn:intermediateCatchEvent id="Warten" name="Ware da"><bpmn:messageEventDefinition id="E3" /></bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="Pruefen" name="Ware prüfen" />
+    <bpmn:endEvent id="KEnde" name="Erledigt" />
+    ${flow('K1', 'KStart', 'Bestellen')}${flow('K2', 'Bestellen', 'Warten')}${flow('K3', 'Warten', 'Pruefen')}${flow('K4', 'Pruefen', 'KEnde')}
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="DI"><bpmndi:BPMNPlane id="Plane" bpmnElement="C">
+    ${shape('LStart', 300, 50)}${shape('Liefern', 400, 50)}${shape('LEnde', 550, 50)}
+    ${shape('KStart', 100, 300)}${shape('Bestellen', 200, 300)}${shape('Warten', 600, 300)}${shape('Pruefen', 700, 300)}${shape('KEnde', 850, 300)}
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+  it('ergibt eine Elementtabelle ohne Pool-Überschriften, sortiert nach Prozessverlauf', async () => {
+    const { rootElement } = await createModdle().fromXML(xml);
+    const tables = deriveElementTables(rootElement);
+    expect(tables).toHaveLength(1);
+    expect(tables[0]!.processName).toBe('Bestellung');
+    expect(tables[0]!.rows.map((r) => r.id)).toEqual(['KStart', 'Bestellen', 'LStart', 'Liefern', 'LEnde', 'Warten', 'Pruefen', 'KEnde']);
+  });
+
+  it('ordnet die DEMI-Matrix nach demselben Verlauf', async () => {
+    const { rootElement } = await createModdle().fromXML(xml);
+    const matrices = deriveRaciMatrices(rootElement);
+    expect(matrices).toHaveLength(1);
+    expect(matrices[0]!.rows.map((r) => r.elementId)).toEqual(['Bestellen', 'Liefern', 'Pruefen']);
   });
 });

@@ -1,10 +1,13 @@
 import { readAttributes, readDescription } from '../attributes/read.js';
 import type { LinkValue, ServiceRefValue } from '../attributes/types.js';
 import type { ModdleElement } from '../states/types.js';
-import { incoming, outgoing } from './graph.js';
+import { incoming as incomingFlows, outgoing as outgoingFlows } from './graph.js';
 import { readRuleMarks, type RuleKind } from '../rules/transitions.js';
 
 type El = ModdleElement & Record<string, any>;
+
+/** Eine Kante im Ablauf: Sequenzfluss oder Nachrichtenfluss zwischen Pools. */
+type Link = { sourceRef: El; targetRef: El };
 
 /** Elementtyp für den Bericht; die Anzeige übersetzt ihn. */
 export type ElementType =
@@ -157,39 +160,122 @@ export function positions(definitions: ModdleElement): Map<string, { x: number; 
   return result;
 }
 
-/** Elementtabellen aller Prozesse (bei mehreren Pools je Pool eine). */
-export function deriveElementTables(definitions: ModdleElement): ElementTable[] {
+/**
+ * Ein Ablauf: alle Pools einer Kollaboration zusammen oder ein einzelner Prozess. Pools und Lanes
+ * gliedern die Reihenfolge nicht; Nachrichtenflüsse verbinden die Pools wie Sequenzflüsse.
+ */
+export interface FlowGroup {
+  id: string;
+  name?: string;
+  processes: El[];
+  /** Nachrichtenflüsse zwischen den Pools. */
+  messageFlows: El[];
+}
+
+/** Die Abläufe des Modells: je Kollaboration mit Pools einer, dazu je Prozess außerhalb einer Kollaboration einer. */
+export function flowGroups(definitions: ModdleElement): FlowGroup[] {
   const roots = ((definitions as El).rootElements ?? []) as El[];
-  const participants = roots
-    .filter((el) => el.$type === 'bpmn:Collaboration')
-    .flatMap((c) => (c.participants ?? []) as El[]);
-  const where = positions(definitions);
-  return roots
-    .filter((el) => el.$type === 'bpmn:Process')
-    .map((process) => {
-      const name = process.name || participants.find((p) => p.processRef === process)?.name;
-      return {
-        processId: process.id ?? '',
-        ...(name ? { processName: name } : {}),
-        rows: numberContainer(process, '', 0, where),
-      };
-    })
-    .filter((table) => table.rows.length > 0);
+  const groups: FlowGroup[] = [];
+  const covered = new Set<El>();
+  for (const collaboration of roots.filter((el) => el.$type === 'bpmn:Collaboration')) {
+    const pools = ((collaboration.participants ?? []) as El[]).filter((p) => p.processRef);
+    if (!pools.length) {
+      continue;
+    }
+    const processes = [...new Set(pools.map((p) => p.processRef as El))].filter((p) => !covered.has(p));
+    processes.forEach((p) => covered.add(p));
+    const name = collaboration.name || (pools.length === 1 ? pools[0]!.processRef.name || pools[0]!.name : undefined);
+    groups.push({
+      id: collaboration.id ?? '',
+      ...(name ? { name } : {}),
+      processes,
+      messageFlows: (collaboration.messageFlows ?? []) as El[],
+    });
+  }
+  for (const process of roots.filter((el) => el.$type === 'bpmn:Process' && !covered.has(el))) {
+    groups.push({ id: process.id ?? '', ...(process.name ? { name: process.name } : {}), processes: [process], messageFlows: [] });
+  }
+  return groups;
 }
 
 /**
- * Alle Flussknoten eines Prozesses in der Reihenfolge der Elementtabelle; die Knoten eines
+ * Die Nachrichtenflüsse als zusätzliche Kanten zwischen Knoten der obersten Ebene. Endet ein
+ * Nachrichtenfluss am Pool, führt er zu dessen Startereignissen; ein Element in einem Teilprozess
+ * steht für den Teilprozess.
+ */
+function messageLinks(nodes: El[], messageFlows: El[]): Link[] {
+  const inSet = new Set(nodes);
+  const lift = (el: El | undefined): El | undefined => {
+    let current = el;
+    while (current && !inSet.has(current)) {
+      current = current.$parent;
+    }
+    return current;
+  };
+  const ends = (el: El | undefined): El[] => {
+    if (!el) {
+      return [];
+    }
+    if (el.$type === 'bpmn:Participant') {
+      return ((el.processRef?.flowElements ?? []) as El[]).filter((n) => n.$type === 'bpmn:StartEvent' && inSet.has(n));
+    }
+    const node = lift(el);
+    return node ? [node] : [];
+  };
+  return messageFlows.flatMap((flow) => {
+    // Ein Nachrichtenfluss, der am Pool beginnt, sagt nichts über den Ablauf.
+    const sources = flow.sourceRef?.$type === 'bpmn:Participant' ? [] : ends(flow.sourceRef);
+    return sources.flatMap((sourceRef) =>
+      ends(flow.targetRef)
+        .filter((targetRef) => targetRef !== sourceRef)
+        .map((targetRef) => ({ sourceRef, targetRef })),
+    );
+  });
+}
+
+/** Elementtabellen: je Ablauf eine, auch wenn er mehrere Pools hat. */
+export function deriveElementTables(definitions: ModdleElement): ElementTable[] {
+  const where = positions(definitions);
+  return flowGroups(definitions)
+    .map((group) => ({
+      processId: group.id,
+      ...(group.name ? { processName: group.name } : {}),
+      rows: numberNodes(topNodes(group.processes), group.messageFlows, '', 0, where),
+    }))
+    .filter((table) => table.rows.length > 0);
+}
+
+const topNodes = (containers: El[]): El[] =>
+  containers.flatMap((container) => ((container.flowElements ?? []) as El[]).filter((el) => classify(el)));
+
+/**
+ * Alle Flussknoten eines Ablaufs in der Reihenfolge der Elementtabelle; die Knoten eines
+ * Teilprozesses folgen direkt auf ihn.
+ */
+export function groupOrder(group: Pick<FlowGroup, 'processes' | 'messageFlows'>, where: Map<string, { x: number; y: number }>): El[] {
+  const nodes = topNodes(group.processes);
+  return flowOrder(nodes, where, messageLinks(nodes, group.messageFlows)).flatMap((el) =>
+    classify(el)!.type === 'subProcess' ? [el, ...tableOrder(el, where)] : [el],
+  );
+}
+
+/**
+ * Alle Flussknoten eines Prozesses oder Teilprozesses in der Reihenfolge der Elementtabelle; die Knoten eines
  * Teilprozesses folgen direkt auf ihn.
  */
 export function tableOrder(container: El, where: Map<string, { x: number; y: number }>): El[] {
-  const nodes = ((container.flowElements ?? []) as El[]).filter((el) => classify(el));
-  return flowOrder(nodes, where).flatMap((el) => (classify(el)!.type === 'subProcess' ? [el, ...tableOrder(el, where)] : [el]));
+  return groupOrder({ processes: [container], messageFlows: [] }, where);
 }
 
-/** Nummeriert die Flussknoten eines Prozesses oder Teilprozesses in Ablaufreihenfolge. */
-function numberContainer(container: El, prefix: string, depth: number, where: Map<string, { x: number; y: number }>): ElementRow[] {
-  const nodes = ((container.flowElements ?? []) as El[]).filter((el) => classify(el));
-  const order = flowOrder(nodes, where);
+/** Nummeriert die Flussknoten eines Ablaufs oder Teilprozesses in Ablaufreihenfolge. */
+function numberNodes(
+  nodes: El[],
+  messageFlows: El[],
+  prefix: string,
+  depth: number,
+  where: Map<string, { x: number; y: number }>,
+): ElementRow[] {
+  const order = flowOrder(nodes, where, messageLinks(nodes, messageFlows));
   const numbers = new Map<El, string>();
   order.forEach((el, index) => numbers.set(el, `${prefix}${index + 1}`));
   const indexOf = new Map(order.map((el, index) => [el, index]));
@@ -218,7 +304,7 @@ function numberContainer(container: El, prefix: string, depth: number, where: Ma
       depth,
     });
     if (info.type === 'subProcess') {
-      rows.push(...numberContainer(el, `${numbers.get(el)}.`, depth + 1, where));
+      rows.push(...numberNodes(topNodes([el]), [], `${numbers.get(el)}.`, depth + 1, where));
     }
   }
   return rows;
@@ -237,34 +323,39 @@ function loopOf(el: El): ElementRow['loop'] {
 
 
 /**
- * Reihenfolge: Startereignisse von oben nach unten, dann entlang der Sequenzflüsse. Ein Zweig wird
+ * Reihenfolge: Startereignisse in Modellierrichtung, dann entlang der Sequenzflüsse (und Nachrichtenflüsse zwischen
+ * Pools). Pools und Lanes zählen nicht. Ein Zweig wird
  * zu Ende verfolgt, bevor der nächste beginnt; ein zusammenführendes Element kommt erst, wenn alle
  * Zweige davor nummeriert sind. Rücksprünge (Schleifen) zählen dabei nicht. Angeheftete Ereignisse
  * folgen nach dem normalen Weg ihrer Aktivität.
  *
  * Am Schluss steht immer ein Endereignis: das am Ende des längsten Wegs ohne angeheftete Ereignisse
- * (bei Gleichstand das am weitesten rechts). Zweige, die nicht dorthin führen (Abbrüche, weitere Enden, angeheftete
+ * (bei Gleichstand das letzte in Modellierrichtung). Zweige, die nicht dorthin führen (Abbrüche, weitere Enden, angeheftete
  * Ereignisse), kommen deshalb vor dem Zweig, der zu diesem Endereignis führt.
  */
-export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number }>): El[] {
+export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number }>, links: Link[] = []): El[] {
   const inSet = new Set(nodes);
+  const outgoing = (el: El): (El | Link)[] => [...outgoingFlows(el), ...links.filter((l) => l.sourceRef === el)];
+  const incoming = (el: El): (El | Link)[] => [...incomingFlows(el), ...links.filter((l) => l.targetRef === el)];
   const pos = (el: El) => where.get(el.id ?? '') ?? { x: Number.MAX_SAFE_INTEGER, y: Number.MAX_SAFE_INTEGER };
-  const byPosition = (a: El, b: El) => pos(a).y - pos(b).y || pos(a).x - pos(b).x;
+  // Gleichrangige Knoten (Startereignisse, Zweige) in Modellierrichtung: waagrecht von links nach
+  // rechts, senkrecht von oben nach unten. Pools und Lanes spielen dabei keine Rolle.
+  const horizontal = isHorizontal(nodes, where);
+  const byPosition = (a: El, b: El) =>
+    horizontal ? pos(a).x - pos(b).x || pos(a).y - pos(b).y : pos(a).y - pos(b).y || pos(a).x - pos(b).x;
   const boundaries = new Map<El, El[]>();
   for (const el of nodes) {
     if (el.$type === 'bpmn:BoundaryEvent' && el.attachedToRef && inSet.has(el.attachedToRef)) {
       boundaries.set(el.attachedToRef, [...(boundaries.get(el.attachedToRef) ?? []), el]);
     }
   }
-  const successors = (el: El): El[] =>
-    outgoing(el)
-      .map((f) => f.targetRef as El)
-      .filter((t) => t && inSet.has(t))
-      .sort(byPosition);
-
   // Startpunkte: Startereignisse, sonst Knoten ohne eingehenden Fluss (keine angehefteten Ereignisse).
+  // Ein Startereignis, das eine Nachricht aus einem anderen Pool auslöst, ist kein eigener Anfang.
   const isEntry = (el: El) =>
-    el.$type !== 'bpmn:BoundaryEvent' && (el.$type === 'bpmn:StartEvent' || incoming(el).filter((f) => inSet.has(f.sourceRef)).length === 0);
+    el.$type !== 'bpmn:BoundaryEvent' &&
+    (el.$type === 'bpmn:StartEvent'
+      ? !links.some((l) => l.targetRef === el && inSet.has(l.sourceRef))
+      : incoming(el).filter((f) => inSet.has(f.sourceRef)).length === 0);
   const entries = nodes.filter(isEntry).sort((a, b) => {
     const startA = a.$type === 'bpmn:StartEvent' ? 0 : 1;
     const startB = b.$type === 'bpmn:StartEvent' ? 0 : 1;
@@ -272,7 +363,7 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
   });
 
   // Rücksprünge erkennen: Kanten auf einen Knoten, der im Tiefendurchlauf gerade offen ist.
-  const backEdges = new Set<El>();
+  const backEdges = new Set<El | Link>();
   const state = new Map<El, 'open' | 'done'>();
   const visit = (el: El) => {
     state.set(el, 'open');
@@ -306,7 +397,7 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
     ...(boundaries.get(el) ?? []),
   ];
   // Wege über angeheftete Ereignisse sind Ausnahmen und zählen für die Wahl des letzten Endereignisses nicht.
-  const finalEnd = lastEndEvent(nodes, (el) => forward(el).filter((t) => t.attachedToRef !== el), pos);
+  const finalEnd = lastEndEvent(nodes, (el) => forward(el).filter((t) => t.attachedToRef !== el), pos, horizontal);
   const toFinal = new Set<El>();
   if (finalEnd) {
     const backward = new Map<El, El[]>();
@@ -371,10 +462,28 @@ export function flowOrder(nodes: El[], where: Map<string, { x: number; y: number
 }
 
 /**
- * Das Endereignis am Ende des längsten Wegs (Rücksprünge und angeheftete Ereignisse zählen nicht); bei Gleichstand das am
- * weitesten rechts, dann das untere. `undefined`, wenn es kein Endereignis gibt.
+ * Modellierrichtung aus der Lage der Knoten: breiter als hoch heißt waagrecht. Ohne Diagramm waagrecht.
  */
-function lastEndEvent(nodes: El[], forward: (el: El) => El[], pos: (el: El) => { x: number; y: number }): El | undefined {
+function isHorizontal(nodes: El[], where: Map<string, { x: number; y: number }>): boolean {
+  const points = nodes.map((el) => where.get(el.id ?? '')).filter((p): p is { x: number; y: number } => !!p);
+  if (points.length < 2) {
+    return true;
+  }
+  const span = (values: number[]) => Math.max(...values) - Math.min(...values);
+  return span(points.map((p) => p.x)) >= span(points.map((p) => p.y));
+}
+
+/**
+ * Das Endereignis am Ende des längsten Wegs (Rücksprünge und angeheftete Ereignisse zählen nicht); bei Gleichstand das
+ * letzte in Modellierrichtung (waagrecht das am weitesten rechts, senkrecht das unterste). `undefined`, wenn es kein
+ * Endereignis gibt.
+ */
+function lastEndEvent(
+  nodes: El[],
+  forward: (el: El) => El[],
+  pos: (el: El) => { x: number; y: number },
+  horizontal: boolean,
+): El | undefined {
   const indegree = new Map<El, number>(nodes.map((el) => [el, 0]));
   for (const el of nodes) {
     for (const target of forward(el)) {
@@ -396,7 +505,9 @@ function lastEndEvent(nodes: El[], forward: (el: El) => El[], pos: (el: El) => {
     }
   }
   const ends = nodes.filter((el) => el.$type === 'bpmn:EndEvent');
-  return ends.sort((a, b) => (depth.get(b) ?? 0) - (depth.get(a) ?? 0) || pos(b).x - pos(a).x || pos(b).y - pos(a).y)[0];
+  const along = (a: El, b: El) =>
+    horizontal ? pos(b).x - pos(a).x || pos(b).y - pos(a).y : pos(b).y - pos(a).y || pos(b).x - pos(a).x;
+  return ends.sort((a, b) => (depth.get(b) ?? 0) - (depth.get(a) ?? 0) || along(a, b))[0];
 }
 
 function references(
@@ -408,7 +519,7 @@ function references(
 ): FlowReference[] {
   const inSet = new Set(nodes);
   const self = indexOf.get(el)!;
-  const flows = outgoing(el)
+  const flows = outgoingFlows(el)
     .filter((f) => inSet.has(f.targetRef))
     .sort((a, b) => {
       const pa = where.get(a.targetRef.id) ?? { x: 0, y: 0 };

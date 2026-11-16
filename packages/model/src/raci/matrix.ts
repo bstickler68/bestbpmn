@@ -2,7 +2,7 @@ import type { ModdleElement } from '../states/types.js';
 import { formatAssignee } from './assignees.js';
 import { findParticipant, laneMap, resolveRaci } from './check.js';
 import { RACI_ROLES, type Raci, type RaciRole } from './read.js';
-import { positions, tableOrder } from '../report/elements.js';
+import { flowGroups, groupOrder, positions, type FlowGroup } from '../report/elements.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -31,8 +31,8 @@ export interface RaciMatrix {
 }
 
 /**
- * Fasst die Matrizen aller Prozesse (Pools) zu einer Tabelle zusammen: je Rolle oder Gruppe genau
- * eine Spalte, die Zeilen in der Reihenfolge der Pools.
+ * Fasst die Matrizen mehrerer Abläufe zu einer Tabelle zusammen: je Rolle oder Gruppe genau
+ * eine Spalte, die Zeilen in der Reihenfolge der Abläufe.
  */
 export function combineRaciMatrices(matrices: RaciMatrix[]): RaciMatrix {
   const columns: string[] = [];
@@ -50,19 +50,28 @@ export function combineRaciMatrices(matrices: RaciMatrix[]): RaciMatrix {
   };
 }
 
-/** Leitet je Prozess die RACI-Matrix ab: Zeilen = Aktivitäten, Spalten = Zuordnungen. */
+/**
+ * Leitet je Ablauf die RACI-Matrix ab: Zeilen = Aktivitäten, Spalten = Zuordnungen. Alle Pools einer
+ * Kollaboration bilden einen Ablauf; die Zeilen folgen dem Prozessverlauf, nicht den Pools oder Lanes.
+ */
 export function deriveRaciMatrices(definitions: ModdleElement): RaciMatrix[] {
-  const roots = ((definitions as El).rootElements ?? []) as El[];
   const where = positions(definitions);
-  return roots.filter((el) => el.$type === 'bpmn:Process').map((p) => deriveMatrix(p, where, findParticipant(definitions, p)));
+  return flowGroups(definitions).map((group) => deriveMatrix(definitions, group, where));
 }
 
-function deriveMatrix(process: El, where: Map<string, { x: number; y: number }>, participant?: El): RaciMatrix {
+function deriveMatrix(definitions: ModdleElement, group: FlowGroup, where: Map<string, { x: number; y: number }>): RaciMatrix {
   const columns: string[] = [];
   const rows: RaciRow[] = [];
-  const lanes = laneMap(process, participant);
-  for (const el of activities(process, where)) {
-    const { responsibleFromLane, laneResponsible, ...raci } = resolveRaci(el, lanes);
+  // Die Lanes gelten je Pool: jede Aktivität bekommt die ihres eigenen Prozesses.
+  const lanesOf = new Map<El, ReturnType<typeof laneMap>>();
+  for (const process of group.processes) {
+    const lanes = laneMap(process, findParticipant(definitions, process));
+    for (const el of allActivities(process)) {
+      lanesOf.set(el, lanes);
+    }
+  }
+  for (const el of activities(group, where)) {
+    const { responsibleFromLane, laneResponsible, ...raci } = resolveRaci(el, lanesOf.get(el)!);
     const cells: Record<string, RaciRole[]> = {};
     for (const role of RACI_ROLES) {
       for (const assignee of raci[role]) {
@@ -82,18 +91,16 @@ function deriveMatrix(process: El, where: Map<string, { x: number; y: number }>,
       cells,
     });
   }
-  // Bei mehreren Pools haben die Prozesse oft keinen eigenen Namen; dann gilt der Name des Pools.
-  const name = process.name || participant?.name;
-  return { processId: process.id ?? '', ...(name ? { processName: name } : {}), columns, rows };
+  return { processId: group.id, ...(group.name ? { processName: group.name } : {}), columns, rows };
 }
 
 /**
  * Aktivitäten, die eine Person bearbeitet oder die RACI-Angaben tragen, auch in Unterprozessen.
  * Sie stehen in derselben Reihenfolge wie in der Elementtabelle des Berichts; Teilprozesse selbst nicht.
  */
-function activities(process: El, where: Map<string, { x: number; y: number }>): El[] {
-  const ordered = tableOrder(process, where);
-  const all = allActivities(process);
+function activities(group: FlowGroup, where: Map<string, { x: number; y: number }>): El[] {
+  const ordered = groupOrder(group, where);
+  const all = group.processes.flatMap(allActivities);
   const rank = new Map(ordered.map((el, index) => [el, index]));
   // Aktivitäten, die die Tabelle nicht kennt, behalten ihren Platz am Ende.
   return all.sort((a, b) => (rank.get(a) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b) ?? Number.MAX_SAFE_INTEGER));
