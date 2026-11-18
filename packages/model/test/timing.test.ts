@@ -16,7 +16,7 @@ const model = (task = '', yes = '', no = '') => `${head}
     <bpmn:sequenceFlow id="J" sourceRef="G" targetRef="B"${yes} />
     <bpmn:sequenceFlow id="N" sourceRef="G" targetRef="C"${no} />
   </bpmn:process></bpmn:definitions>`;
-const PLANNING_CODES = ['invalid-planning-value', 'gateway-without-probabilities', 'probabilities-not-100', 'boundary-without-probability', 'accountable-without-effort'];
+const PLANNING_CODES = ['invalid-planning-value', 'gateway-without-probabilities', 'probabilities-not-100', 'boundary-without-probability', 'accountable-without-effort', 'task-without-value-class'];
 /** Nur die Hinweise zu Planwerten; die übrigen Regeln haben eigene Tests. */
 const issues = async (xml: string, planningValues = true) =>
   (await deriveStatusModels(xml, { planningValues }))

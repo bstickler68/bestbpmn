@@ -206,12 +206,10 @@ describe('Steckbrief', () => {
     expect(profile.firstActivities.map((e) => e.name)).toEqual(['Antrag erfassen']);
     // Über die Zusammenführung zurück: Genehmigen und Ablehnen führen zu „Bescheid mitteilen“, das ist die letzte Aktivität.
     expect(profile.lastActivities.map((e) => e.name)).toEqual(['Bescheid mitteilen', 'Erinnern']);
-    // Das Datenobjekt „Prozess“ trägt nur den Status.
-    expect(profile.inputs).toEqual([{ id: 'Ref_Antrag', name: 'Antrag', state: 'eingegangen' }]);
-    expect(profile.outputs).toEqual([
-      { id: 'Ref_Bescheid', name: 'Bescheid' },
-      { id: 'Ref_Akte', name: 'Akte', store: true },
-    ]);
+    // Datenobjekte an Start- und Endereignissen zählen nicht mehr als Input oder Output.
+    expect(profile.inputs).toEqual([]);
+    expect(profile.outputs).toEqual([]);
+    expect(profile.upstream).toEqual([]);
     expect(profile.resources.people).toEqual(['group(Sachbearbeitung)']);
     expect(profile.resources.documents).toEqual([{ id: 'Ref_Antrag', name: 'Antrag' }]);
     expect(profile.resources.links).toEqual([{ href: 'https://example.org/anleitung', title: 'Anleitung' }]);
@@ -279,5 +277,37 @@ describe('Reihenfolge über mehrere Pools', () => {
     const matrices = deriveRaciMatrices(rootElement);
     expect(matrices).toHaveLength(1);
     expect(matrices[0]!.rows.map((r) => r.elementId)).toEqual(['Bestellen', 'Liefern', 'Pruefen']);
+  });
+});
+
+describe('Ein- und ausgehende Daten je Schritt', () => {
+  it('führt Input- und Output-Verknüpfungen auf, auch „Prozess“', async () => {
+    const rows = deriveElementTables(await load())[0]!.rows;
+    const row = (id: string) => rows.find((r) => r.id === id)!;
+    expect(row('Start').outputs).toEqual(['Antrag [eingegangen]', 'Prozess [erfasst]']);
+    expect(row('Start').inputs).toEqual([]);
+    expect(row('Erfassen').inputs).toEqual(['Antrag [eingegangen]']);
+  });
+
+  it('zeigt Schnittstellen am Start- und Endereignis', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bestadd="urn:bestadd:schema:1.0" id="D" targetNamespace="urn:test">
+  <bpmn:process id="P">
+    <bpmn:startEvent id="S" /><bpmn:task id="T" /><bpmn:endEvent id="E" />
+    ${flow('f1', 'S', 'T')}${flow('f2', 'T', 'E')}
+    <bpmn:textAnnotation id="In" bestadd:symbol="interface" bestadd:interfaceType="document"><bpmn:text>Anforderung</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="Out" bestadd:symbol="interface"><bpmn:text>Bestellung</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="Notiz"><bpmn:text>Nur Notiz</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="a1" sourceRef="In" targetRef="S" associationDirection="One" />
+    <bpmn:association id="a2" sourceRef="E" targetRef="Out" associationDirection="One" />
+    <bpmn:association id="a3" sourceRef="Notiz" targetRef="T" />
+  </bpmn:process>
+</bpmn:definitions>`;
+    const rows = deriveElementTables(await load(xml))[0]!.rows;
+    expect(rows.map((r) => [r.id, r.inputs, r.outputs])).toEqual([
+      ['S', ['Anforderung'], []],
+      ['T', [], []],
+      ['E', [], ['Bestellung']],
+    ]);
   });
 });

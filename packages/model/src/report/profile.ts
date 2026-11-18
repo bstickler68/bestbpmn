@@ -1,5 +1,6 @@
 import { readAttributes, readDescription } from '../attributes/read.js';
 import type { LinkValue, ServiceRefValue } from '../attributes/types.js';
+import { deriveProcessChain, type InterfaceEntry, type ProcessSymbolEntry } from '../interfaces/symbols.js';
 import { deriveRaciMatrices } from '../raci/matrix.js';
 import { isProcessObjectName } from '../states/processObject.js';
 import type { ModdleElement } from '../states/types.js';
@@ -38,10 +39,14 @@ export interface ProcessProfile {
   firstActivities: ProfileEntry[];
   /** Je Endereignis die letzte Aktivität davor. */
   lastActivities: ProfileEntry[];
-  /** Datenobjekte und -speicher an Startereignissen. */
-  inputs: ProfileData[];
-  /** Datenobjekte und -speicher an Endereignissen. */
-  outputs: ProfileData[];
+  /** Vorgelagerte Prozesse: Prozesssymbole vor Startereignissen. */
+  upstream: ProcessSymbolEntry[];
+  /** Nachgelagerte Prozesse: Prozesssymbole hinter Endereignissen. */
+  downstream: ProcessSymbolEntry[];
+  /** Schnittstellen vor Startereignissen. Datenobjekte an Startereignissen zählen nicht mehr. */
+  inputs: InterfaceEntry[];
+  /** Schnittstellen hinter Endereignissen. */
+  outputs: InterfaceEntry[];
   resources: {
     /** Rollen und Gruppen aus der DEMI-Matrix in der Schreibweise des Modells, z. B. `group(Einkauf)`. */
     people: string[];
@@ -150,14 +155,7 @@ export function deriveProfile(definitions: ModdleElement): ProcessProfile {
   const activities = nodes.filter(isActivity);
 
   const byId = (items: ProfileEntry[]) => dedupe(items, (e) => e.id);
-  const inputs = starts.flatMap((s) => [
-    ...((s.dataOutputAssociations ?? []) as El[]).map((a) => data(a.targetRef)),
-    ...((s.dataInputAssociations ?? []) as El[]).flatMap((a) => ((a.sourceRef ?? []) as El[]).map(data)),
-  ]);
-  const outputs = ends.flatMap((e) => [
-    ...((e.dataInputAssociations ?? []) as El[]).flatMap((a) => ((a.sourceRef ?? []) as El[]).map(data)),
-    ...((e.dataOutputAssociations ?? []) as El[]).map((a) => data(a.targetRef)),
-  ]);
+  const chain = deriveProcessChain(definitions);
   const documents = activities.flatMap((a) =>
     ((a.dataInputAssociations ?? []) as El[]).flatMap((assoc) => ((assoc.sourceRef ?? []) as El[]).map(data)),
   );
@@ -169,8 +167,10 @@ export function deriveProfile(definitions: ModdleElement): ProcessProfile {
     endStates: byId(ends.map((e) => entry(e, true))),
     firstActivities: byId(starts.flatMap((s) => nearestActivities(s, 'forward')).map((el) => entry(el))),
     lastActivities: byId(ends.flatMap((e) => nearestActivities(e, 'backward')).map((el) => entry(el))),
-    inputs: dedupe(inputs.filter(Boolean) as ProfileData[], dataKey),
-    outputs: dedupe(outputs.filter(Boolean) as ProfileData[], dataKey),
+    upstream: chain.upstream,
+    downstream: chain.downstream,
+    inputs: chain.inputs,
+    outputs: chain.outputs,
     resources: {
       people: dedupe(
         deriveRaciMatrices(definitions).flatMap((m) => m.columns),

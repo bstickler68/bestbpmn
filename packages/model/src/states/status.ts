@@ -6,6 +6,7 @@ import { stateKey } from './key.js';
 import { checkLanes, checkRaci, findParticipant, laneMap } from '../raci/check.js';
 import { checkTaskActions, checkTaskServices } from '../rules/services.js';
 import { checkStartEvents } from '../rules/starts.js';
+import { checkSymbols } from '../interfaces/symbols.js';
 import { readRaci } from '../raci/read.js';
 import { checkTiming } from '../timing/read.js';
 import { checkRuleMarks, checkScriptTasks, checkSequenceFlows } from '../rules/transitions.js';
@@ -265,6 +266,8 @@ function deriveModel(
       ...(catalog.planningValues === true ? checkTiming(collectFlowElements(process), (el) => readRaci(el).accountable.length > 0) : []),
     );
   }
+  // Prozess- und Schnittstellensymbole; nur Hinweise.
+  issues.push(...checkSymbols(pools.map((p) => p.process), root.collaboration));
   // Nach den Statuswechseln, weil Bedingungen auf Ergebnisse die Outputs der Aufgaben davor brauchen.
   issues.push(...checkSequenceFlows(elements, changes));
 

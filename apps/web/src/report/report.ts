@@ -11,7 +11,8 @@ import {
   type FlowReference,
   type LinkValue,
   type ModdleElement,
-  type ProfileData,
+  type InterfaceEntry,
+  type ProcessSymbolEntry,
   type ProfileEntry,
   type RoleDefinition,
   type ServiceRefValue,
@@ -108,15 +109,30 @@ function entries(items: ProfileEntry[], t: TFunction, withKind = false): string 
     .join('')}</ul>`;
 }
 
-function dataList(items: ProfileData[], t: TFunction): string {
+const processName = (p: ProcessSymbolEntry) => escape(p.name ?? p.id) + (p.processRef ? ` <span class="kind">(${escape(p.processRef)})</span>` : '');
+
+/** Vor- oder nachgelagerte Prozesse. */
+function processList(items: ProcessSymbolEntry[], t: TFunction): string {
   if (!items.length) {
     return dash(t);
   }
-  return `<ul class="data">${items
+  return `<ul class="entries">${items.map((p) => `<li><strong>${processName(p)}</strong>${paragraphs(p.description)}</li>`).join('')}</ul>`;
+}
+
+/** Schnittstellen mit Typ, Partnerprozess und Ereignis. */
+function interfaceList(items: InterfaceEntry[], t: TFunction, direction: 'in' | 'out'): string {
+  if (!items.length) {
+    return dash(t);
+  }
+  return `<ul class="entries">${items
     .map((item) => {
-      const state = item.state ? ` <span class="state">[${escape(item.state)}]</span>` : '';
-      const store = item.store ? ` <span class="kind">(${escape(t('report.store'))})</span>` : '';
-      return `<li>${escape(item.name ?? item.id)}${state}${store}</li>`;
+      const type = item.type ? ` <span class="kind">(${escape(t(`interfaceType.${item.type}`, { defaultValue: item.type }))})</span>` : '';
+      const details = [
+        item.processes.length ? t(direction === 'in' ? 'report.from' : 'report.to', { names: item.processes.map((p) => p.name ?? p.id).join(', ') }) : '',
+        item.events.length ? t('report.at', { names: item.events.join(', ') }) : '',
+      ].filter(Boolean);
+      const meta = details.length ? `<div class="meta">${escape(details.join(' · '))}</div>` : '';
+      return `<li><strong>${escape(item.name ?? item.id)}</strong>${type}${meta}${paragraphs(item.description)}</li>`;
     })
     .join('')}</ul>`;
 }
@@ -150,12 +166,14 @@ export function profileHtml(input: ReportInput): string {
   const body = `<main>
 <section class="purpose"><h2>${escape(t('report.purpose'))}</h2>${paragraphs(profile.description) || dash(t)}</section>
 <div class="grid">
+<section><h2>${escape(t('report.upstream'))}</h2>${processList(profile.upstream, t)}</section>
+<section><h2>${escape(t('report.downstream'))}</h2>${processList(profile.downstream, t)}</section>
+<section><h2>${escape(t('report.inputs'))}</h2>${interfaceList(profile.inputs, t, 'in')}</section>
+<section><h2>${escape(t('report.outputs'))}</h2>${interfaceList(profile.outputs, t, 'out')}</section>
 <section><h2>${escape(t('report.triggers'))}</h2>${entries(profile.triggers, t, true)}</section>
 <section><h2>${escape(t('report.endStates'))}</h2>${entries(profile.endStates, t, true)}</section>
 <section><h2>${escape(t('report.firstActivities'))}</h2>${entries(profile.firstActivities, t)}</section>
 <section><h2>${escape(t('report.lastActivities'))}</h2>${entries(profile.lastActivities, t)}</section>
-<section><h2>${escape(t('report.inputs'))}</h2>${dataList(profile.inputs, t)}</section>
-<section><h2>${escape(t('report.outputs'))}</h2>${dataList(profile.outputs, t)}</section>
 </div>
 <section class="resources"><h2>${escape(t('report.resources'))}</h2>
 <table class="resources-table"><tbody>
@@ -188,6 +206,11 @@ function rulesText(row: ElementRow, t: TFunction): string {
   return `<p class="rules"><strong>${escape(head)}</strong>${row.rules.description ? `: ${escape(row.rules.description)}` : ''}</p>`;
 }
 
+/** Ein- oder ausgehende Daten eines Schritts, je Zeile ein Eintrag. */
+function dataItems(items: string[]): string {
+  return items.length ? `<ul class="data">${items.map((i) => `<li>${escape(i)}</li>`).join('')}</ul>` : '';
+}
+
 function elementRow(row: ElementRow, t: TFunction): string {
   const kind = [
     t(`report.kind.${row.kind}`),
@@ -205,6 +228,8 @@ function elementRow(row: ElementRow, t: TFunction): string {
 <td>${escape(kind)}</td>
 <td class="name">${escape(row.name ?? '')}</td>
 <td>${systems(row.services)}</td>
+<td>${dataItems(row.inputs)}</td>
+<td>${dataItems(row.outputs)}</td>
 <td class="description">${paragraphs(row.description)}${rulesText(row, t)}${next}</td>
 <td>${row.links.length ? `<ul>${row.links.map((l) => `<li>${link(l)}</li>`).join('')}</ul>` : ''}</td>
 </tr>`;
@@ -216,7 +241,7 @@ function elementTables(input: ReportInput): string {
   if (!tables.length) {
     return dash(t);
   }
-  const head = ['number', 'type', 'kind', 'name', 'systems', 'description', 'links']
+  const head = ['number', 'type', 'kind', 'name', 'systems', 'inputs', 'outputs', 'description', 'links']
     .map((c) => `<th scope="col" class="col-${c}">${escape(t(`report.col.${c}`))}</th>`)
     .join('');
   return tables
@@ -286,6 +311,11 @@ export function fullHtml(input: ReportInput): string {
     [t('report.name'), escape(profile.name ?? t('report.untitled'))],
     [t('report.description'), paragraphs(profile.description) || escape(t('report.none'))],
     ...(input.fileName ? [[t('report.fileLabel'), escape(input.fileName)]] : []),
+    // Prozessketten wie im Steckbrief.
+    [t('report.upstream'), processList(profile.upstream, t)],
+    [t('report.downstream'), processList(profile.downstream, t)],
+    [t('report.inputs'), interfaceList(profile.inputs, t, 'in')],
+    [t('report.outputs'), interfaceList(profile.outputs, t, 'out')],
   ];
   const body = `<main>
 <section class="info"><h2>${escape(t('report.modelInfo'))}</h2>

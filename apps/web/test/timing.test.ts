@@ -46,7 +46,7 @@ async function type(field: HTMLInputElement, text: string) {
   field.blur();
   await wait();
 }
-const PLANNING_CODES = ['invalid-planning-value', 'gateway-without-probabilities', 'probabilities-not-100', 'boundary-without-probability', 'accountable-without-effort'];
+const PLANNING_CODES = ['invalid-planning-value', 'gateway-without-probabilities', 'probabilities-not-100', 'boundary-without-probability', 'accountable-without-effort', 'task-without-value-class'];
 /** Nur die Hinweise zu Planwerten; die übrigen Regeln haben eigene Tests. */
 const issues = () =>
   get<StatusCheck>('bestbpmnStatusCheck')
@@ -159,6 +159,36 @@ describe('Planwerte im Modell', () => {
     await wait();
     expect(container.querySelector('[data-group-id="group-bestbpmn-calculation"]')).toBeNull();
     expect(issues()).toEqual([]);
+  });
+
+  it('bewertet Aufgaben und zeigt am Prozess die Wertschöpfungsanalyse', async () => {
+    await setup();
+    get('selection').select(element('Erstellen'));
+    await wait();
+    await open('bestbpmn-timing');
+    const select = container.querySelector<HTMLSelectElement>('[data-entry-id="bestbpmn-timing-valueClass"] select')!;
+    expect([...select.options].map((o) => o.textContent)).toEqual(['nicht bewertet', 'wertschöpfend', 'unterstützend', 'nicht wertschöpfend']);
+    select.value = 'value_adding';
+    select.dispatchEvent(new Event('input', { bubbles: true }));
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    await wait();
+    expect(readTiming(element('Erstellen').businessObject)?.valueClass).toBe('value_adding');
+    expect(issues()).toContainEqual(['task-without-value-class', 'Pruefen']);
+
+    const stack = get('commandStack');
+    stack.execute(UPDATE_TIMING, { element: element('Erstellen'), attribute: 'effort', value: 'PT1H' });
+    stack.execute(UPDATE_TIMING, { element: element('Pruefen'), attribute: 'effort', value: 'PT30M' });
+    stack.execute(UPDATE_TIMING, { element: element('Pruefen'), attribute: 'valueClass', value: 'supporting' });
+    get('selection').deselect(element('Erstellen'));
+    get('selection').select(get('canvas').getRootElement());
+    await wait();
+    await open('bestbpmn-value');
+    const text = container.querySelector('[data-group-id="group-bestbpmn-value"]')?.textContent ?? '';
+    expect(text).toContain('Weg 1');
+    expect(text).toContain('Flussrate');
+    expect(text).toContain('wertschöpfend');
+    const { xml } = await modeler.saveXML();
+    expect(xml).toMatch(/<bestadd:timing [^>]*valueClass="value_adding"/);
   });
 
   it('weist eine Eingabe ab, die keine Dauer ist', async () => {

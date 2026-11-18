@@ -21,6 +21,9 @@ import RulesPropertiesProvider from './RulesPropertiesProvider';
 import { TimingCommands } from './timing';
 import TimingPropertiesProvider from './TimingPropertiesProvider';
 import RaciPropertiesProvider from './RaciPropertiesProvider';
+import SymbolPropertiesProvider from './SymbolPropertiesProvider';
+import SymbolRenderer from './SymbolRenderer';
+import { SymbolBehavior, SymbolRules, SymbolTools } from './SymbolTools';
 import { TranslationCommands } from './translations';
 import TranslationsPropertiesProvider from './TranslationsPropertiesProvider';
 
@@ -39,6 +42,10 @@ export const bestbpmnModule = {
     'bestbpmnTimingCommands',
     'bestbpmnRuleOverlays',
     'bestbpmnGatewayOverlays',
+    'bestbpmnSymbolRenderer',
+    'bestbpmnSymbolRules',
+    'bestbpmnSymbolBehavior',
+    'bestbpmnSymbolTools',
   ],
   bestbpmnNavigation: ['type', ElementNavigation],
   bestbpmnProcessObject: ['type', ProcessObjectBehavior],
@@ -53,6 +60,11 @@ export const bestbpmnModule = {
   bestbpmnTimingCommands: ['type', TimingCommands],
   bestbpmnRuleOverlays: ['type', RuleOverlays],
   bestbpmnGatewayOverlays: ['type', GatewayOverlays],
+  // Prozess- und Schnittstellensymbole an Start- und Endereignissen.
+  bestbpmnSymbolRenderer: ['type', SymbolRenderer],
+  bestbpmnSymbolRules: ['type', SymbolRules],
+  bestbpmnSymbolBehavior: ['type', SymbolBehavior],
+  bestbpmnSymbolTools: ['type', SymbolTools],
 };
 
 /**
@@ -72,6 +84,7 @@ export const bestbpmnPropertiesProviderModule = {
     'bestbpmnConditionProvider',
     'bestbpmnRulesProvider',
     'bestbpmnTimingProvider',
+    'bestbpmnSymbolProvider',
   ],
   bestbpmnStatusProvider: ['type', StatusPropertiesProvider],
   bestbpmnLaneProvider: ['type', LanePropertiesProvider],
@@ -83,6 +96,7 @@ export const bestbpmnPropertiesProviderModule = {
   bestbpmnConditionProvider: ['type', ConditionPropertiesProvider],
   bestbpmnRulesProvider: ['type', RulesPropertiesProvider],
   bestbpmnTimingProvider: ['type', TimingPropertiesProvider],
+  bestbpmnSymbolProvider: ['type', SymbolPropertiesProvider],
 };
 
 /** moddle-Erweiterungen, die der Modellierer kennen muss. */

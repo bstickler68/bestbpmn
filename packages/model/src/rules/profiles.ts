@@ -40,6 +40,11 @@ export const ISSUE_CODES: readonly IssueCode[] = [
   'probabilities-not-100',
   'boundary-without-probability',
   'accountable-without-effort',
+  'task-without-value-class',
+  'interface-without-type',
+  'symbol-not-connected',
+  'symbol-invalid-connection',
+  'data-at-start-or-end',
 ];
 
 /**

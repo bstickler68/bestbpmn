@@ -3,8 +3,8 @@ import type { BusinessObject, DiagramElement } from './util';
 
 export const UPDATE_TIMING = 'bestbpmn.timing.update';
 
-/** Attribute von `bestadd:timing`; Zeiten als ISO-8601-Dauer, `instances` als Zahl. */
-export type TimingAttribute = 'effort' | 'accountableEffort' | 'duration' | 'instances';
+/** Attribute von `bestadd:timing`; Zeiten als ISO-8601-Dauer, `instances` als Zahl, `valueClass` als Schlüssel. */
+export type TimingAttribute = 'effort' | 'accountableEffort' | 'duration' | 'instances' | 'valueClass';
 
 export interface UpdateTimingContext {
   element: DiagramElement;
@@ -63,7 +63,7 @@ export default class UpdateTimingHandler {
     }
 
     const empty =
-      !timing.effort && !timing.accountableEffort && !timing.duration && !timing.instances && !((timing.consultedEfforts ?? []) as unknown[]).length;
+      !timing.effort && !timing.accountableEffort && !timing.duration && !timing.instances && !timing.valueClass && !((timing.consultedEfforts ?? []) as unknown[]).length;
     if (empty) {
       const values = extensionElements.values.filter((v: BusinessObject) => v !== timing);
       modeling.updateModdleProperties(element, extensionElements, { values });

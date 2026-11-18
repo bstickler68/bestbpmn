@@ -1,7 +1,8 @@
 import { h } from '@bpmn-io/properties-panel/preact';
-import { isTextFieldEntryEdited, TextFieldEntry } from '@bpmn-io/properties-panel';
+import { isSelectEntryEdited, isTextFieldEntryEdited, SelectEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
 import { useService } from 'bpmn-js-properties-panel';
 import {
+  analyzeValue,
   calculateProcess,
   describeTimeSpan,
   findParticipant,
@@ -16,7 +17,12 @@ import {
   resolveRaci,
   TIMING_TYPES,
   usesPlanningValues,
+  VALUE_BUCKETS,
+  VALUE_CLASSES,
+  VALUE_TYPES,
   type ProcessCalculation,
+  type ValueAnalysis,
+  type ValueFigures,
 } from '@bestbpmn/model';
 import type { BestbpmnConfig } from './attributes';
 import { resolveI18n, type BestbpmnI18n } from './i18n';
@@ -85,6 +91,11 @@ export default class TimingPropertiesProvider {
           label: t('panel.calculation'),
           entries: [{ id: 'bestbpmn-calculation-summary', component: CalculationSummary, calculate: () => this.calculate(roots), i18n: this.i18n, minutesPerDay: this.minutesPerDay, runs: this.runs }],
         });
+        groups.push({
+          id: 'bestbpmn-value',
+          label: t('panel.valueAnalysis'),
+          entries: [{ id: 'bestbpmn-value-analysis', component: ValueAnalysisView, analyze: () => this.analyze(roots), i18n: this.i18n, minutesPerDay: this.minutesPerDay }],
+        });
         return groups;
       }
       if (!TIMING_TYPES.has(bo.$type)) {
@@ -112,6 +123,9 @@ export default class TimingPropertiesProvider {
           entries.push(timeEntry(`consulted:${assignee}`, t('panel.timingConsultedEffort', { assignee }), t('panel.timingConsultedHint'), this.i18n));
         }
         entries.push(timeEntry('duration', t('panel.timingDuration'), t('panel.timingDurationHint'), this.i18n));
+        if (VALUE_TYPES.has(bo.$type)) {
+          entries.push({ id: 'bestbpmn-timing-valueClass', component: ValueClassEntry, isEdited: isSelectEntryEdited, i18n: this.i18n });
+        }
         if (isMultiInstance(bo as any)) {
           entries.push({ id: 'bestbpmn-timing-instances', component: InstancesEntry, isEdited: isTextFieldEntryEdited, i18n: this.i18n });
         }
@@ -140,6 +154,13 @@ export default class TimingPropertiesProvider {
     return processes
       .filter((p) => ((p.flowElements ?? []) as BusinessObject[]).some((f) => is(f, 'bpmn:StartEvent')))
       .map((p) => calculateProcess(p as any, { minutesPerDay: this.minutesPerDay, runs }, definitions));
+  }
+
+  private analyze(processes: BusinessObject[]): ValueAnalysis[] {
+    const definitions = this.bpmnjs.getDefinitions();
+    return processes
+      .filter((p) => ((p.flowElements ?? []) as BusinessObject[]).some((f) => is(f, 'bpmn:StartEvent')))
+      .map((p) => analyzeValue(p as any, { minutesPerDay: this.minutesPerDay }, definitions));
   }
 }
 
@@ -306,5 +327,82 @@ function CalculationSummary(props: { calculate: () => ProcessCalculation[]; i18n
         h('div', { class: 'bio-properties-panel-description' }, t('panel.calcHint', { hours: String(Math.round((minutesPerDay / 60) * 100) / 100).replace('.', ','), runs: String(runs) })),
       ]);
     }),
+  );
+}
+
+/** Bewertung der Aufgabe für die Wertschöpfungsanalyse. */
+function ValueClassEntry(props: { element: DiagramElement; id: string; i18n: BestbpmnI18n }) {
+  const { element, id, i18n } = props;
+  const { t } = i18n;
+  const commandStack = useService('commandStack');
+  return h(SelectEntry, {
+    element,
+    id,
+    label: t('panel.valueClass'),
+    description: t('panel.valueClassHint'),
+    getValue: () => String((findTiming(element.businessObject as any) as BusinessObject | undefined)?.valueClass ?? ''),
+    setValue: (value: string) => commandStack.execute(UPDATE_TIMING, { element, attribute: 'valueClass', value }),
+    // Feste Reihenfolge wie in der Analyse, nicht alphabetisch.
+    getOptions: () => [{ value: '', label: t('panel.valueClassNone') }, ...VALUE_CLASSES.map((v) => ({ value: v, label: t(`panel.value_${v}`) }))],
+  });
+}
+
+const percent = (value: number) => `${String(Math.round(value * 10) / 10).replace('.', ',')} %`;
+
+/**
+ * Wertschöpfungsanalyse am Prozess: je Weg die Anteile nach Anzahl und nach Bearbeitungszeit,
+ * Durchlaufzeit und Flussrate; darüber der gewichtete Mittelwert.
+ */
+function ValueAnalysisView(props: { analyze: () => ValueAnalysis[]; i18n: BestbpmnI18n; minutesPerDay: number }) {
+  const { analyze, i18n, minutesPerDay } = props;
+  const { t } = i18n;
+  const registry = useService('elementRegistry');
+  const nameOf = (id: string) => registry.get(id)?.businessObject?.name || id;
+  const results = analyze();
+  const time = (m: number) => describeMinutes(m, minutesPerDay, i18n);
+  const row = (label: string, value: string) => h('div', { class: 'bestbpmn-calc-row' }, [h('span', { class: 'bestbpmn-calc-label' }, label), h('span', null, value)]);
+  const rated = results.some((r) => r.paths.some((p) => VALUE_CLASSES.some((c) => p.count[c] > 0)));
+  if (!rated) {
+    return h('div', { class: 'bio-properties-panel-description bestbpmn-empty' }, t('panel.valueNone'));
+  }
+  const buckets = (f: ValueFigures) => VALUE_BUCKETS.filter((b) => b !== 'unrated' || f.count.unrated > 0);
+  const table = (f: ValueFigures) =>
+    h('table', { class: 'bestbpmn-value-table' }, [
+      h('thead', null, h('tr', null, [h('th', null, ''), h('th', null, t('panel.valueCount')), h('th', null, t('panel.valueProcessing'))])),
+      h(
+        'tbody',
+        null,
+        buckets(f).map((b) => h('tr', { 'data-bucket': b }, [h('td', null, t(`panel.value_${b}`)), h('td', null, percent(f.countShare[b])), h('td', null, percent(f.processingShare[b]))])),
+      ),
+    ]);
+  const figures = (f: ValueFigures) => [
+    table(f),
+    row(t('panel.valueCycleTime'), time(f.cycleTime)),
+    row(t('panel.valueProcessingTime'), time(f.criticalProcessing)),
+    row(t('panel.valueWaiting'), time(f.waiting)),
+    row(t('panel.valueFlowRate'), percent(f.flowRate)),
+  ];
+  return h(
+    'div',
+    { class: 'bestbpmn-calc bestbpmn-value' },
+    results.map((r) =>
+      h('div', { class: 'bestbpmn-calc-process', 'data-process': r.processId }, [
+        results.length > 1 ? h('div', { class: 'bestbpmn-calc-title' }, r.name || r.processId) : null,
+        r.mean ? h('div', { class: 'bestbpmn-value-path bestbpmn-value-mean' }, [h('div', { class: 'bestbpmn-calc-title' }, t('panel.valueMean', { count: String(r.paths.length) })), ...figures(r.mean)]) : null,
+        ...r.paths.map((p, i) =>
+          h('div', { class: 'bestbpmn-value-path', 'data-path': String(i + 1) }, [
+            h('div', { class: 'bestbpmn-calc-title' }, t('panel.valuePath', { n: String(i + 1), probability: percent(p.probability) })),
+            // Die Aufgabenfolge steht immer da; nur die Kennzahlen lassen sich einklappen.
+            h('div', { class: 'bestbpmn-value-steps' }, p.steps.map((s) => nameOf(s.elementId)).join(' → ')),
+            h('details', null, [h('summary', null, t('panel.valueFigures')), ...figures(p)]),
+          ]),
+        ),
+        h('hr', { class: 'bestbpmn-value-separator' }),
+        r.coverage < 99.5 ? h('div', { class: 'bio-properties-panel-description' }, t('panel.valueCoverage', { coverage: percent(r.coverage) })) : null,
+        r.truncated ? h('div', { class: 'bio-properties-panel-description' }, t('panel.valueTruncated', { count: String(r.paths.length) })) : null,
+        r.unrated.length ? row(t('panel.valueUnrated'), r.unrated.map(nameOf).join(', ')) : null,
+        h('div', { class: 'bio-properties-panel-description' }, t('panel.valueHint')),
+      ]),
+    ),
   );
 }

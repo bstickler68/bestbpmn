@@ -98,16 +98,16 @@ export interface ProcessCalculation {
   complete: boolean;
 }
 
-const GATEWAY_EITHER = new Set(['bpmn:ExclusiveGateway', 'bpmn:EventBasedGateway', 'bpmn:ComplexGateway']);
-const PARALLEL = 'bpmn:ParallelGateway';
-const INCLUSIVE = 'bpmn:InclusiveGateway';
+export const GATEWAY_EITHER = new Set(['bpmn:ExclusiveGateway', 'bpmn:EventBasedGateway', 'bpmn:ComplexGateway']);
+export const PARALLEL = 'bpmn:ParallelGateway';
+export const INCLUSIVE = 'bpmn:InclusiveGateway';
 /** Aufgaben, die ein Mensch erledigt und für die der Aufwand des D Pflicht ist (F1). */
 const HUMAN_TASKS = new Set(['bpmn:Task', 'bpmn:UserTask', 'bpmn:ManualTask']);
 const MAX_DEPTH = 10;
 const MAX_STEPS = 100_000;
 
-/** Ein Prozess oder Teilprozess als Graph. */
-interface Graph {
+/** Ein Prozess oder Teilprozess als Graph (auch für die Wertschöpfungsanalyse). */
+export interface Graph {
   container: El;
   nodes: El[];
   index: Map<El, number>;
@@ -231,7 +231,7 @@ interface Context {
   stack: El[];
 }
 
-function findDefinitions(el: El): El | undefined {
+export function findDefinitions(el: El): El | undefined {
   let current: El | undefined = el;
   while (current && current.$type !== 'bpmn:Definitions') {
     current = current.$parent;
@@ -294,7 +294,7 @@ function buildModel(container: El, ctx: Context, lanes: Map<El, El> | undefined,
   return { graph, info, routes, visits, effort, elements, missing };
 }
 
-function buildGraph(container: El, ctx: Context): Graph {
+export function buildGraph(container: El, ctx: Pick<Context, 'overrides'>): Graph {
   const all = (container.flowElements ?? []) as El[];
   const flows = all.filter((f) => f.$type === 'bpmn:SequenceFlow' && f.sourceRef && f.targetRef);
   const nodes = all.filter((f) => f.$instanceOf?.('bpmn:FlowNode') && !(f.$type === 'bpmn:SubProcess' && f.triggeredByEvent));
@@ -331,10 +331,10 @@ function buildGraph(container: El, ctx: Context): Graph {
   return graph;
 }
 
-const isActivity = (el: El) => !!el.$instanceOf?.('bpmn:Activity');
+export const isActivity = (el: El) => !!el.$instanceOf?.('bpmn:Activity');
 const isCompensation = (el: El) => !!el.isForCompensation;
-const isSplit = (el: El, graph: Graph) => (el.$type === PARALLEL || el.$type === INCLUSIVE) && graph.out.get(el)!.length > 1;
-const isJoin = (el: El, graph: Graph) => (el.$type === PARALLEL || el.$type === INCLUSIVE) && graph.inc.get(el)!.length > 1;
+export const isSplit = (el: El, graph: Graph) => (el.$type === PARALLEL || el.$type === INCLUSIVE) && graph.out.get(el)!.length > 1;
+export const isJoin = (el: El, graph: Graph) => (el.$type === PARALLEL || el.$type === INCLUSIVE) && graph.inc.get(el)!.length > 1;
 
 /**
  * Das zusammenführende Gateway zu einer Verzweigung, unter der Annahme eines blockweise aufgebauten Modells:
@@ -500,7 +500,7 @@ function inheritLane(sub: El, lanes: Map<El, El>): Map<El, El> {
 }
 
 /** Ausgehende Wege eines Knotens mit dem Faktor, mit dem ein Token sie nimmt. */
-function nodeRoutes(node: El, graph: Graph, miss: (code: MissingCode, el: El) => void): { flow: El; factor: number }[] {
+export function nodeRoutes(node: El, graph: Graph, miss: (code: MissingCode, el: El) => void): { flow: El; factor: number }[] {
   const out = graph.out.get(node)!;
   if (!out.length) {
     return [];
@@ -554,7 +554,7 @@ function nodeRoutes(node: El, graph: Graph, miss: (code: MissingCode, el: El) =>
 }
 
 /** Wahrscheinlichkeit eines Grenzereignisses: steht an seinem ausgehenden Sequenzfluss. */
-function boundaryProbability(boundary: El, graph: Graph): number | undefined {
+export function boundaryProbability(boundary: El, graph: Graph): number | undefined {
   for (const flow of graph.out.get(boundary) ?? []) {
     const p = graph.probability(flow);
     if (p !== undefined && !Number.isNaN(p)) {
