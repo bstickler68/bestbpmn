@@ -93,7 +93,12 @@
     "unknown-choice-condition": "Der Weg „{{flow}}“ fragt die Wahl „{{choice}}“ ab. Ein Weg mit Wahl fragt immer seine eigene ID ab.",
     "raci-unknown-field": "„{{element}}“: Das Feld {{field}} steht nicht in der Feldliste.",
     "multiple-none-start-events": "„{{element}}“ ist ein weiteres Startereignis ohne Auslöser. Ein Prozess hat nur eines („{{first}}“); weitere Wege beginnen mit einem Nachrichtenstartereignis.",
-    "service-task-without-action": "Die automatische Aufgabe „{{element}}“ hat keine Aktion. Zur Ausführung braucht sie einen IT-Service mit einer Aktion (bestadd:actionRef), die das System ausführt."
+    "service-task-without-action": "Die automatische Aufgabe „{{element}}“ hat keine Aktion. Zur Ausführung braucht sie einen IT-Service mit einer Aktion (bestadd:actionRef), die das System ausführt.",
+    "task-without-value-class": "„{{element}}“ ist für die Wertschöpfungsanalyse nicht bewertet (wertschöpfend, unterstützend oder nicht wertschöpfend).",
+    "interface-without-type": "„{{element}}“ ist eine Schnittstelle ohne Typ. Typ im Eigenschaftenpanel wählen.",
+    "symbol-not-connected": "„{{element}}“ ist mit keinem Start- oder Endereignis verbunden.",
+    "symbol-invalid-connection": "Die Verbindung von „{{source}}“ zu „{{target}}“ ist für Prozess- und Schnittstellensymbole nicht erlaubt. Eingehend: Prozess → Schnittstelle → Startereignis; ausgehend: Endereignis → Schnittstelle → Prozess.",
+    "data-at-start-or-end": "„{{data}}“ hängt als Datenobjekt an „{{element}}“. Inputs und Outputs modelliert man als Schnittstelle."
   },
   "panel": {
     "translations": "Übersetzungen",
@@ -168,6 +173,28 @@
     "calcMissing_instances": "Anzahl Instanzen",
     "calcMissing_called-process": "aufgerufener Prozess nicht gefunden",
     "calcMissing_endless-loop": "Schleife ohne Ausgang",
+    "valueClass": "Wertschöpfung",
+    "valueClassHint": "Für die Wertschöpfungsanalyse: Welchen Wert hat diese Aufgabe für das Ergebnis?",
+    "valueClassNone": "nicht bewertet",
+    "value_value_adding": "wertschöpfend",
+    "value_supporting": "unterstützend",
+    "value_non_value_adding": "nicht wertschöpfend",
+    "value_unrated": "nicht bewertet",
+    "valueAnalysis": "Wertschöpfungsanalyse",
+    "valueNone": "Noch keine Bewertung. Wähle an den Aufgaben unter Planwerte „Wertschöpfung“.",
+    "valueCount": "Anzahl",
+    "valueProcessing": "Bearbeitung",
+    "valueCycleTime": "Durchlaufzeit",
+    "valueProcessingTime": "Bearbeitungszeit",
+    "valueWaiting": "Liegezeit",
+    "valueFlowRate": "Flussrate",
+    "valueMean": "Mittelwert über {{count}} Wege",
+    "valueFigures": "Kennzahlen",
+    "valuePath": "Weg {{n}} ({{probability}})",
+    "valueCoverage": "Die Wege decken {{coverage}} der Durchläufe ab; weitere Wiederholungen von Schleifen fehlen.",
+    "valueTruncated": "Nur die ersten {{count}} Wege.",
+    "valueUnrated": "Nicht bewertet",
+    "valueHint": "Anteile über alle Aufgaben des Wegs. Bearbeitungszeit = Aufwand D + E, Liegezeit = Dauer minus Bearbeitungszeit. Durchlaufzeit und Flussrate folgen dem längsten parallelen Zweig. Schleifen zählen höchstens mit einer Wiederholung.",
     "conditionChoice": "(Wahl des Bearbeiters)",
     "conditionChoiceDescription": "Der Bearbeiter der Aufgabe davor wählt diesen Weg beim Abschluss. Der Name des Wegs ist der Text der Auswahl; der Status ändert sich nicht.",
     "resultLabel": "Text in der Auswahl",
@@ -280,7 +307,12 @@
       "gateway-without-probabilities": "Jeder Ausgang eines Gateways hat eine Wahrscheinlichkeit (nur mit Planwerten)",
       "probabilities-not-100": "Wahrscheinlichkeiten am Entweder-oder ergeben 100 % (nur mit Planwerten)",
       "boundary-without-probability": "Grenzereignisse haben eine Wahrscheinlichkeit (nur mit Planwerten)",
-      "accountable-without-effort": "Aufgaben mit E haben einen Aufwand des E (nur mit Planwerten)"
+      "accountable-without-effort": "Aufgaben mit E haben einen Aufwand des E (nur mit Planwerten)",
+      "task-without-value-class": "Ist eine Aufgabe bewertet, sind alle bewertet (nur mit Planwerten)",
+      "interface-without-type": "Schnittstellen haben einen Typ",
+      "symbol-not-connected": "Prozess- und Schnittstellensymbole hängen an einem Start- oder Endereignis",
+      "symbol-invalid-connection": "Prozess- und Schnittstellensymbole nur in Flussrichtung verbinden",
+      "data-at-start-or-end": "Keine Datenobjekte an Start- und Endereignissen"
     }
   },
   "catalog": {
@@ -403,7 +435,9 @@
       "key": "Schlüssel",
       "initial": "Anfangsstatus",
       "activity": "Aktivität",
-      "sets": "setzt Status"
+      "sets": "setzt Status",
+      "inputs": "Input",
+      "outputs": "Output"
     },
     "yes": "ja",
     "next": {
@@ -461,6 +495,31 @@
       "standard": "Schleife"
     },
     "noElements": "Keine Elemente im Modell.",
-    "fileLabel": "Datei"
+    "fileLabel": "Datei",
+    "upstream": "Vorgelagerte Prozesse",
+    "downstream": "Nachgelagerte Prozesse",
+    "from": "von {{names}}",
+    "to": "an {{names}}",
+    "at": "bei {{names}}"
+  },
+  "symbol": {
+    "process": "Prozessschnittstelle",
+    "interface": "Schnittstelle",
+    "createProcess": "Prozessschnittstelle (vor- oder nachgelagerter Prozess) anlegen",
+    "createInterface": "Schnittstelle (Input oder Output) anlegen",
+    "processRef": "Kennung des Prozesses",
+    "processRefHint": "Freie Kennung oder Nummer des Prozesses, z. B. aus der Prozesslandkarte. Freiwillig; wird mit dem Modell gespeichert.",
+    "interfaceType": "Typ der Schnittstelle",
+    "noType": "– kein Typ –",
+    "name": "Name",
+    "unknownType": "{{type}} (unbekannt)"
+  },
+  "interfaceType": {
+    "document": "Dokument",
+    "record": "Datensatz",
+    "event": "Ereignis / Nachricht",
+    "system": "Daten aus IT-System",
+    "material": "Material",
+    "other": "Sonstiges"
   }
 }

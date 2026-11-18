@@ -40,7 +40,13 @@ export type IssueCode =
   | 'gateway-without-probabilities'
   | 'probabilities-not-100'
   | 'accountable-without-effort'
-  | 'boundary-without-probability';
+  | 'boundary-without-probability'
+  | 'task-without-value-class'
+  // Prozess- und Schnittstellensymbole an Start- und Endereignissen; nur Hinweise.
+  | 'interface-without-type'
+  | 'symbol-not-connected'
+  | 'symbol-invalid-connection'
+  | 'data-at-start-or-end';
 
 /**
  * Ein Verstoß gegen die Modellierregeln. Enthält nur Code und Parameter;

@@ -244,6 +244,11 @@
           "type": "String"
         },
         {
+          "name": "valueClass",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
           "name": "consultedEfforts",
           "type": "ConsultedEffort",
           "isMany": true
@@ -286,6 +291,29 @@
       "properties": [
         {
           "name": "resultLabel",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "AnnotationSymbol",
+      "extends": [
+        "bpmn:TextAnnotation"
+      ],
+      "properties": [
+        {
+          "name": "symbol",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "processRef",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "interfaceType",
           "isAttr": true,
           "type": "String"
         }

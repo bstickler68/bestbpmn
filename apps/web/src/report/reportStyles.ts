@@ -19,7 +19,8 @@ ul { margin: 0; padding-left: 18px; }
 a { color: #0969da; }
 code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 9pt; }
 .none { color: #57606a; }
-.kind, .state { color: #57606a; }
+.kind, .state, .meta { color: #57606a; }
+.meta { font-size: 0.9em; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
 .grid section { break-inside: avoid; }
 .entries li { margin-bottom: 6px; }
@@ -37,10 +38,12 @@ table.elements { font-size: 9pt; }
 table.elements .number { white-space: nowrap; font-weight: 600; }
 table.elements .name { font-weight: 600; }
 table.elements .col-number { width: 4%; }
-table.elements .col-type, table.elements .col-kind { width: 10%; }
-table.elements .col-name { width: 15%; }
-table.elements .col-systems { width: 11%; }
-table.elements .col-links { width: 15%; }
+table.elements .col-type, table.elements .col-kind { width: 8%; }
+table.elements .col-name { width: 12%; }
+table.elements .col-systems { width: 10%; }
+table.elements .col-inputs, table.elements .col-outputs { width: 10%; }
+table.elements .col-links { width: 12%; }
+table.elements ul.data { list-style: none; padding: 0; margin: 0; }
 table.elements tr.depth-1 td:first-child { padding-left: 14px; }
 table.elements tr.depth-2 td:first-child { padding-left: 22px; }
 table.elements tr.depth-3 td:first-child { padding-left: 30px; }

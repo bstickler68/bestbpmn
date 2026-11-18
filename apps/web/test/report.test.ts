@@ -21,12 +21,14 @@ describe('Steckbrief', () => {
     expect(doc.title).toBe('Dokumentenfreigabe – Steckbrief');
     expect([...doc.querySelectorAll('h2')].map((h) => h.textContent)).toEqual([
       'Zweck und Beschreibung',
+      'Vorgelagerte Prozesse',
+      'Nachgelagerte Prozesse',
+      'Schnittstellen (Input)',
+      'Schnittstellen (Output)',
       'Auslöser',
       'Endzustand',
       'Erste Aktivität',
       'Letzte Aktivität',
-      'Schnittstellen (Input)',
-      'Schnittstellen (Output)',
       'Ressourcen',
     ]);
     expect(doc.querySelector('svg')).toBeNull();
@@ -70,9 +72,19 @@ describe('Gesamtdokument', () => {
       'Verantwortlichkeiten (DEMI)',
     ]);
     expect(doc.querySelector('.info-table')!.textContent).not.toContain('Hauptsprache');
+    // Prozessketten stehen hinten im Kopfteil.
+    expect([...doc.querySelectorAll('.info-table th')].map((th) => th.textContent).slice(-4)).toEqual([
+      'Vorgelagerte Prozesse',
+      'Nachgelagerte Prozesse',
+      'Schnittstellen (Input)',
+      'Schnittstellen (Output)',
+    ]);
     expect(doc.querySelector('.diagram svg')).not.toBeNull();
     const head = [...doc.querySelectorAll('table.elements thead th')].map((th) => th.textContent);
-    expect(head).toEqual(['Nr', 'Objekt', 'Typ', 'Name', 'System', 'Beschreibung', 'Weiterführende Dokumentation']);
+    expect(head).toEqual(['Nr', 'Objekt', 'Typ', 'Name', 'System', 'Input', 'Output', 'Beschreibung', 'Weiterführende Dokumentation']);
+    // Ausgaben auf „Prozess“ stehen in der Spalte Output.
+    const outputs = [...doc.querySelectorAll('table.elements tbody tr')].map((tr) => tr.children[6]!.textContent ?? '');
+    expect(outputs.some((o) => o.includes('Prozess ['))).toBe(true);
     const numbers = [...doc.querySelectorAll('table.elements td.number')].map((td) => td.textContent);
     expect(numbers[0]).toBe('1');
     expect(new Set(numbers).size).toBe(numbers.length);
@@ -129,5 +141,26 @@ describe('Verweistexte', () => {
     expect(referenceText({ target: '10', direction: 'forward', boundary: { kind: 'timer' } }, t)).toBe(
       'bei „Zeitgeber“: weiter bei 10',
     );
+  });
+});
+
+describe('Prozessketten im Gesamtdokument', () => {
+  it('zeigt vorgelagerte Prozesse und Schnittstellen im Kopfteil', async () => {
+    const xml = template
+      .replace(
+        '</bpmn:process>',
+        `<bpmn:textAnnotation id="Vor" bestadd:symbol="process" bestadd:processRef="P-7"><bpmn:text>Bedarf melden</bpmn:text></bpmn:textAnnotation>
+        <bpmn:textAnnotation id="In" bestadd:symbol="interface" bestadd:interfaceType="document"><bpmn:text>Anforderung</bpmn:text></bpmn:textAnnotation>
+        <bpmn:association id="X1" sourceRef="Vor" targetRef="In" associationDirection="One" />
+        <bpmn:association id="X2" sourceRef="In" targetRef="__START__" associationDirection="One" />
+        </bpmn:process>`,
+      );
+    const startId = /<bpmn:startEvent id="([^"]+)"/.exec(template)![1]!;
+    const defs = await definitions(xml.replace('__START__', startId));
+    const text = parse(fullHtml({ t, language: 'de', definitions: defs, now })).querySelector('.info-table')!.textContent!;
+    expect(text).toContain('Bedarf melden');
+    expect(text).toContain('P-7');
+    expect(text).toContain('Anforderung');
+    expect(text).toContain('Dokument');
   });
 });

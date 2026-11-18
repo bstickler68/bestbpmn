@@ -3,6 +3,7 @@ import type { LinkValue, ServiceRefValue } from '../attributes/types.js';
 import type { ModdleElement } from '../states/types.js';
 import { incoming as incomingFlows, outgoing as outgoingFlows } from './graph.js';
 import { readRuleMarks, type RuleKind } from '../rules/transitions.js';
+import { collectSymbolArtifacts, isAllowedSymbolConnection, symbolKind } from '../interfaces/symbols.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -54,6 +55,13 @@ export interface ElementRow {
   description?: string;
   services: ServiceRefValue[];
   links: LinkValue[];
+  /**
+   * Eingehende Daten: Datenobjekte und -speicher über Input-Verknüpfungen, auch „Prozess [Status]“,
+   * und am Startereignis die Schnittstellen davor. Text wie im Diagramm.
+   */
+  inputs: string[];
+  /** Ausgehende Daten: Output-Verknüpfungen, auch „Prozess [Status]“, und am Endereignis die Schnittstellen danach. */
+  outputs: string[];
   /** Regel-Kennzeichen und ihre Beschreibung. */
   rules?: { kinds: RuleKind[]; description?: string };
   /**
@@ -297,6 +305,7 @@ function numberNodes(
       ...(description ? { description } : {}),
       services: dedupe(attributes.flatMap((a) => a.services), (s) => s.ref || s.name || ''),
       links: dedupe(attributes.flatMap((a) => a.links), (l) => l.href),
+      ...dataFlow(el),
       ...(marks && (marks.kinds.length || marks.description)
         ? { rules: { kinds: marks.kinds, ...(marks.description ? { description: marks.description } : {}) } }
         : {}),
@@ -564,3 +573,49 @@ function dedupe<T>(items: T[], key: (item: T) => string): T[] {
 }
 
 export { dedupe };
+
+/** Beschriftung eines Datenobjekts oder -speichers wie im Diagramm, z. B. „Prozess [in_review]“. */
+function dataLabel(el: El | undefined): string | undefined {
+  if (!el || !(el.$type === 'bpmn:DataObjectReference' || el.$type === 'bpmn:DataStoreReference')) {
+    return undefined;
+  }
+  if (el.name) {
+    return el.name as string;
+  }
+  const base = (el.dataObjectRef?.name ?? el.dataStoreRef?.name ?? el.id) as string | undefined;
+  return base && el.dataState?.name ? `${base} [${el.dataState.name}]` : base;
+}
+
+const symbolCache = new WeakMap<object, El[]>();
+
+/** Assoziationen an Prozess- und Schnittstellensymbolen des ganzen Modells (einmal gesammelt). */
+function symbolAssociations(el: El): El[] {
+  let root: El = el;
+  while (root.$parent) {
+    root = root.$parent;
+  }
+  let result = symbolCache.get(root);
+  if (!result) {
+    const containers = ((root.rootElements ?? []) as El[]).filter((r) => r.$type === 'bpmn:Process' || r.$type === 'bpmn:Collaboration');
+    result = collectSymbolArtifacts(containers).associations.filter((a) => isAllowedSymbolConnection(a.sourceRef, a.targetRef));
+    symbolCache.set(root, result);
+  }
+  return result;
+}
+
+/** Ein- und ausgehende Daten eines Schritts (Spalten Input und Output im Gesamtdokument). */
+function dataFlow(el: El): { inputs: string[]; outputs: string[] } {
+  const interfaces = (list: El[]) =>
+    list.filter((s) => symbolKind(s) === 'interface').map((s) => (s.text as string | undefined) || s.id || '');
+  const associations = symbolAssociations(el);
+  const inputs = [
+    ...((el.dataInputAssociations ?? []) as El[]).flatMap((a) => ((a.sourceRef ?? []) as El[]).map(dataLabel)),
+    ...interfaces(associations.filter((a) => a.targetRef === el).map((a) => a.sourceRef)),
+  ];
+  const outputs = [
+    ...((el.dataOutputAssociations ?? []) as El[]).map((a) => dataLabel(a.targetRef)),
+    ...interfaces(associations.filter((a) => a.sourceRef === el).map((a) => a.targetRef)),
+  ];
+  const clean = (items: (string | undefined)[]) => dedupe(items.filter((i): i is string => !!i), (i) => i);
+  return { inputs: clean(inputs), outputs: clean(outputs) };
+}

@@ -1,15 +1,15 @@
 # bestbpmn Modellierungsanleitung für vollständige Berichte
 
-Stand: 2026-11-16, bestbpmn 0.4.0
+Stand: 2026-11-18, bestbpmn 0.5.0
 
 Diese Datei ist die gepflegte Fassung der Anleitung. Änderungen am Modeler, die Berichte oder Pflegeorte betreffen, tragen hier mit ein.
 
 ## Zweck
 
-Beide Berichte entstehen vollständig aus dem BPMN-Modell: Was im Modell fehlt, steht im Bericht als „–“ oder gar nicht da. Diese Anleitung sagt, welche Elemente und Felder du pflegen musst, damit jeder Abschnitt gefüllt ist. Sie beruht auf dem Code von bestbpmn 0.4.0 (Bericht-Menü, Steckbrief und Gesamtdokument).
+Beide Berichte entstehen vollständig aus dem BPMN-Modell: Was im Modell fehlt, steht im Bericht als „–“ oder gar nicht da. Diese Anleitung sagt, welche Elemente und Felder du pflegen musst, damit jeder Abschnitt gefüllt ist. Sie beruht auf dem Code von bestbpmn 0.5.0 (Bericht-Menü, Steckbrief und Gesamtdokument).
 
-- **Steckbrief**: eine Seite ohne Grafik. Zweck, Auslöser, Endzustand, erste und letzte Aktivität, Schnittstellen (Input/Output) und Ressourcen (Personell, Dokumente, Systeme).
-- **Gesamtdokument**: Prozessinformationen, Prozessablaufdiagramm, Beschreibung der Prozessschritte (Elementtabelle), Status (nur wenn modelliert) und Verantwortlichkeiten (DEMI).
+- **Steckbrief**: eine Seite ohne Grafik. Zweck, Auslöser, Endzustand, erste und letzte Aktivität, vor- und nachgelagerte Prozesse, Schnittstellen (Input/Output) und Ressourcen (Personell, Dokumente, Systeme).
+- **Gesamtdokument**: Prozessinformationen (auch mit vor- und nachgelagerten Prozessen und Schnittstellen), Prozessablaufdiagramm, Beschreibung der Prozessschritte (Elementtabelle), Status (nur wenn modelliert) und Verantwortlichkeiten (DEMI).
 
 Im Beispiel „Incident bearbeiten“ bleiben Input, Output, Dokumente und Systeme leer, die Spalten „System“ und „Weiterführende Dokumentation“ sind leer, und unter Personell stehen technische Kürzel wie `service_desk`. Genau diese Lücken schließt die Anleitung.
 
@@ -21,21 +21,21 @@ Die Tabelle zeigt für jeden Berichtsabschnitt, aus welchem Modellteil er gefül
 | --- | --- | --- | --- |
 | beide | Titel (Name des Modells) | Name der Kollaboration, sonst des einzigen Pools oder Prozesses | Leere Fläche anklicken → Eigenschaften → Allgemein → Name |
 | Steckbrief | Zweck und Beschreibung | Beschreibung des Prozesses | Leere Fläche → Beschreibung des Prozesses (Markdown) |
-| Gesamtdokument | Prozessinformationen | Name und Beschreibung des Prozesses, Dateiname | wie oben; Modell als Datei speichern |
+| Gesamtdokument | Prozessinformationen | Name und Beschreibung des Prozesses, Dateiname, dazu Prozessketten wie im Steckbrief | wie oben; Modell als Datei speichern; Symbole siehe Abschnitt 4 |
 | Steckbrief | Auslöser | alle Startereignisse mit Name, Ereignisart und Beschreibung | Startereignis → Name, Beschreibung, Ereignisart (Schraubenschlüssel) |
 | Steckbrief | Endzustand | alle Endereignisse mit Name, Art und Beschreibung | Endereignis → Name, Beschreibung |
 | Steckbrief | Erste / Letzte Aktivität | die Aktivität direkt nach jedem Start bzw. vor jedem Ende, über Gateways und Zwischenereignisse hinweg | Name und Beschreibung dieser Aufgaben |
-| Steckbrief | Schnittstellen (Input) | Datenobjekte und Datenspeicher, die mit einem **Startereignis** verbunden sind | Datenobjekt neben den Start legen und verbinden |
-| Steckbrief | Schnittstellen (Output) | Datenobjekte und Datenspeicher, die mit einem **Endereignis** verbunden sind | Datenobjekt neben das Ende legen und verbinden |
+| beide | Vorgelagerte / Nachgelagerte Prozesse | Prozessschnittstellen vor einem **Startereignis** bzw. hinter einem **Endereignis** | Kontextmenü am Start- oder Endereignis → Prozessschnittstelle (ab 0.5.0) |
+| beide | Schnittstellen (Input) / (Output) | Schnittstellen vor einem **Startereignis** bzw. hinter einem **Endereignis**, mit Typ, Partnerprozess und Ereignis | Kontextmenü am Start- oder Endereignis → Schnittstelle; Typ und Beschreibung im Eigenschaftenbereich (ab 0.5.0) |
 | Steckbrief | Personell | alle Rollen und Gruppen aus der DEMI-Matrix | Lane bzw. Pool → Rolle/Gruppe; Aufgabe → Verantwortlichkeiten (DEMI) |
 | Steckbrief | Dokumente | Datenobjekte und Datenspeicher, die **in eine Aktivität eingehen**, dazu alle Links | Datenobjekt → Pfeil zur Aufgabe; Aufgabe → Weiterführende Dokumentation |
 | Steckbrief | Systeme | alle IT-Services an den Aktivitäten | Aufgabe → IT-Services |
 | Gesamtdokument | Prozessablaufdiagramm | das Diagramm selbst | Layout aufräumen |
-| Gesamtdokument | Beschreibung der Prozessschritte | jede Aufgabe, jeder Teilprozess, jedes Ereignis und Gateway: Name, Art, IT-Services, Beschreibung, Regeln, Verzweigungen, Links | siehe Abschnitte unten |
+| Gesamtdokument | Beschreibung der Prozessschritte | jede Aufgabe, jeder Teilprozess, jedes Ereignis und Gateway: Name, Art, IT-Services, Input, Output, Beschreibung, Regeln, Verzweigungen, Links | siehe Abschnitte unten |
 | Gesamtdokument | Status | Status am Datenobjekt „Prozess“ und welche Aktivität ihn setzt | Datenobjekt „Prozess“ → Status; Pfeil von der Aufgabe zum Datenobjekt |
 | Gesamtdokument | Verantwortlichkeiten (DEMI) | D aus Lane oder Aufgabe, E, M, I an der Aufgabe | Lane → Rolle/Gruppe; Aufgabe → DEMI |
 
-Nicht in den Berichten erscheinen: Textanmerkungen, Gruppen (Rahmen), Nachrichtenflüsse, Übersetzungen der Namen und die Datenobjekte selbst in der Elementtabelle. Was dort steht, muss also zusätzlich in eine Beschreibung.
+Nicht in den Berichten erscheinen: gewöhnliche Textanmerkungen (ohne Prozess- oder Schnittstellensymbol), Gruppen (Rahmen), Nachrichtenflüsse, Übersetzungen der Namen und die Datenobjekte selbst in der Elementtabelle. Was dort steht, muss also zusätzlich in eine Beschreibung.
 
 ## 1. Prozess und Kopfdaten
 
@@ -80,6 +80,7 @@ Jede Aufgabe ist eine Zeile in „Beschreibung der Prozessschritte“. Die Spalt
 | Objekt / Typ | Elementtyp und Aufgabenart, dazu „mehrfach parallel“, „mehrfach nacheinander“ oder „Schleife“ | Aufgabenart über den Schraubenschlüssel wählen: Benutzer, Service, Manuell, Senden, Empfangen, Geschäftsregel, Skript |
 | Name | Name des Elements | kurz, Verb am Ende: „Rechnung prüfen“ |
 | System | IT-Services der Aufgabe | Aufgabe → IT-Services (aus dem Service-Katalog, Art „fachlich“) |
+| Input / Output | Datenobjekte und -speicher, die in die Aufgabe eingehen bzw. aus ihr herausgehen, beschriftet wie im Diagramm (auch „Prozess [In Arbeit]“); am Start- und Endereignis die Schnittstellen | Datenobjekt mit Pfeil zur bzw. von der Aufgabe verbinden; Schnittstellen siehe Abschnitt 4 |
 | Beschreibung | Beschreibung, Regeln, Verzweigungen | Aufgabe → Beschreibung; Aufgabe → Regeln |
 | Weiterführende Dokumentation | Links der Aufgabe | Aufgabe → Weiterführende Dokumentation: Titel + Web(URL) |
 
@@ -109,24 +110,47 @@ Verwende lesbare Statusnamen („In Bearbeitung“ statt „`in_progress`“): D
 
 ## 4. Dokumente, Datenobjekte und Schnittstellen
 
-Datenobjekte und Datenspeicher füllen im Steckbrief drei Abschnitte. Entscheidend ist, **womit** sie verbunden sind und **in welche Richtung** der Pfeil zeigt.
+Woher ein Prozess kommt, wohin er übergibt und was dabei fließt, zeigen ab 0.5.0 zwei eigene Symbole. Datenobjekte beschreiben dagegen, womit die einzelnen Aufgaben arbeiten.
 
-| Verbindung | Erscheint im Steckbrief unter |
+### Vor- und nachgelagerte Prozesse, Inputs und Outputs
+
+- **Prozessschnittstelle** (Prozesspfeil): ein vor- oder nachgelagerter Prozess. Im Eigenschaftenbereich stehen Name und, freiwillig, eine **Kennung des Prozesses**, z. B. die Nummer aus der Prozesslandkarte.
+- **Schnittstelle** (Rechteck mit Typzeichen): was übergeben wird, mit einem **Typ**: Dokument, Datensatz, Ereignis/Nachricht, Daten aus IT-System, Material oder Sonstiges. Die Beschreibung (z. B. „Formular im DMS“) steht im Bericht darunter.
+
+Beide stehen in der Palette und im Kontextmenü von Start- und Endereignissen. Über das Kontextmenü steht das neue Symbol gleich links vom Start bzw. rechts vom Ende und ist schon verbunden. Verbunden wird immer in Flussrichtung:
+
+```
+eingehend:  [Vorgelagerter Prozess] ··> [Schnittstelle] ··> (Startereignis)
+ausgehend:  (Endereignis) ··> [Schnittstelle] ··> [Nachgelagerter Prozess]
+```
+
+Die Schnittstelle oder das Prozesssymbol darf fehlen, z. B. „E-Mail des Kunden“ als Schnittstelle direkt am Start. Andere Verbindungen lässt der Modellierer nicht zu; eine Schnittstelle ist entweder Input oder Output. Es zählen nur Start- und Endereignisse der obersten Ebene, nicht die in Teilprozessen.
+
+| Symbol | Erscheint unter |
 | --- | --- |
-| Datenobjekt oder -speicher → Aktivität (Input der Aufgabe) | Ressourcen → Dokumente |
-| Startereignis ↔ Datenobjekt oder -speicher | Schnittstellen (Input) |
-| Endereignis ↔ Datenobjekt oder -speicher | Schnittstellen (Output) |
-| Aktivität → Datenobjekt (Output der Aufgabe) | nirgends, außer das Objekt geht in eine spätere Aktivität oder ein Endereignis |
+| Prozessschnittstelle vor einem Start (direkt oder über eine Schnittstelle) | Vorgelagerte Prozesse |
+| Prozessschnittstelle hinter einem Ende | Nachgelagerte Prozesse |
+| Schnittstelle vor einem Start | Schnittstellen (Input), mit „von … · bei …“; in der Elementtabelle in der Spalte Input des Startereignisses |
+| Schnittstelle hinter einem Ende | Schnittstellen (Output), mit „an … · bei …“; in der Elementtabelle in der Spalte Output des Endereignisses |
+
+Die Prüfung warnt bei einer Schnittstelle ohne Typ, bei einem Symbol ohne Verbindung zu einem Start- oder Endereignis und bei einer Verbindung gegen die Flussrichtung. Zur Laufzeit bewirken die Symbole nichts; andere BPMN-Werkzeuge zeigen sie als Textanmerkung.
+
+### Dokumente und Datenobjekte
+
+| Verbindung | Erscheint unter |
+| --- | --- |
+| Datenobjekt oder -speicher → Aktivität (Input der Aufgabe) | Steckbrief: Ressourcen → Dokumente; Elementtabelle: Spalte Input |
+| Aktivität → Datenobjekt (Output der Aufgabe) | Elementtabelle: Spalte Output |
+| Start- oder Endereignis ↔ Datenobjekt | nirgends mehr; die Prüfung weist darauf hin (`data-at-start-or-end`). Als Schnittstelle modellieren. |
 
 So modellierst du es:
 
-1. **Eingangsdokumente**: Was den Prozess auslöst oder mitbringt (Antrag, E-Mail, Bestellung), als Datenobjekt neben das Startereignis legen und mit ihm verbinden.
-2. **Ergebnisse**: Was der Prozess abliefert (Bescheid, freigegebenes Dokument, Rechnung), mit dem Endereignis verbinden. Ein Ergebnis, das nur aus einer Aufgabe herausgeht, erscheint sonst nicht.
-3. **Arbeitsdokumente**: Jedes Dokument, das eine Aufgabe braucht, mit einem Pfeil vom Dokument **zur** Aufgabe verbinden.
-4. **Datenspeicher** für Systeme mit dauerhaften Daten (Akte, Datenbank, Ablage). Sie erscheinen mit dem Zusatz „(Datenspeicher)“.
-5. Dasselbe Dokument überall **gleich benennen**. Der Steckbrief fasst gleiche Namen zusammen; „Antrag“ und „Antragsformular“ stehen sonst doppelt da.
+1. **Eingangsdokumente und Ergebnisse** des ganzen Prozesses (Antrag, E-Mail, Bescheid, Rechnung) als Schnittstelle an das Start- bzw. Endereignis hängen, nicht mehr als Datenobjekt.
+2. **Arbeitsdokumente**: Jedes Dokument, das eine Aufgabe braucht, mit einem Pfeil vom Dokument **zur** Aufgabe verbinden. Was eine Aufgabe erzeugt, mit einem Pfeil **von** der Aufgabe.
+3. **Datenspeicher** für Systeme mit dauerhaften Daten (Akte, Datenbank, Ablage). Sie erscheinen unter Dokumente mit dem Zusatz „(Datenspeicher)“.
+4. Dasselbe Dokument überall **gleich benennen**. Der Steckbrief fasst gleiche Namen zusammen; „Antrag“ und „Antragsformular“ stehen sonst doppelt da.
 
-Das Datenobjekt „Prozess“ trägt nur den Status und erscheint nie als Dokument oder Schnittstelle. Links unter „Weiterführende Dokumentation“ erscheinen zusätzlich unter Dokumente (siehe Abschnitt 3), ebenso alle IT-Services unter Systeme.
+Das Datenobjekt „Prozess“ trägt nur den Status und erscheint nie als Dokument oder Schnittstelle; in den Spalten Input und Output steht es mit seinem Status, z. B. „Prozess [In Arbeit]“. Links unter „Weiterführende Dokumentation“ erscheinen zusätzlich unter Dokumente (siehe Abschnitt 3), ebenso alle IT-Services unter Systeme.
 
 Im Beispiel „Incident bearbeiten“ fehlen etwa die E-Mail am Startereignis „E-Mail eingegangen“ (Input) und das Ticket am Endereignis (Output).
 
@@ -155,6 +179,7 @@ Planwerte erscheinen in keinem Bericht; sie liefern Durchlaufzeit und Personalbe
 - An jeder Aufgabe unter **Planwerte**: Aufwand des D je Ausführung, bei E und M deren Aufwand und die Dauer einschließlich Liegezeit. Eingaben wie `30`, `45m`, `1h30m` oder `2d` (Arbeitstage) genügen.
 - An jedem Ausgang eines Gateways die Wahrscheinlichkeit in Prozent; am Entweder-oder ergeben alle zusammen 100 %. An Grenzereignissen steht, wie oft sie je Ausführung eintreten.
 - Am Prozess zeigt **Rechnung aus den Planwerten** Durchlaufzeit (Mittel, Median, 85 %, 95 %), Aufwand je Zuständigem und den kritischen Pfad. Fehlende Angaben stehen dort und als Hinweise im Reiter Status.
+- **Wertschöpfung** (ab 0.5.0): An jeder Aufgabe unter Planwerte die Bewertung wertschöpfend, unterstützend oder nicht wertschöpfend. Am Prozess zeigt **Wertschöpfungsanalyse** den gewichteten Mittelwert und jeden möglichen Weg mit Wahrscheinlichkeit und Aufgabenfolge; aufgeklappt die Anteile nach Anzahl und Bearbeitungszeit, Durchlaufzeit, Bearbeitungszeit, Liegezeit und Flussrate. Bearbeitungszeit ist der Aufwand von D und E, Liegezeit die Dauer minus die Bearbeitungszeit; Wartezeit an Zwischenereignissen ist ganz Liegezeit. Ist eine Aufgabe bewertet, meldet die Prüfung jede unbewertete.
 
 ## 6. Checkliste vor dem Erzeugen
 
@@ -170,7 +195,7 @@ Geh diese Punkte durch, bevor du im Menü **Bericht** Steckbrief oder Gesamtdoku
 - [ ] Jede Benutzer- und Serviceaufgabe hat mindestens einen IT-Service.
 - [ ] Arbeitsanweisungen und Richtlinien sind als Links mit Titel an den Aufgaben.
 - [ ] Regeln (Vier-Augen-Prinzip, Prüfungen, Folgeaktionen) sind gekennzeichnet und beschrieben.
-- [ ] Eingangsdokumente hängen am Startereignis, Ergebnisse am Endereignis, Arbeitsdokumente gehen in ihre Aufgaben.
+- [ ] Vor- und nachgelagerte Prozesse sowie Inputs und Outputs sind als Symbole am Start- bzw. Endereignis angehängt, jede Schnittstelle hat einen Typ; Arbeitsdokumente gehen in ihre Aufgaben.
 - [ ] Datenobjekt „Prozess“ mit lesbaren Status ist angelegt; jede Aufgabe, die einen Status setzt, zeigt mit einem Pfeil darauf.
 - [ ] Gateways haben eine Frage als Namen, alle ausgehenden Wege eine Beschriftung; Wege mit Wahl des Bearbeiters tragen den Text der Auswahl.
 - [ ] Angeheftete Ereignisse sind benannt.

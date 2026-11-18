@@ -28,9 +28,27 @@ export interface Timing {
   duration?: TimeSpan;
   /** Erwartete Zahl der Instanzen einer Mehrfachinstanz, wenn sie nicht aus der Zahl der D folgt. */
   instances?: number;
+  /** Wert der Aufgabe für die Wertschöpfungsanalyse. */
+  valueClass?: ValueClass;
   /** Werte, die sich nicht lesen ließen: Attribut → Text. */
   invalid: Record<string, string>;
 }
+
+/** Bewertung einer Aufgabe in der Wertschöpfungsanalyse, in dieser Reihenfolge angezeigt. */
+export const VALUE_CLASSES = ['value_adding', 'supporting', 'non_value_adding'] as const;
+export type ValueClass = (typeof VALUE_CLASSES)[number];
+
+/** Aufgaben, die in der Wertschöpfungsanalyse als Tätigkeit zählen und eine Bewertung bekommen. */
+export const VALUE_TYPES = new Set([
+  'bpmn:Task',
+  'bpmn:UserTask',
+  'bpmn:ManualTask',
+  'bpmn:ServiceTask',
+  'bpmn:SendTask',
+  'bpmn:ReceiveTask',
+  'bpmn:ScriptTask',
+  'bpmn:BusinessRuleTask',
+]);
 
 /** Elementtypen, an denen Planwerte stehen können. */
 export const TIMING_TYPES = new Set([
@@ -145,6 +163,13 @@ export function readTiming(el: ModdleElement): Timing | undefined {
       invalid.instances = String(container.instances);
     }
   }
+  if (container.valueClass !== undefined && container.valueClass !== '') {
+    if ((VALUE_CLASSES as readonly string[]).includes(String(container.valueClass))) {
+      timing.valueClass = container.valueClass as ValueClass;
+    } else {
+      invalid.valueClass = String(container.valueClass);
+    }
+  }
   for (const entry of (container.consultedEfforts ?? []) as El[]) {
     const value = span(`consultedEffort:${entry.assignee ?? ''}`, entry.effort);
     if (entry.assignee && value) {
@@ -197,6 +222,13 @@ export function checkTiming(elements: ModdleElement[], accountableOf: (el: Moddl
       if (Number.isNaN(probability)) {
         issues.push({ code: 'invalid-planning-value', severity: 'warning', elementId: el.id, params: { element: name(el), attribute: 'probability', value: String(el.probability) } });
       }
+    }
+  }
+  // Wertschöpfungsanalyse: Ist eine Aufgabe bewertet, sollen es alle sein.
+  const tasks = (elements as El[]).filter((el) => VALUE_TYPES.has(el.$type));
+  if (tasks.some((el) => readTiming(el)?.valueClass)) {
+    for (const el of tasks.filter((t) => !readTiming(t)?.valueClass)) {
+      issues.push({ code: 'task-without-value-class', severity: 'warning', elementId: el.id, params: { element: name(el) } });
     }
   }
   if (!usesPlanningValues(elements)) {

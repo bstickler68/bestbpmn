@@ -93,7 +93,12 @@
     "unknown-choice-condition": "The path “{{flow}}” asks for the choice “{{choice}}”. A path with a choice always asks for its own ID.",
     "raci-unknown-field": "“{{element}}”: the field {{field}} is not in the field list.",
     "multiple-none-start-events": "“{{element}}” is another start event without a trigger. A process has only one (“{{first}}”); further paths start with a message start event.",
-    "service-task-without-action": "The automated task “{{element}}” has no action. To be executed it needs an IT service with an action (bestadd:actionRef) the system runs."
+    "service-task-without-action": "The automated task “{{element}}” has no action. To be executed it needs an IT service with an action (bestadd:actionRef) the system runs.",
+    "task-without-value-class": "“{{element}}” has no rating for the value-added analysis (value-adding, supporting or non-value-adding).",
+    "interface-without-type": "“{{element}}” is an interface without a type. Choose a type in the properties panel.",
+    "symbol-not-connected": "“{{element}}” is not connected to a start or end event.",
+    "symbol-invalid-connection": "The connection from “{{source}}” to “{{target}}” is not allowed for process and interface symbols. Incoming: process → interface → start event; outgoing: end event → interface → process.",
+    "data-at-start-or-end": "“{{data}}” is attached to “{{element}}” as a data object. Model inputs and outputs as interfaces."
   },
   "panel": {
     "translations": "Translations",
@@ -168,6 +173,28 @@
     "calcMissing_instances": "number of instances",
     "calcMissing_called-process": "called process not found",
     "calcMissing_endless-loop": "loop without exit",
+    "valueClass": "Value added",
+    "valueClassHint": "For the value-added analysis: what value does this task add to the result?",
+    "valueClassNone": "not rated",
+    "value_value_adding": "value-adding",
+    "value_supporting": "supporting",
+    "value_non_value_adding": "non-value-adding",
+    "value_unrated": "not rated",
+    "valueAnalysis": "Value-added analysis",
+    "valueNone": "No ratings yet. Choose “Value added” on the tasks under Planning values.",
+    "valueCount": "Count",
+    "valueProcessing": "Processing",
+    "valueCycleTime": "Cycle time",
+    "valueProcessingTime": "Processing time",
+    "valueWaiting": "Waiting time",
+    "valueFlowRate": "Flow rate",
+    "valueMean": "Mean value over {{count}} paths",
+    "valueFigures": "Figures",
+    "valuePath": "Path {{n}} ({{probability}})",
+    "valueCoverage": "The paths cover {{coverage}} of all runs; further loop repetitions are left out.",
+    "valueTruncated": "Only the first {{count}} paths.",
+    "valueUnrated": "Not rated",
+    "valueHint": "Shares over all tasks of the path. Processing time = effort R + A, waiting time = duration minus processing time. Cycle time and flow rate follow the longest parallel branch. Loops count with at most one repetition.",
     "conditionChoice": "(choice of the assignee)",
     "conditionChoiceDescription": "The assignee of the task before picks this path on completion. The name of the path is the text of the choice; the status does not change.",
     "resultLabel": "Text in the choice",
@@ -280,7 +307,12 @@
       "gateway-without-probabilities": "Every outgoing flow of a gateway has a probability (only with planning values)",
       "probabilities-not-100": "Probabilities at an either-or gateway add up to 100 % (only with planning values)",
       "boundary-without-probability": "Boundary events have a probability (only with planning values)",
-      "accountable-without-effort": "Tasks with an A have an effort for the A (only with planning values)"
+      "accountable-without-effort": "Tasks with an A have an effort for the A (only with planning values)",
+      "task-without-value-class": "Once one task is rated, all tasks are rated (planning values only)",
+      "interface-without-type": "Interfaces have a type",
+      "symbol-not-connected": "Process and interface symbols are attached to a start or end event",
+      "symbol-invalid-connection": "Process and interface symbols connect only in flow direction",
+      "data-at-start-or-end": "No data objects at start and end events"
     }
   },
   "catalog": {
@@ -403,7 +435,9 @@
       "key": "Key",
       "initial": "Initial status",
       "activity": "Activity",
-      "sets": "sets status"
+      "sets": "sets status",
+      "inputs": "Input",
+      "outputs": "Output"
     },
     "yes": "yes",
     "next": {
@@ -461,6 +495,31 @@
       "standard": "loop"
     },
     "noElements": "No elements in the model.",
-    "fileLabel": "File"
+    "fileLabel": "File",
+    "upstream": "Upstream processes",
+    "downstream": "Downstream processes",
+    "from": "from {{names}}",
+    "to": "to {{names}}",
+    "at": "at {{names}}"
+  },
+  "symbol": {
+    "process": "Process interface",
+    "interface": "Interface",
+    "createProcess": "Create process interface (upstream or downstream process)",
+    "createInterface": "Create interface (input or output)",
+    "processRef": "Process key",
+    "processRefHint": "Free key or number of the process, e.g. from the process map. Optional; saved with the model.",
+    "interfaceType": "Interface type",
+    "noType": "– no type –",
+    "name": "Name",
+    "unknownType": "{{type}} (unknown)"
+  },
+  "interfaceType": {
+    "document": "Document",
+    "record": "Record",
+    "event": "Event / message",
+    "system": "System data",
+    "material": "Material",
+    "other": "Other"
   }
 }

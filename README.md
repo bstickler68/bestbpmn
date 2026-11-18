@@ -117,6 +117,20 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
   Planwerten“: Durchlaufzeit (Mittel, Median, 85 %, 95 % aus 2000 simulierten Durchläufen),
   Aufwand je Durchlauf und Zuständigem, kritischer Pfad und fehlende Angaben. Die Werte
   beschreiben nur und steuern nichts; ausgeschaltet bleiben sie im Modell erhalten.
+- **Wertschöpfungsanalyse** (bei eingeschalteten Planwerten). Unter „Planwerte“ bekommt jede
+  Aufgabe eine Bewertung: wertschöpfend, unterstützend oder nicht wertschöpfend
+  (`bestadd:timing valueClass`). Am Prozess zeigt der Bereich „Wertschöpfungsanalyse“ für jeden
+  möglichen Weg (höchstens 200) die Aufgabenfolge, die Anteile nach Anzahl und nach
+  Bearbeitungszeit, Durchlauf-, Bearbeitungs- und Liegezeit und die Flussrate, darüber den mit
+  der Wahrscheinlichkeit gewichteten Mittelwert. Bearbeitungszeit ist der Aufwand von D und E,
+  Liegezeit die Dauer minus die Bearbeitungszeit.
+- **Prozess- und Schnittstellensymbole.** In der Palette und im Kontextmenü von Start- und
+  Endereignissen gibt es die „Prozessschnittstelle“ (Prozesspfeil, vor- oder nachgelagerter
+  Prozess, mit freier Kennung) und die „Schnittstelle“ (Rechteck mit Typzeichen: Dokument,
+  Datensatz, Ereignis/Nachricht, Daten aus IT-System, Material, Sonstiges). Verbunden wird nur
+  in Flussrichtung: Prozess → Schnittstelle → Startereignis, Endereignis → Schnittstelle →
+  Prozess. Gespeichert werden sie als Textanmerkung mit `bestadd:symbol` und gerichteter
+  Assoziation; andere BPMN-Werkzeuge zeigen eine gewöhnliche Textanmerkung.
 - **Regeln an Aktivitäten.** Die Gruppe „Regeln“ kennzeichnet, ob es beim Übergang eine
   Bedingung, Prüfung, Maske, Start- oder Folgeaktion gibt, und beschreibt sie in Worten.
   Aufgaben, die niemand abschließt (z. B. Service- oder Skriptaufgaben), haben nur Start- und
@@ -135,22 +149,27 @@ Grafik und Stil eingebettet, zum Ablegen und Verschicken) oder über den Druckdi
 Browsers, dort auch „Als PDF speichern“:
 
 - **Steckbrief** (ohne Grafik): Name, Zweck und Beschreibung, Auslöser (Startereignisse),
-  Endzustand (Endereignisse), erste und letzte Aktivität, Schnittstellen (Input: Datenobjekte
-  an Startereignissen; Output: an Endereignissen) und Ressourcen: Personell (Rollen und Gruppen
+  Endzustand (Endereignisse), erste und letzte Aktivität, vor- und nachgelagerte Prozesse,
+  Schnittstellen (Input vor Startereignissen, Output hinter Endereignissen, jeweils mit Typ,
+  Partnerprozess und Ereignis) und Ressourcen: Personell (Rollen und Gruppen
   aus der DEMI-Matrix), Dokumente (Datenobjekte, die in Aktivitäten eingehen, und Links),
   Systeme (IT-Services).
-- **Gesamtdokument**: Prozessinformationen, Prozessablaufdiagramm, Beschreibung der
+- **Gesamtdokument**: Prozessinformationen (mit vor- und nachgelagerten Prozessen, Inputs und
+  Outputs), Prozessablaufdiagramm, Beschreibung der
   Prozessschritte als Tabelle, Status und Statuswechsel (nur, wenn ein Status modelliert ist)
   und DEMI-Matrix. Die Elementtabelle hat die Spalten
-  Nr, Objekt, Typ, Name, System, Beschreibung und weiterführende
-  Dokumentation. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
+  Nr, Objekt, Typ, Name, System, Input, Output, Beschreibung und weiterführende
+  Dokumentation. Input und Output sind die Datenobjekte an den Verknüpfungen, beim Start- und
+  Endereignis auch die Schnittstellen. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
   weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
   Am Schluss steht immer das Endereignis des Hauptwegs; Seitenzweige wie Abbrüche, Rücksprünge
   und angeheftete Ereignisse kommen davor. Regel-Kennzeichen stehen als Absatz unter der
   Beschreibung.
 
 Alles kommt aus dem Modell; das Datenobjekt „Prozess“ trägt nur den Status und zählt nicht
-als Input, Output oder Dokument. Gedruckt wird auf A4; Grafik und Elementtabelle stehen im
+als Schnittstelle oder Dokument. In den Spalten Input und Output der Elementtabelle steht es mit
+seinem Status, z. B. „Prozess [In Arbeit]“. Datenobjekte an Start- und Endereignissen zählen
+nicht als Schnittstelle; die Prüfung weist darauf hin. Gedruckt wird auf A4; Grafik und Elementtabelle stehen im
 Querformat.
 
 ## Status, Rollen und Prüfregeln

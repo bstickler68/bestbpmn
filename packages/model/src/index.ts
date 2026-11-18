@@ -153,8 +153,11 @@ export {
   readProbability,
   readTiming,
   usesPlanningValues,
+  VALUE_CLASSES,
+  VALUE_TYPES,
   type TimeSpan,
   type Timing,
+  type ValueClass,
 } from './timing/read.js';
 export {
   calculateDefinitions,
@@ -168,3 +171,31 @@ export {
   type Percentiles,
   type ProcessCalculation,
 } from './timing/calc.js';
+export {
+  analyzeValue,
+  analyzeValueDefinitions,
+  VALUE_BUCKETS,
+  type ValueAnalysis,
+  type ValueBucket,
+  type ValueFigures,
+  type ValueOptions,
+  type ValuePath,
+  type ValueStep,
+} from './timing/value.js';
+export {
+  INTERFACE_TYPES,
+  canConnectSymbols,
+  checkSymbols,
+  collectSymbolArtifacts,
+  deriveProcessChain,
+  interfaceDirections,
+  isAllowedSymbolConnection,
+  symbolEnd,
+  symbolKind,
+  type InterfaceEntry,
+  type InterfaceType,
+  type ProcessChain,
+  type ProcessSymbolEntry,
+  type SymbolEnd,
+  type SymbolKind,
+} from './interfaces/symbols.js';
