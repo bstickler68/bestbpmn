@@ -29,13 +29,16 @@
         <div class="menu-items">
           <button id="report-profile-print" data-i18n="report.profilePrint">Print profile</button>
           <button id="report-full-print" data-i18n="report.fullPrint">Print full document</button>
+          <button id="report-staffing-print" class="planning-only" data-i18n="report.staffingPrint" hidden>Print staffing / save as PDF</button>
           <button id="report-profile-html" data-i18n="report.profileHtml">Profile as HTML</button>
           <button id="report-full-html" data-i18n="report.fullHtml">Full document as HTML</button>
+          <button id="report-staffing-html" class="planning-only" data-i18n="report.staffingHtml" hidden>Staffing as HTML file</button>
         </div>
       </details>
       <label class="toggle"><input id="show-services" type="checkbox" /><span data-i18n="app.showServices">Show IT services</span></label>
       <label class="toggle" data-i18n-title="app.planningTitle"><input id="planning" type="checkbox" /><span data-i18n="app.planning">Planning values</span></label>
       <label class="toggle"><span data-i18n="language.label">Language</span> <select id="language"></select></label>
+      <span id="notice" class="notice" role="status" hidden></span>
     </header>
     <div id="banner" class="banner" role="status" hidden></div>
     <div id="update" class="banner update" role="status" hidden></div>

@@ -124,6 +124,15 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
   Bearbeitungszeit, Durchlauf-, Bearbeitungs- und Liegezeit und die Flussrate, darüber den mit
   der Wahrscheinlichkeit gewichteten Mittelwert. Bearbeitungszeit ist der Aufwand von D und E,
   Liegezeit die Dauer minus die Bearbeitungszeit.
+- **Jährliches Vorkommen und Personalbedarf** (bei eingeschalteten Planwerten). Unter
+  „Planwerte“ am Prozess steht, wie oft er im Jahr durchlaufen wird (`bestadd:annualOccurrence`,
+  z. B. `1200` oder `0,5`; an einer Kollaboration für alle Pools). Daraus rechnet der Bericht
+  „Personalbedarf“ je Durchführungsverantwortung Aufwand des D je Ausführung mal Ausführungen
+  im Jahr, in Stunden und VZÄ (1 VZÄ = 38,5 h × 220 ÷ 5 = 1694 Stunden).
+- **Unterlagen.** Arbeitsanweisungen, Vorlagen oder Wiki-Seiten sind Datenobjekte mit Eingabe an
+  der Aufgabe. Die Gruppe „Unterlage“ am Datenobjekt nimmt die Web-Adresse auf (`bestadd:href`);
+  ein Dokument-Record aus einem anderen Werkzeug (`bestadd:documentRef`) bleibt erhalten. Links im
+  früheren Attribut „Weiterführende Dokumentation“ werden beim Öffnen zu solchen Datenobjekten.
 - **Prozess- und Schnittstellensymbole.** In der Palette und im Kontextmenü von Start- und
   Endereignissen gibt es die „Prozessschnittstelle“ (Prozesspfeil, vor- oder nachgelagerter
   Prozess, mit freier Kennung) und die „Schnittstelle“ (Rechteck mit Typzeichen: Dokument,
@@ -144,7 +153,8 @@ anderer Werkzeuge (z. B. `camunda:`, `zeebe:`) behalten diese beim Speichern.
 Welche Elemente und Felder du pflegen musst, damit jeder Abschnitt der Berichte gefüllt
 ist, steht in der [Modellierungsanleitung](docs/modellierungsanleitung.md).
 
-Unter „Bericht“ gibt es das Modell in zwei Fassungen, jeweils als HTML-Datei (eine Datei,
+Unter „Bericht“ gibt es das Modell in zwei Fassungen, bei eingeschalteten Planwerten dazu den
+Personalbedarf, jeweils als HTML-Datei (eine Datei,
 Grafik und Stil eingebettet, zum Ablegen und Verschicken) oder über den Druckdialog des
 Browsers, dort auch „Als PDF speichern“:
 
@@ -152,19 +162,22 @@ Browsers, dort auch „Als PDF speichern“:
   Endzustand (Endereignisse), erste und letzte Aktivität, vor- und nachgelagerte Prozesse,
   Schnittstellen (Input vor Startereignissen, Output hinter Endereignissen, jeweils mit Typ,
   Partnerprozess und Ereignis) und Ressourcen: Personell (Rollen und Gruppen
-  aus der DEMI-Matrix), Dokumente (Datenobjekte, die in Aktivitäten eingehen, und Links),
+  aus der DEMI-Matrix), Dokumente (Datenobjekte, die in Aktivitäten eingehen; Unterlagen als Link),
   Systeme (IT-Services).
 - **Gesamtdokument**: Prozessinformationen (mit vor- und nachgelagerten Prozessen, Inputs und
   Outputs), Prozessablaufdiagramm, Beschreibung der
   Prozessschritte als Tabelle, Status und Statuswechsel (nur, wenn ein Status modelliert ist)
   und DEMI-Matrix. Die Elementtabelle hat die Spalten
-  Nr, Objekt, Typ, Name, System, Input, Output, Beschreibung und weiterführende
-  Dokumentation. Input und Output sind die Datenobjekte an den Verknüpfungen, beim Start- und
+  Nr, Objekt, Typ, Name, System, Input, Output, Beschreibung und Unterlagen. Input und Output sind die Datenobjekte an den Verknüpfungen, beim Start- und
   Endereignis auch die Schnittstellen. Nummeriert wird in Ablaufreihenfolge; geht es nicht mit der nächsten Nummer
   weiter, steht es unter der Beschreibung, z. B. „Ja: weiter bei 6“ oder „zurück zu 3“.
   Am Schluss steht immer das Endereignis des Hauptwegs; Seitenzweige wie Abbrüche, Rücksprünge
   und angeheftete Ereignisse kommen davor. Regel-Kennzeichen stehen als Absatz unter der
   Beschreibung.
+- **Personalbedarf** (nur mit Planwerten): jährliches Vorkommen je Prozess mit Stunden und VZÄ,
+  je Durchführungsverantwortung eine Zwischensumme mit ihren Aufgaben in der Reihenfolge der
+  Prozessschritte (Aufwand D je Ausführung, Ausführungen je Jahr, Stunden, VZÄ), Summe und
+  fehlende Angaben.
 
 Alles kommt aus dem Modell; das Datenobjekt „Prozess“ trägt nur den Status und zählt nicht
 als Schnittstelle oder Dokument. In den Spalten Input und Output der Elementtabelle steht es mit

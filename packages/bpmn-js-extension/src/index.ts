@@ -1,6 +1,8 @@
 /// <reference path="./properties-panel.d.ts" />
 import { bestaddModdle, raciModdle } from '@bestbpmn/model';
 import { AttributeCommands } from './attributes';
+import { DocumentCommands } from './documents';
+import DocumentPropertiesProvider from './DocumentPropertiesProvider';
 import AttributesPropertiesProvider from './AttributesPropertiesProvider';
 import ConditionPropertiesProvider from './ConditionPropertiesProvider';
 import GatewayOverlays from './GatewayOverlays';
@@ -35,6 +37,7 @@ export const bestbpmnModule = {
     'bestbpmnProcessName',
     'bestbpmnStatusCheck',
     'bestbpmnAttributeCommands',
+    'bestbpmnDocumentCommands',
     'bestbpmnTranslationCommands',
     'bestbpmnRaciCommands',
     'bestbpmnServiceOverlays',
@@ -53,6 +56,8 @@ export const bestbpmnModule = {
   bestbpmnProcessName: ['type', ProcessNameBehavior],
   bestbpmnStatusCheck: ['type', StatusCheck],
   bestbpmnAttributeCommands: ['type', AttributeCommands],
+  // Unterlagen an Datenobjekten.
+  bestbpmnDocumentCommands: ['type', DocumentCommands],
   bestbpmnTranslationCommands: ['type', TranslationCommands],
   bestbpmnRaciCommands: ['type', RaciCommands],
   bestbpmnServiceOverlays: ['type', ServiceOverlays],
@@ -85,6 +90,7 @@ export const bestbpmnPropertiesProviderModule = {
     'bestbpmnRulesProvider',
     'bestbpmnTimingProvider',
     'bestbpmnSymbolProvider',
+    'bestbpmnDocumentProvider',
   ],
   bestbpmnStatusProvider: ['type', StatusPropertiesProvider],
   bestbpmnLaneProvider: ['type', LanePropertiesProvider],
@@ -97,6 +103,7 @@ export const bestbpmnPropertiesProviderModule = {
   bestbpmnRulesProvider: ['type', RulesPropertiesProvider],
   bestbpmnTimingProvider: ['type', TimingPropertiesProvider],
   bestbpmnSymbolProvider: ['type', SymbolPropertiesProvider],
+  bestbpmnDocumentProvider: ['type', DocumentPropertiesProvider],
 };
 
 /** moddle-Erweiterungen, die der Modellierer kennen muss. */
@@ -107,8 +114,10 @@ export { default as ElementNavigation, navigationGroup, type NavigationGroup, ty
 export { UPDATE_ATTRIBUTE, type BestbpmnConfig } from './attributes';
 export { translateModule, resolveI18n } from './i18n';
 export { UPDATE_RACI } from './raci';
+export { CONVERT_LEGACY_LINKS, SET_DOCUMENT } from './documents';
+export type { DocumentCommands } from './documents';
 export { UPDATE_RULES } from './rules';
-export { UPDATE_TIMING } from './timing';
+export { parseOccurrenceInput, SET_ANNUAL_OCCURRENCE, UPDATE_TIMING } from './timing';
 export { UPDATE_TRANSLATION } from './translations';
 export { fileNameFor, modelName, singleParticipant } from './processRoot';
 export type { default as StatusCheck } from './StatusCheck';

@@ -22,6 +22,7 @@ import {
   bestbpmnModule,
   bestbpmnPropertiesProviderModule,
   STATUS_CHANGED,
+  type DocumentCommands,
   translateModule,
   type ServiceOverlays,
   type StatusCheck,
@@ -34,7 +35,7 @@ import { loadCatalog, loadDisabledRules, saveCatalog, saveDisabledRules } from '
 import { download, svgToPng, withExtension } from './export';
 import { FilesController } from './files/controller';
 import { renderBanner, renderFilesPanel } from './files/filesPanel';
-import { fullHtml, profileHtml, type ReportInput } from './report/report';
+import { fullHtml, profileHtml, staffingHtml, type ReportInput } from './report/report';
 import { printHtml } from './report/print';
 import { handleLaunchedFiles, registerServiceWorker } from './pwa';
 
@@ -51,6 +52,11 @@ try {
 } catch {
   // Ohne Speicher bleiben die Planwerte aus.
 }
+/** Der Bericht Personalbedarf gehört zu den Planwerten und erscheint nur mit ihnen. */
+function showPlanningReports() {
+  document.querySelectorAll<HTMLElement>('.planning-only').forEach((el) => (el.hidden = !planningToggle.checked));
+}
+showPlanningReports();
 const nameLabel = document.querySelector<HTMLElement>('#model-name')!;
 const rulesPanel = document.querySelector<HTMLElement>('#rules')!;
 const catalogPanel = document.querySelector<HTMLElement>('#catalog')!;
@@ -58,6 +64,7 @@ const filesPanel = document.querySelector<HTMLElement>('#files')!;
 const banner = document.querySelector<HTMLElement>('#banner')!;
 const fileLabel = document.querySelector<HTMLElement>('#file-name')!;
 const saveButton = document.querySelector<HTMLButtonElement>('#save')!;
+const notice = document.querySelector<HTMLElement>('#notice')!;
 const undoButton = document.querySelector<HTMLButtonElement>('#undo')!;
 const redoButton = document.querySelector<HTMLButtonElement>('#redo')!;
 const layout = document.querySelector<HTMLElement>('.layout')!;
@@ -218,7 +225,7 @@ async function createModeler(lang: string, xml: string) {
   modeler.on(['import.done', 'commandStack.changed'], showUndoState);
   // Ein Neuaufbau (Sprache, Katalog) ändert am Modell nichts.
   const wasDirty = dirty;
-  await open(xml);
+  await open(xml, undefined, true);
   if (wasDirty) {
     savedStep = NO_SAVED_STEP;
     dirty = true;
@@ -268,8 +275,12 @@ function renderSettings() {
   });
 }
 
-/** Lädt ein Modell; danach gilt es als unverändert. */
-async function open(xml: string, fileName?: string) {
+/**
+ * Lädt ein Modell; danach gilt es als unverändert. Links im alten Attribut „Weiterführende Dokumentation“
+ * werden dabei zu Datenobjekten mit Eingabe; dann gilt das Modell als geändert, bis man es speichert.
+ * Beim Neuaufbau (`rebuild`) bleibt ein Hinweis aus dem Öffnen stehen.
+ */
+async function open(xml: string, fileName?: string, rebuild = false) {
   try {
     await modeler.importXML(xml);
     nameFromFile(fileName);
@@ -278,7 +289,17 @@ async function open(xml: string, fileName?: string) {
     statusPanel.textContent = t('app.openError', { message: (error as Error).message });
   }
   markSaved();
+  const converted = (modeler.get('bestbpmnDocumentCommands') as DocumentCommands).convertLegacyLinks();
+  if (converted || !rebuild) {
+    showNotice(converted ? t('app.linksConverted', { count: converted }) : '');
+  }
   showFileState();
+}
+
+/** Hinweis in der Werkzeugleiste, z. B. nach einer Umwandlung beim Öffnen. Leerer Text blendet ihn aus. */
+function showNotice(text: string) {
+  notice.textContent = text;
+  notice.hidden = !text;
 }
 
 /**
@@ -335,6 +356,7 @@ showServices.addEventListener('change', () => {
 });
 
 planningToggle.addEventListener('change', async () => {
+  showPlanningReports();
   try {
     localStorage.setItem(PLANNING_KEY, planningToggle.checked ? 'on' : 'off');
   } catch {
@@ -405,7 +427,7 @@ document.querySelector('#export-png')!.addEventListener('click', async () => {
   download(withExtension(files.fileName ?? currentName(), '.png'), await svgToPng(svg));
 });
 
-// Berichte: Steckbrief und Gesamtdokument, als HTML-Datei oder über den Druckdialog (PDF).
+// Berichte: Steckbrief, Gesamtdokument und (mit Planwerten) Personalbedarf, als HTML-Datei oder über den Druckdialog (PDF).
 async function reportInput(full: boolean): Promise<ReportInput> {
   return {
     t,
@@ -422,10 +444,13 @@ async function reportInput(full: boolean): Promise<ReportInput> {
   };
 }
 
-async function report(kind: 'profile' | 'full', target: 'html' | 'print') {
+const REPORTS = { profile: profileHtml, full: fullHtml, staffing: staffingHtml } as const;
+const REPORT_FILES = { profile: 'report.fileProfile', full: 'report.fileFull', staffing: 'report.fileStaffing' } as const;
+
+async function report(kind: keyof typeof REPORTS, target: 'html' | 'print') {
   const input = await reportInput(kind === 'full');
-  const html = kind === 'full' ? fullHtml(input) : profileHtml(input);
-  const suffix = t(kind === 'full' ? 'report.fileFull' : 'report.fileProfile');
+  const html = REPORTS[kind](input);
+  const suffix = t(REPORT_FILES[kind]);
   const base = withExtension(files.fileName ?? currentName(), '');
   if (target === 'html') {
     download(`${base}-${suffix}.html`, new Blob([html], { type: 'text/html;charset=utf-8' }));
@@ -438,6 +463,8 @@ document.querySelector('#report-profile-print')!.addEventListener('click', () =>
 document.querySelector('#report-full-print')!.addEventListener('click', () => report('full', 'print'));
 document.querySelector('#report-profile-html')!.addEventListener('click', () => report('profile', 'html'));
 document.querySelector('#report-full-html')!.addEventListener('click', () => report('full', 'html'));
+document.querySelector('#report-staffing-print')!.addEventListener('click', () => report('staffing', 'print'));
+document.querySelector('#report-staffing-html')!.addEventListener('click', () => report('staffing', 'html'));
 
 /** Eingabefelder (z. B. im Eigenschaftenpanel) behalten ihr eigenes Rückgängig. */
 const isTextInput = (target: EventTarget | null) =>

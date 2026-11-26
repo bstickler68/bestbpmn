@@ -172,7 +172,7 @@ describe('Einstellungen', () => {
     const onChange = vi.fn();
     renderRulesPanel(div, disabledRulesOf('document'), t, onChange);
     expect(div.querySelector<HTMLSelectElement>('#rule-profile')!.value).toBe('document');
-    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(43);
+    expect(div.querySelectorAll('input[type="checkbox"]')).toHaveLength(46);
     expect(div.querySelector<HTMLInputElement>('[data-rule="lane-without-role"]')!.checked).toBe(false);
 
     const box = div.querySelector<HTMLInputElement>('[data-rule="unknown-state"]')!;

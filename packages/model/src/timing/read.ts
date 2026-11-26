@@ -189,6 +189,37 @@ export function readProbability(flow: ModdleElement): number | undefined {
   return Number.isFinite(value) && value >= 0 && value <= 100 ? value : Number.NaN;
 }
 
+/**
+ * Jährliches Vorkommen eines Prozesses: wie oft er im Jahr durchlaufen wird, als Zahl über 0
+ * (auch mit Nachkommastellen, z. B. `0,5` für alle zwei Jahre). `undefined`, wenn nichts eingetragen ist,
+ * `NaN`, wenn sich der Wert nicht lesen lässt.
+ */
+export function readAnnualOccurrence(process: ModdleElement): number | undefined {
+  const raw = (process as El).annualOccurrence;
+  if (raw === undefined || raw === null || String(raw).trim() === '') {
+    return undefined;
+  }
+  const text = String(raw).trim().replace(',', '.');
+  const value = /^\d+(\.\d+)?$/.test(text) ? Number(text) : Number.NaN;
+  return value > 0 ? value : Number.NaN;
+}
+
+/** Hinweis, wenn das jährliche Vorkommen eines Prozesses keine Zahl über 0 ist. */
+export function checkAnnualOccurrence(process: ModdleElement): ModelIssue[] {
+  if (!Number.isNaN(readAnnualOccurrence(process))) {
+    return [];
+  }
+  const el = process as El;
+  return [
+    {
+      code: 'invalid-planning-value',
+      severity: 'warning',
+      elementId: String(el.id),
+      params: { element: String(el.name || el.id), attribute: 'annualOccurrence', value: String(el.annualOccurrence) },
+    },
+  ];
+}
+
 /** Nutzt das Modell überhaupt Planwerte? Erst dann meldet die Prüfung fehlende Wahrscheinlichkeiten. */
 export function usesPlanningValues(elements: ModdleElement[]): boolean {
   return (elements as El[]).some((el) => findTiming(el) || (el.$type === 'bpmn:SequenceFlow' && readProbability(el) !== undefined));

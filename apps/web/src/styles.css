@@ -3,6 +3,7 @@ body { display: flex; flex-direction: column; }
 .toolbar { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #d0d7de; }
 .toolbar strong { margin-right: 12px; }
 .toolbar .model-name { font-weight: 600; margin-right: 12px; max-width: 30ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toolbar .notice { margin-left: auto; font-size: 12px; color: #7d4e00; background: #fff8c5; border: 1px solid #d4a72c; border-radius: 4px; padding: 2px 8px; }
 .toolbar .model-name.untitled { color: #57606a; font-weight: normal; font-style: italic; }
 .toolbar button, .toolbar .button { font: inherit; padding: 4px 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; }
 .layout { flex: 1; display: flex; min-height: 0; }
@@ -40,6 +41,7 @@ body { display: flex; flex-direction: column; }
 .bestbpmn-gateway { font-size: 12px; line-height: 14px; cursor: default; white-space: nowrap; }
 .bestbpmn-services--names { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .bestbpmn-empty { padding: 4px 12px 12px; }
+.bestbpmn-document-remove { margin-top: 4px; font: inherit; font-size: 12px; padding: 2px 8px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; }
 
 #raci { padding: 12px; font-size: 13px; }
 #raci h2 { font-size: 15px; margin: 0 0 8px; }
@@ -95,6 +97,7 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .menu-items { position: absolute; z-index: 2000; top: calc(100% + 4px); left: 0; display: flex; flex-direction: column; min-width: 220px; padding: 4px 0; background: #fff; border: 1px solid #d0d7de; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, .12); }
 .toolbar .menu-items button { border: 0; border-radius: 0; background: none; text-align: left; padding: 6px 12px; white-space: nowrap; }
 .toolbar .menu-items button:hover { background: #f6f8fa; }
+.toolbar .menu-items button[hidden] { display: none; }
 
 .banner { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 12px; font-size: 14px; background: #fff8c5; border-bottom: 1px solid #d4a72c; }
 .banner[hidden] { display: none; }

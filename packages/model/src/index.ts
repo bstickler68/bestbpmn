@@ -144,12 +144,14 @@ export {
 export { deriveProfile, type ProcessProfile, type ProfileData, type ProfileEntry } from './report/profile.js';
 export {
   TIMING_TYPES,
+  checkAnnualOccurrence,
   checkTiming,
   describeTimeSpan,
   findTiming,
   formatTimeSpan,
   parseTimeInput,
   parseTimeSpan,
+  readAnnualOccurrence,
   readProbability,
   readTiming,
   usesPlanningValues,
@@ -170,7 +172,19 @@ export {
   type MissingValue,
   type Percentiles,
   type ProcessCalculation,
+  type ResponsibleTask,
 } from './timing/calc.js';
+export {
+  calculateStaffing,
+  DEFAULT_HOURS_PER_FTE,
+  DEFAULT_WORKING_DAYS_PER_YEAR,
+  hoursPerFte,
+  type StaffingHolder,
+  type StaffingOptions,
+  type StaffingProcess,
+  type StaffingReport,
+  type StaffingTask,
+} from './timing/staffing.js';
 export {
   analyzeValue,
   analyzeValueDefinitions,
@@ -199,3 +213,11 @@ export {
   type SymbolEnd,
   type SymbolKind,
 } from './interfaces/symbols.js';
+export {
+  LEGACY_LINKS_ATTRIBUTE,
+  checkDocuments,
+  documentsOfActivity,
+  legacyLinksOf,
+  readDocumentRef,
+  type DocumentInput,
+} from './documents/read.js';

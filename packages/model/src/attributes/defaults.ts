@@ -2,18 +2,10 @@ import type { AttributeDefinition } from './types.js';
 
 /**
  * Attribute, die bestbpmn ohne weitere Konfiguration anbietet.
- * Weitere lassen sich über die Konfiguration ergänzen.
+ * Weitere lassen sich über die Konfiguration ergänzen. Die frühere „Weiterführende Dokumentation“ ist
+ * jetzt ein Datenobjekt mit Eingabe an der Aufgabe.
  */
 export const DEFAULT_ATTRIBUTE_DEFINITIONS: AttributeDefinition[] = [
-  {
-    key: 'links',
-    label: { en: 'Further documentation', de: 'Weiterführende Dokumentation' },
-    type: 'links',
-    description: {
-      en: 'Links to guides, policies or wiki pages for this activity.',
-      de: 'Links zu Anleitungen, Richtlinien oder Wiki-Seiten für diese Aktivität.',
-    },
-  },
   {
     key: 'services',
     label: { en: 'IT services', de: 'IT-Services' },

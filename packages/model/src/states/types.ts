@@ -46,7 +46,11 @@ export type IssueCode =
   | 'interface-without-type'
   | 'symbol-not-connected'
   | 'symbol-invalid-connection'
-  | 'data-at-start-or-end';
+  | 'data-at-start-or-end'
+  // Unterlagen an Aktivitäten; nur Hinweise.
+  | 'document-not-input'
+  | 'document-ref-and-href'
+  | 'legacy-links-attribute';
 
 /**
  * Ein Verstoß gegen die Modellierregeln. Enthält nur Code und Parameter;

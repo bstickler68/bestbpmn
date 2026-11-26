@@ -60,8 +60,8 @@ describe('Regelprofile', () => {
     expect(matchRuleProfile(['unknown-state'])).toBeUndefined();
   });
 
-  it('kennt alle 43 Regeln', () => {
-    expect(new Set(ISSUE_CODES).size).toBe(43);
+  it('kennt alle 46 Regeln', () => {
+    expect(new Set(ISSUE_CODES).size).toBe(46);
   });
 });
 

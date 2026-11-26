@@ -8,9 +8,10 @@ import { checkTaskActions, checkTaskServices } from '../rules/services.js';
 import { checkStartEvents } from '../rules/starts.js';
 import { checkSymbols } from '../interfaces/symbols.js';
 import { readRaci } from '../raci/read.js';
-import { checkTiming } from '../timing/read.js';
+import { checkAnnualOccurrence, checkTiming } from '../timing/read.js';
 import { checkRuleMarks, checkScriptTasks, checkSequenceFlows } from '../rules/transitions.js';
 import { parseStateLabel } from './label.js';
+import { checkDocuments } from '../documents/read.js';
 import { isProcessObjectName } from './processObject.js';
 import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
 import { filterIssues } from '../rules/profiles.js';
@@ -262,8 +263,12 @@ function deriveModel(
       ...checkStartEvents(process),
       ...checkRuleMarks(collectFlowElements(process)),
       ...checkScriptTasks(collectFlowElements(process)),
+      // Unterlagen an Aktivitäten; nur Hinweise.
+      ...checkDocuments(collectFlowElements(process)),
       // Planwerte sind abschaltbar und standardmäßig aus; ohne sie gibt es keine Hinweise dazu.
-      ...(catalog.planningValues === true ? checkTiming(collectFlowElements(process), (el) => readRaci(el).accountable.length > 0) : []),
+      ...(catalog.planningValues === true
+        ? [...checkAnnualOccurrence(process), ...checkTiming(collectFlowElements(process), (el) => readRaci(el).accountable.length > 0)]
+        : []),
     );
   }
   // Prozess- und Schnittstellensymbole; nur Hinweise.
