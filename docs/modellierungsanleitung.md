@@ -1,17 +1,17 @@
 # bestbpmn Modellierungsanleitung für vollständige Berichte
 
-Stand: 2026-11-18, bestbpmn 0.5.0
+Stand: 2026-11-26, bestbpmn 0.6.0
 
 Diese Datei ist die gepflegte Fassung der Anleitung. Änderungen am Modeler, die Berichte oder Pflegeorte betreffen, tragen hier mit ein.
 
 ## Zweck
 
-Beide Berichte entstehen vollständig aus dem BPMN-Modell: Was im Modell fehlt, steht im Bericht als „–“ oder gar nicht da. Diese Anleitung sagt, welche Elemente und Felder du pflegen musst, damit jeder Abschnitt gefüllt ist. Sie beruht auf dem Code von bestbpmn 0.5.0 (Bericht-Menü, Steckbrief und Gesamtdokument).
+Beide Berichte entstehen vollständig aus dem BPMN-Modell: Was im Modell fehlt, steht im Bericht als „–“ oder gar nicht da. Diese Anleitung sagt, welche Elemente und Felder du pflegen musst, damit jeder Abschnitt gefüllt ist. Sie beruht auf dem Code von bestbpmn 0.6.0 (Bericht-Menü, Steckbrief und Gesamtdokument).
 
 - **Steckbrief**: eine Seite ohne Grafik. Zweck, Auslöser, Endzustand, erste und letzte Aktivität, vor- und nachgelagerte Prozesse, Schnittstellen (Input/Output) und Ressourcen (Personell, Dokumente, Systeme).
 - **Gesamtdokument**: Prozessinformationen (auch mit vor- und nachgelagerten Prozessen und Schnittstellen), Prozessablaufdiagramm, Beschreibung der Prozessschritte (Elementtabelle), Status (nur wenn modelliert) und Verantwortlichkeiten (DEMI).
 
-Im Beispiel „Incident bearbeiten“ bleiben Input, Output, Dokumente und Systeme leer, die Spalten „System“ und „Weiterführende Dokumentation“ sind leer, und unter Personell stehen technische Kürzel wie `service_desk`. Genau diese Lücken schließt die Anleitung.
+Im Beispiel „Incident bearbeiten“ bleiben Input, Output, Dokumente und Systeme leer, die Spalten „System“ und „Unterlagen“ sind leer, und unter Personell stehen technische Kürzel wie `service_desk`. Genau diese Lücken schließt die Anleitung.
 
 ## Übersicht: Woher jeder Abschnitt seine Daten hat
 
@@ -28,10 +28,10 @@ Die Tabelle zeigt für jeden Berichtsabschnitt, aus welchem Modellteil er gefül
 | beide | Vorgelagerte / Nachgelagerte Prozesse | Prozessschnittstellen vor einem **Startereignis** bzw. hinter einem **Endereignis** | Kontextmenü am Start- oder Endereignis → Prozessschnittstelle (ab 0.5.0) |
 | beide | Schnittstellen (Input) / (Output) | Schnittstellen vor einem **Startereignis** bzw. hinter einem **Endereignis**, mit Typ, Partnerprozess und Ereignis | Kontextmenü am Start- oder Endereignis → Schnittstelle; Typ und Beschreibung im Eigenschaftenbereich (ab 0.5.0) |
 | Steckbrief | Personell | alle Rollen und Gruppen aus der DEMI-Matrix | Lane bzw. Pool → Rolle/Gruppe; Aufgabe → Verantwortlichkeiten (DEMI) |
-| Steckbrief | Dokumente | Datenobjekte und Datenspeicher, die **in eine Aktivität eingehen**, dazu alle Links | Datenobjekt → Pfeil zur Aufgabe; Aufgabe → Weiterführende Dokumentation |
+| Steckbrief | Dokumente | Datenobjekte und Datenspeicher, die **in eine Aktivität eingehen**; Unterlagen mit Web-Adresse als Link | Datenobjekt → Pfeil zur Aufgabe; Datenobjekt → Unterlage → Web(URL) (ab 0.6.0) |
 | Steckbrief | Systeme | alle IT-Services an den Aktivitäten | Aufgabe → IT-Services |
 | Gesamtdokument | Prozessablaufdiagramm | das Diagramm selbst | Layout aufräumen |
-| Gesamtdokument | Beschreibung der Prozessschritte | jede Aufgabe, jeder Teilprozess, jedes Ereignis und Gateway: Name, Art, IT-Services, Input, Output, Beschreibung, Regeln, Verzweigungen, Links | siehe Abschnitte unten |
+| Gesamtdokument | Beschreibung der Prozessschritte | jede Aufgabe, jeder Teilprozess, jedes Ereignis und Gateway: Name, Art, IT-Services, Input, Output, Beschreibung, Regeln, Verzweigungen, Unterlagen | siehe Abschnitte unten |
 | Gesamtdokument | Status | Status am Datenobjekt „Prozess“ und welche Aktivität ihn setzt | Datenobjekt „Prozess“ → Status; Pfeil von der Aufgabe zum Datenobjekt |
 | Gesamtdokument | Verantwortlichkeiten (DEMI) | D aus Lane oder Aufgabe, E, M, I an der Aufgabe | Lane → Rolle/Gruppe; Aufgabe → DEMI |
 
@@ -82,13 +82,13 @@ Jede Aufgabe ist eine Zeile in „Beschreibung der Prozessschritte“. Die Spalt
 | System | IT-Services der Aufgabe | Aufgabe → IT-Services (aus dem Service-Katalog, Art „fachlich“) |
 | Input / Output | Datenobjekte und -speicher, die in die Aufgabe eingehen bzw. aus ihr herausgehen, beschriftet wie im Diagramm (auch „Prozess [In Arbeit]“); am Start- und Endereignis die Schnittstellen | Datenobjekt mit Pfeil zur bzw. von der Aufgabe verbinden; Schnittstellen siehe Abschnitt 4 |
 | Beschreibung | Beschreibung, Regeln, Verzweigungen | Aufgabe → Beschreibung; Aufgabe → Regeln |
-| Weiterführende Dokumentation | Links der Aufgabe | Aufgabe → Weiterführende Dokumentation: Titel + Web(URL) |
+| Unterlagen | Datenobjekte mit Verweis, die per Eingabe an der Aufgabe hängen | Datenobjekt → Unterlage → Web(URL); Pfeil vom Datenobjekt zur Aufgabe (siehe Abschnitt 4) |
 
 **Beschreibung**: Was wird getan, mit welchem Ergebnis, worauf ist zu achten? Bei Benutzeraufgaben auch, wann sie als erledigt gilt. Zwei bis vier Sätze reichen meist. Die Beschreibungen der ersten und letzten Aktivität stehen zusätzlich im Steckbrief.
 
 **IT-Services**: Lege die Systeme zuerst im Katalog unter IT-Services mit der Art „fachlich“ an. Nur diese stehen an der Aufgabe zur Auswahl. Jede Benutzer- und Serviceaufgabe braucht mindestens einen; die Prüfung meldet sonst einen Fehler. Alle Services zusammen ergeben „Systeme“ im Steckbrief.
 
-**Weiterführende Dokumentation**: Links zu Arbeitsanweisung, Richtlinie, Formular oder Wiki. Gib immer einen Titel an, sonst steht die nackte Adresse im Bericht. Nur Adressen mit `https://`, `http://` oder `mailto:` sind anklickbar. Alle Links zusammen stehen im Steckbrief unter „Dokumente“.
+**Unterlagen** (ab 0.6.0): Arbeitsanweisung, Richtlinie, Formular oder Wiki-Seite sind Datenobjekte mit Eingabe an der Aufgabe, siehe „Unterlagen an Prozessschritten“ in Abschnitt 4. Das frühere Attribut „Weiterführende Dokumentation“ gibt es nicht mehr.
 
 **Regeln**: Kennzeichen (Bedingung, Prüfung, Maske, Startaktion, Folgeaktion) und eine Beschreibung in Worten, z. B. „Vier-Augen-Prinzip: nicht die Person, die erfasst hat“. Beides erscheint in der Beschreibungsspalte. Aufgaben, die keine Person abschließt, haben nur Start- und Folgeaktionen.
 
@@ -150,7 +150,23 @@ So modellierst du es:
 3. **Datenspeicher** für Systeme mit dauerhaften Daten (Akte, Datenbank, Ablage). Sie erscheinen unter Dokumente mit dem Zusatz „(Datenspeicher)“.
 4. Dasselbe Dokument überall **gleich benennen**. Der Steckbrief fasst gleiche Namen zusammen; „Antrag“ und „Antragsformular“ stehen sonst doppelt da.
 
-Das Datenobjekt „Prozess“ trägt nur den Status und erscheint nie als Dokument oder Schnittstelle; in den Spalten Input und Output steht es mit seinem Status, z. B. „Prozess [In Arbeit]“. Links unter „Weiterführende Dokumentation“ erscheinen zusätzlich unter Dokumente (siehe Abschnitt 3), ebenso alle IT-Services unter Systeme.
+Das Datenobjekt „Prozess“ trägt nur den Status und erscheint nie als Dokument oder Schnittstelle; in den Spalten Input und Output steht es mit seinem Status, z. B. „Prozess [In Arbeit]“. Alle IT-Services erscheinen unter Systeme.
+
+### Unterlagen an Prozessschritten (ab 0.6.0)
+
+Unterlagen, die man für eine Aufgabe braucht, etwa eine Arbeitsanweisung, eine Formularvorlage oder eine Checkliste, modellierst du **immer als Datenobjekt mit einer Eingabe an der Aufgabe**. So sieht man sie im Diagramm und im Bericht.
+
+1. Datenobjekt anlegen und sprechend benennen, z. B. „Arbeitsanweisung Reklamation“.
+2. Im Eigenschaftenbereich unter **Unterlage** die **Web(URL)** eintragen, z. B. die Adresse der Wiki-Seite.
+3. Einen Pfeil **vom Datenobjekt zur Aufgabe** ziehen. Braucht eine weitere Aufgabe dieselbe Unterlage, einen zweiten Pfeil vom selben Datenobjekt ziehen; die Adresse steht nur einmal am Datenobjekt.
+
+Im Steckbrief steht die Unterlage unter Dokumente als Link, im Gesamtdokument in der Spalte **Unterlagen** ihrer Aufgabe. Nur Adressen mit `https://`, `http://` oder `mailto:` sind anklickbar. Ein Datenobjekt ohne Adresse, z. B. „Angebot“, beschreibt nur und erscheint weiter unter Input.
+
+Kommt ein Modell aus einem anderen Werkzeug mit einem **Dokument-Record** (`bestadd:documentRef`, z. B. `DOC-12`), zeigt bestbpmn den Schlüssel unter Unterlage an und behält ihn beim Speichern. Im Bericht steht dann „Name (DOC-12)“. Der Record gilt vor einer Web-Adresse; mit „Verweis auf den Record entfernen“ wird das Feld Web(URL) frei.
+
+**Ältere Modelle**: Links im früheren Attribut „Weiterführende Dokumentation“ wandelt bestbpmn beim Öffnen um. Je Link entsteht ein Datenobjekt über der Aufgabe, benannt nach dem Titel des Links, mit Eingabe an der Aufgabe. Ein Hinweis in der Kopfzeile sagt, wie viele es waren; danach Lage prüfen und speichern. Rückgängig (Strg+Z) stellt den alten Stand her.
+
+Drei Hinweise in der Prüfung: `document-not-input` (Datenobjekt mit Verweis hängt an keiner Aufgabe), `document-ref-and-href` (Record und Web-Adresse zugleich) und `legacy-links-attribute` (Aufgabe hat noch Links im alten Attribut).
 
 Im Beispiel „Incident bearbeiten“ fehlen etwa die E-Mail am Startereignis „E-Mail eingegangen“ (Input) und das Ticket am Endereignis (Output).
 
@@ -174,11 +190,12 @@ Ereignisse liefern Auslöser und Endzustand im Steckbrief; Gateways und Sequenzf
 
 ## Planwerte (optional, ab 0.4.0)
 
-Planwerte erscheinen in keinem Bericht; sie liefern Durchlaufzeit und Personalbedarf im Eigenschaftenbereich. Sie sind standardmäßig aus und werden mit dem Schalter **Planwerte** in der Kopfzeile eingeblendet.
+Planwerte erscheinen nur im Bericht Personalbedarf; im Eigenschaftenbereich liefern sie Durchlaufzeit und Aufwand. Sie sind standardmäßig aus und werden mit dem Schalter **Planwerte** in der Kopfzeile eingeblendet.
 
 - An jeder Aufgabe unter **Planwerte**: Aufwand des D je Ausführung, bei E und M deren Aufwand und die Dauer einschließlich Liegezeit. Eingaben wie `30`, `45m`, `1h30m` oder `2d` (Arbeitstage) genügen.
 - An jedem Ausgang eines Gateways die Wahrscheinlichkeit in Prozent; am Entweder-oder ergeben alle zusammen 100 %. An Grenzereignissen steht, wie oft sie je Ausführung eintreten.
 - Am Prozess zeigt **Rechnung aus den Planwerten** Durchlaufzeit (Mittel, Median, 85 %, 95 %), Aufwand je Zuständigem und den kritischen Pfad. Fehlende Angaben stehen dort und als Hinweise im Reiter Status.
+- **Jährliches Vorkommen** (ab 0.6.0) unter Planwerte am Prozess (leere Fläche, Pool oder Kollaboration): wie oft der Prozess im Jahr durchlaufen wird, z. B. `1200`, `1.200` oder `0,5` (alle zwei Jahre). An einer Kollaboration mit mehreren Pools gilt eine Eingabe für alle Pools. Damit rechnet der Bericht **Personalbedarf** (Menü „Bericht“, nur bei eingeschalteten Planwerten) für jede Durchführungsverantwortung den Aufwand des D je Ausführung mal die Ausführungen im Jahr, in Stunden und in VZÄ. 1 VZÄ = 38,5 h × 220 Arbeitstage ÷ 5 Tage je Woche = 1694 Stunden. Aufgaben auf Wegen, die nur manchmal genommen werden, zählen mit ihrer Wahrscheinlichkeit, Schleifen mit ihren Wiederholungen. Aufwand von E und M zählt nicht mit. Prozesse ohne Vorkommen und Aufgaben ohne Aufwand des D stehen unter „Fehlende Angaben“; ein Wert, der keine Zahl über 0 ist, meldet `invalid-planning-value`.
 - **Wertschöpfung** (ab 0.5.0): An jeder Aufgabe unter Planwerte die Bewertung wertschöpfend, unterstützend oder nicht wertschöpfend. Am Prozess zeigt **Wertschöpfungsanalyse** den gewichteten Mittelwert und jeden möglichen Weg mit Wahrscheinlichkeit und Aufgabenfolge; aufgeklappt die Anteile nach Anzahl und Bearbeitungszeit, Durchlaufzeit, Bearbeitungszeit, Liegezeit und Flussrate. Bearbeitungszeit ist der Aufwand von D und E, Liegezeit die Dauer minus die Bearbeitungszeit; Wartezeit an Zwischenereignissen ist ganz Liegezeit. Ist eine Aufgabe bewertet, meldet die Prüfung jede unbewertete.
 
 ## 6. Checkliste vor dem Erzeugen
@@ -193,7 +210,7 @@ Geh diese Punkte durch, bevor du im Menü **Bericht** Steckbrief oder Gesamtdoku
 - [ ] Jedes Start- und Endereignis hat einen sprechenden Namen, eine Ereignisart und eine Beschreibung.
 - [ ] Jede Aufgabe hat Name, Aufgabenart und Beschreibung.
 - [ ] Jede Benutzer- und Serviceaufgabe hat mindestens einen IT-Service.
-- [ ] Arbeitsanweisungen und Richtlinien sind als Links mit Titel an den Aufgaben.
+- [ ] Arbeitsanweisungen und Richtlinien hängen als Datenobjekt mit Web(URL) per Eingabe an ihren Aufgaben.
 - [ ] Regeln (Vier-Augen-Prinzip, Prüfungen, Folgeaktionen) sind gekennzeichnet und beschrieben.
 - [ ] Vor- und nachgelagerte Prozesse sowie Inputs und Outputs sind als Symbole am Start- bzw. Endereignis angehängt, jede Schnittstelle hat einen Typ; Arbeitsdokumente gehen in ihre Aufgaben.
 - [ ] Datenobjekt „Prozess“ mit lesbaren Status ist angelegt; jede Aufgabe, die einen Status setzt, zeigt mit einem Pfeil darauf.

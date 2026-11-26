@@ -39,7 +39,8 @@
       "position": "{{index}} von {{count}}"
     },
     "planning": "Planwerte",
-    "planningTitle": "Planwerte (Aufwand, Dauer, Wahrscheinlichkeit) und Rechnung ein- oder ausblenden"
+    "planningTitle": "Planwerte (Aufwand, Dauer, Wahrscheinlichkeit) und Rechnung ein- oder ausblenden",
+    "linksConverted": "{{count}} Link(s) aus „Weiterführende Dokumentation“ sind jetzt Datenobjekte mit Eingabe an ihrer Aufgabe. Bitte Lage prüfen und speichern."
   },
   "status": {
     "noProcess": "Kein Prozess im Modell.",
@@ -98,7 +99,10 @@
     "interface-without-type": "„{{element}}“ ist eine Schnittstelle ohne Typ. Typ im Eigenschaftenpanel wählen.",
     "symbol-not-connected": "„{{element}}“ ist mit keinem Start- oder Endereignis verbunden.",
     "symbol-invalid-connection": "Die Verbindung von „{{source}}“ zu „{{target}}“ ist für Prozess- und Schnittstellensymbole nicht erlaubt. Eingehend: Prozess → Schnittstelle → Startereignis; ausgehend: Endereignis → Schnittstelle → Prozess.",
-    "data-at-start-or-end": "„{{data}}“ hängt als Datenobjekt an „{{element}}“. Inputs und Outputs modelliert man als Schnittstelle."
+    "data-at-start-or-end": "„{{data}}“ hängt als Datenobjekt an „{{element}}“. Inputs und Outputs modelliert man als Schnittstelle.",
+    "document-not-input": "„{{element}}“ verweist auf ein Dokument, hängt aber an keiner Aufgabe als Eingabe. Nur über eine Eingabe steht die Unterlage beim Bearbeiten bereit.",
+    "document-ref-and-href": "„{{element}}“ verweist zugleich auf einen Dokument-Record und eine Web-Adresse. Bitte nur eines angeben; der Record gilt.",
+    "legacy-links-attribute": "„{{element}}“ hat noch {{count}} Link(s) im alten Attribut „Weiterführende Dokumentation“. Unterlagen modelliert man als Datenobjekt mit Eingabe; der Modellierer wandelt sie beim Öffnen um."
   },
   "panel": {
     "translations": "Übersetzungen",
@@ -114,7 +118,7 @@
     "status": "Status",
     "statusDescription": "Aus dem Katalog. Die ID steht in eckigen Klammern im Namen.",
     "noStatus": "– kein Status –",
-    "statusOnlyProcess": "Nur das Datenobjekt „{{name}}“ hat einen Status. Dieses Datenobjekt dient der Dokumentation.",
+    "statusOnlyProcess": "Nur das Datenobjekt „{{name}}“ hat einen Status. Dieses Datenobjekt kann auf eine Unterlage verweisen.",
     "dataObjectId": "Datenobjekt-ID",
     "dataObjectIdDescription": "Gleich für alle Referenzen auf dieses Datenobjekt. Die ID unter „Allgemein“ gehört zur einzelnen Referenz.",
     "processName": "Name",
@@ -153,6 +157,9 @@
     "timingInvalidProbability": "Eine Zahl von 0 bis 100",
     "timingUnitDays": "AT",
     "timingBoundaryProbabilityHint": "Wie oft dieses Ereignis je Ausführung der Aktivität eintritt.",
+    "annualOccurrence": "Jährliches Vorkommen",
+    "annualOccurrenceHint": "Wie oft der Prozess im Jahr durchlaufen wird, z. B. 1200 oder 0,5. Grundlage für den Bericht Personalbedarf.",
+    "annualOccurrenceMixed": "Die Pools haben verschiedene Werte. Eine Eingabe gilt für alle Pools; einzeln am Pool eintragen.",
     "calculation": "Rechnung aus den Planwerten",
     "calcCycleTime": "Durchlaufzeit",
     "calcCycleTimeValue": "Mittel {{mean}}, Median {{median}}, 85 % {{p85}}, 95 % {{p95}}",
@@ -312,7 +319,10 @@
       "interface-without-type": "Schnittstellen haben einen Typ",
       "symbol-not-connected": "Prozess- und Schnittstellensymbole hängen an einem Start- oder Endereignis",
       "symbol-invalid-connection": "Prozess- und Schnittstellensymbole nur in Flussrichtung verbinden",
-      "data-at-start-or-end": "Keine Datenobjekte an Start- und Endereignissen"
+      "data-at-start-or-end": "Keine Datenobjekte an Start- und Endereignissen",
+      "document-not-input": "Datenobjekte mit Verweis hängen als Eingabe an einer Aufgabe",
+      "document-ref-and-href": "Ein Datenobjekt verweist auf einen Dokument-Record oder eine Web-Adresse, nicht auf beides",
+      "legacy-links-attribute": "Keine Links mehr im alten Attribut „Weiterführende Dokumentation“"
     }
   },
   "catalog": {
@@ -394,10 +404,14 @@
     "fullHtml": "Gesamtdokument als HTML-Datei",
     "profilePrint": "Steckbrief drucken / als PDF",
     "fullPrint": "Gesamtdokument drucken / als PDF",
+    "staffingHtml": "Personalbedarf als HTML-Datei",
+    "staffingPrint": "Personalbedarf drucken / als PDF",
     "profile": "Steckbrief",
     "full": "Gesamtdokument",
+    "staffing": "Personalbedarf",
     "fileProfile": "Steckbrief",
     "fileFull": "Gesamtdokument",
+    "fileStaffing": "Personalbedarf",
     "generated": "Stand: {{date}}",
     "file": "Datei: {{name}}",
     "untitled": "Ohne Namen",
@@ -430,14 +444,21 @@
       "name": "Name",
       "systems": "System",
       "description": "Beschreibung",
-      "links": "Weiterführende Dokumentation",
+      "links": "Unterlagen",
       "status": "Status",
       "key": "Schlüssel",
       "initial": "Anfangsstatus",
       "activity": "Aktivität",
       "sets": "setzt Status",
       "inputs": "Input",
-      "outputs": "Output"
+      "outputs": "Output",
+      "process": "Prozess",
+      "annualOccurrence": "Jährliches Vorkommen",
+      "holderTask": "Durchführungsverantwortung (D) / Aufgabe",
+      "effortPerExecution": "Aufwand D je Ausführung",
+      "executionsPerYear": "Ausführungen je Jahr",
+      "hoursPerYear": "Stunden je Jahr",
+      "fte": "VZÄ"
     },
     "yes": "ja",
     "next": {
@@ -500,7 +521,20 @@
     "downstream": "Nachgelagerte Prozesse",
     "from": "von {{names}}",
     "to": "an {{names}}",
-    "at": "bei {{names}}"
+    "at": "bei {{names}}",
+    "staffingBasis": "Jährliches Vorkommen",
+    "staffingFte": "1 VZÄ (FTE) = {{hours}} Stunden im Jahr: {{weekly}} h Wochenarbeitszeit × {{days}} Arbeitstage pro Jahr ÷ {{perWeek}} Arbeitstage pro Woche, aufgerundet auf ganze Stunden.",
+    "staffingByHolder": "Personalbedarf je Durchführungsverantwortung",
+    "staffingTotal": "Summe",
+    "staffingUnassigned": "ohne Durchführungsverantwortung",
+    "staffingHint": "Je Aufgabe: Aufwand D je Ausführung × Ausführungen je Jahr. Ausführungen je Jahr = jährliches Vorkommen × erwartete Ausführungen je Durchlauf (Wahrscheinlichkeiten an Gateways, Wiederholungen in Schleifen). Aufwand von E und M zählt nicht mit. Stunden und VZÄ sind auf zwei Nachkommastellen gerundet; die Summen sind aus den ungerundeten Werten gerechnet.",
+    "staffingNoOccurrence": "Kein Prozess hat ein jährliches Vorkommen. Trage es am Prozess unter Planwerte ein.",
+    "staffingNoEffort": "Keine Aufgabe hat einen Aufwand des D.",
+    "staffingInvalidOccurrence": "ungültig",
+    "staffingMissing": "Fehlende Angaben",
+    "staffingProcessWithout": "Prozess „{{name}}“: kein jährliches Vorkommen, zählt nicht mit.",
+    "staffingProcessInvalid": "Prozess „{{name}}“: jährliches Vorkommen ist keine Zahl über 0, zählt nicht mit.",
+    "staffingTaskWithoutEffort": "Aufgabe „{{name}}“: kein Aufwand des D, zählt nicht mit."
   },
   "symbol": {
     "process": "Prozessschnittstelle",
@@ -521,5 +555,14 @@
     "system": "Daten aus IT-System",
     "material": "Material",
     "other": "Sonstiges"
+  },
+  "document": {
+    "group": "Unterlage",
+    "hint": "Hängt dieses Datenobjekt per Eingabe an einer Aufgabe, ist es eine Unterlage dieses Schritts. Steckbrief und Gesamtdokument nennen es mit seinem Verweis.",
+    "href": "Web(URL)",
+    "hrefDescription": "Web-Adresse der Unterlage, z. B. eine Wiki-Seite.",
+    "record": "Dokument-Record",
+    "recordKept": "Verweist auf den Dokument-Record „{{key}}“ aus einem anderen Werkzeug. Der Verweis bleibt beim Speichern erhalten und gilt vor einer Web-Adresse.",
+    "removeRecord": "Verweis auf den Record entfernen"
   }
 }

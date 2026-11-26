@@ -3,6 +3,7 @@ import type { LinkValue, ServiceRefValue } from '../attributes/types.js';
 import { deriveProcessChain, type InterfaceEntry, type ProcessSymbolEntry } from '../interfaces/symbols.js';
 import { deriveRaciMatrices } from '../raci/matrix.js';
 import { isProcessObjectName } from '../states/processObject.js';
+import { readDocumentRef } from '../documents/read.js';
 import type { ModdleElement } from '../states/types.js';
 import { incoming, outgoing } from './graph.js';
 import { dedupe, eventKind, flowGroups, groupOrder, positions, type ElementKind } from './elements.js';
@@ -23,6 +24,10 @@ export interface ProfileData {
   name?: string;
   state?: string;
   store?: boolean;
+  /** Verweis des Datenobjekts auf einen Dokument-Record. */
+  documentRef?: string;
+  /** Verweis des Datenobjekts auf eine Web-Adresse. */
+  href?: string;
 }
 
 /**
@@ -52,7 +57,7 @@ export interface ProcessProfile {
     people: string[];
     /** Datenobjekte, die in Aktivitäten eingehen. */
     documents: ProfileData[];
-    /** Links an den Aktivitäten. */
+    /** Links im alten Attribut „Weiterführende Dokumentation“. */
     links: LinkValue[];
     /** IT-Services an den Aktivitäten. */
     systems: ServiceRefValue[];
@@ -129,6 +134,7 @@ function data(el: El): ProfileData | undefined {
     ...(name ? { name } : {}),
     ...(el.dataState?.name ? { state: el.dataState.name } : {}),
     ...(el.$type === 'bpmn:DataStoreReference' ? { store: true } : {}),
+    ...(el.$type === 'bpmn:DataObjectReference' ? readDocumentRef(el.dataObjectRef as El | undefined) : {}),
   };
 }
 

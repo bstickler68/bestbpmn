@@ -284,6 +284,19 @@
       ]
     },
     {
+      "name": "ProcessAnnualOccurrence",
+      "extends": [
+        "bpmn:Process"
+      ],
+      "properties": [
+        {
+          "name": "annualOccurrence",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
       "name": "DataOutputAssociationResultLabel",
       "extends": [
         "bpmn:DataOutputAssociation"
@@ -314,6 +327,24 @@
         },
         {
           "name": "interfaceType",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "DataObjectDocument",
+      "extends": [
+        "bpmn:DataObject"
+      ],
+      "properties": [
+        {
+          "name": "documentRef",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "href",
           "isAttr": true,
           "type": "String"
         }

@@ -90,41 +90,23 @@ describe('Zusatzattribute an Aktivitäten', () => {
 });
 
 describe('Eigenschaftenpanel', () => {
-  it('zeigt Beschreibung, Links und nur Business-Services', async () => {
+  it('zeigt nur Business-Services und keine Links mehr', async () => {
     await setup();
     await nextTick(); // Das Panel hört erst nach dem ersten Rendern auf die Auswahl.
     get('selection').select(element('Erstellen'));
     await nextTick();
 
     const panel = container.querySelector('#p')!;
-    expect(panel.querySelector('[data-group-id="group-bestbpmn-links"]')).not.toBeNull();
+    expect(panel.querySelector('[data-group-id="group-bestbpmn-links"]')).toBeNull();
     const servicesGroup = panel.querySelector('[data-group-id="group-bestbpmn-services"]')!;
     expect(servicesGroup.textContent).toContain('Dokumentenmanagement');
     expect(servicesGroup.textContent).not.toContain('Datenbankcluster');
-    expect(panel.textContent).toContain('Dokumentvorlagen');
     // Nach dem angezeigten Namen sortiert, nicht in der Reihenfolge des Katalogs.
     const names = [...servicesGroup.querySelectorAll('[data-entry-id^="bestbpmn-services-"] label')].map((l) => l.textContent!.trim());
     expect(names.length).toBeGreaterThan(1);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base', numeric: true })));
   });
 
-  it('beschriftet einen neuen Link mit „Web(URL)“ statt mit der Adresse', async () => {
-    await setup();
-    await nextTick();
-    get('selection').select(element('Pruefen'));
-    await nextTick();
-
-    const group = container.querySelector('[data-group-id="group-bestbpmn-links"]')!;
-    group.querySelector<HTMLButtonElement>('.bio-properties-panel-add-entry')!.click();
-    await nextTick();
-
-    const link = readAttributes(element('Pruefen').businessObject)[0]?.links[0];
-    expect(link?.href ?? '').toBe('');
-    expect(group.textContent).toContain('Web(URL)');
-    expect(group.textContent).not.toContain('https://');
-    get('selection').select(null);
-    await nextTick();
-  });
 
   it('zeigt keine Zusatzattribute an Ereignissen', async () => {
     await setup();

@@ -62,6 +62,14 @@ table.raci td.from-lane { font-style: italic; color: #57606a; }
 .issues li.error { color: #cf222e; }
 .issues li.warning { color: #9a6700; }
 .ok { color: #1a7f37; }
+table.staffing { font-size: 9.5pt; }
+table.staffing .num { text-align: right; font-variant-numeric: tabular-nums; }
+table.staffing td.num { white-space: nowrap; }
+table.staffing-basis { width: auto; min-width: 60%; }
+table.staffing tr.subtotal th, table.staffing tr.subtotal td { background: #f6f8fa; font-weight: 600; }
+table.staffing tr.task td:first-child { padding-left: 18px; }
+table.staffing tr.total th, table.staffing tr.total td { font-weight: 700; border-top: 2px solid #1f2328; }
+table.staffing-holders .col-effortPerExecution, table.staffing-holders .col-executionsPerYear, table.staffing-holders .col-hoursPerYear, table.staffing-holders .col-fte { width: 13%; }
 
 @page { size: A4; margin: 16mm 14mm 18mm; @bottom-right { content: counter(page) " / " counter(pages); font: 8pt "Segoe UI", Arial, sans-serif; color: #57606a; } }
 /*

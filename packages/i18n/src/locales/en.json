@@ -39,7 +39,8 @@
       "position": "{{index}} of {{count}}"
     },
     "planning": "Planning values",
-    "planningTitle": "Show or hide planning values (effort, duration, probability) and the calculation"
+    "planningTitle": "Show or hide planning values (effort, duration, probability) and the calculation",
+    "linksConverted": "{{count}} link(s) from “Further documentation” are now data objects with an input to their task. Please check their position and save."
   },
   "status": {
     "noProcess": "No process in the model.",
@@ -98,7 +99,10 @@
     "interface-without-type": "“{{element}}” is an interface without a type. Choose a type in the properties panel.",
     "symbol-not-connected": "“{{element}}” is not connected to a start or end event.",
     "symbol-invalid-connection": "The connection from “{{source}}” to “{{target}}” is not allowed for process and interface symbols. Incoming: process → interface → start event; outgoing: end event → interface → process.",
-    "data-at-start-or-end": "“{{data}}” is attached to “{{element}}” as a data object. Model inputs and outputs as interfaces."
+    "data-at-start-or-end": "“{{data}}” is attached to “{{element}}” as a data object. Model inputs and outputs as interfaces.",
+    "document-not-input": "“{{element}}” refers to a document but is not an input of any task. Only an input makes it available while working on the step.",
+    "document-ref-and-href": "“{{element}}” refers to a document record and a web address at the same time. Please give only one; the record wins.",
+    "legacy-links-attribute": "“{{element}}” still has {{count}} link(s) in the old attribute “Further documentation”. Model documents as a data object with an input; the modeler converts them when opening."
   },
   "panel": {
     "translations": "Translations",
@@ -114,7 +118,7 @@
     "status": "Status",
     "statusDescription": "From the catalog. The ID appears in square brackets in the name.",
     "noStatus": "– no status –",
-    "statusOnlyProcess": "Only the data object “{{name}}” has a status. This data object is documentation only.",
+    "statusOnlyProcess": "Only the data object “{{name}}” has a status. This data object can refer to a document.",
     "dataObjectId": "Data object ID",
     "dataObjectIdDescription": "The same for all references to this data object. The ID under “General” belongs to the individual reference.",
     "processName": "Name",
@@ -153,6 +157,9 @@
     "timingInvalidProbability": "A number from 0 to 100",
     "timingUnitDays": "WD",
     "timingBoundaryProbabilityHint": "How often this event occurs per execution of the activity.",
+    "annualOccurrence": "Annual occurrence",
+    "annualOccurrenceHint": "How often the process runs per year, e.g. 1200 or 0.5. Basis for the staffing report.",
+    "annualOccurrenceMixed": "The pools have different values. An entry applies to all pools; enter it at each pool to set them separately.",
     "calculation": "Calculation from planning values",
     "calcCycleTime": "Cycle time",
     "calcCycleTimeValue": "mean {{mean}}, median {{median}}, 85 % {{p85}}, 95 % {{p95}}",
@@ -312,7 +319,10 @@
       "interface-without-type": "Interfaces have a type",
       "symbol-not-connected": "Process and interface symbols are attached to a start or end event",
       "symbol-invalid-connection": "Process and interface symbols connect only in flow direction",
-      "data-at-start-or-end": "No data objects at start and end events"
+      "data-at-start-or-end": "No data objects at start and end events",
+      "document-not-input": "Data objects with a reference are an input of a task",
+      "document-ref-and-href": "A data object refers to a document record or a web address, not both",
+      "legacy-links-attribute": "No links left in the old attribute “Further documentation”"
     }
   },
   "catalog": {
@@ -394,10 +404,14 @@
     "fullHtml": "Full document as HTML file",
     "profilePrint": "Print profile / save as PDF",
     "fullPrint": "Print full document / save as PDF",
+    "staffingHtml": "Staffing as HTML file",
+    "staffingPrint": "Print staffing / save as PDF",
     "profile": "Process profile",
     "full": "Full document",
+    "staffing": "Staffing",
     "fileProfile": "Profile",
     "fileFull": "Full-document",
+    "fileStaffing": "Staffing",
     "generated": "As of: {{date}}",
     "file": "File: {{name}}",
     "untitled": "Untitled",
@@ -430,14 +444,21 @@
       "name": "Name",
       "systems": "System",
       "description": "Description",
-      "links": "Further documentation",
+      "links": "Documents",
       "status": "Status",
       "key": "Key",
       "initial": "Initial status",
       "activity": "Activity",
       "sets": "sets status",
       "inputs": "Input",
-      "outputs": "Output"
+      "outputs": "Output",
+      "process": "Process",
+      "annualOccurrence": "Annual occurrence",
+      "holderTask": "Responsible (D) / task",
+      "effortPerExecution": "Effort D per execution",
+      "executionsPerYear": "Executions per year",
+      "hoursPerYear": "Hours per year",
+      "fte": "FTE"
     },
     "yes": "yes",
     "next": {
@@ -500,7 +521,20 @@
     "downstream": "Downstream processes",
     "from": "from {{names}}",
     "to": "to {{names}}",
-    "at": "at {{names}}"
+    "at": "at {{names}}",
+    "staffingBasis": "Annual occurrence",
+    "staffingFte": "1 FTE = {{hours}} hours per year: {{weekly}} h weekly working time × {{days}} working days per year ÷ {{perWeek}} working days per week, rounded up to whole hours.",
+    "staffingByHolder": "Staffing per responsible (D)",
+    "staffingTotal": "Total",
+    "staffingUnassigned": "without responsible",
+    "staffingHint": "Per task: effort of D per execution × executions per year. Executions per year = annual occurrence × expected executions per run (gateway probabilities, loop repetitions). Effort of E and M is not included. Hours and FTE are rounded to two decimals; totals are calculated from unrounded values.",
+    "staffingNoOccurrence": "No process has an annual occurrence. Enter it at the process under planning values.",
+    "staffingNoEffort": "No task has an effort of D.",
+    "staffingInvalidOccurrence": "invalid",
+    "staffingMissing": "Missing values",
+    "staffingProcessWithout": "Process “{{name}}”: no annual occurrence, not included.",
+    "staffingProcessInvalid": "Process “{{name}}”: annual occurrence is not a number above 0, not included.",
+    "staffingTaskWithoutEffort": "Task “{{name}}”: no effort of D, not included."
   },
   "symbol": {
     "process": "Process interface",
@@ -521,5 +555,14 @@
     "system": "System data",
     "material": "Material",
     "other": "Other"
+  },
+  "document": {
+    "group": "Document",
+    "hint": "If this data object is an input of a task, it is a document of that step. Profile and full document list it with its reference.",
+    "href": "Web(URL)",
+    "hrefDescription": "Web address of the document, e.g. a wiki page.",
+    "record": "Document record",
+    "recordKept": "Refers to the document record “{{key}}” from another tool. The reference is kept when saving and wins over a web address.",
+    "removeRecord": "Remove reference to the record"
   }
 }

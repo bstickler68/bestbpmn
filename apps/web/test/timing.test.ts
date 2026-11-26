@@ -4,7 +4,7 @@ import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } from 'bpmn-js
 import { readProbability, readTiming } from '@bestbpmn/model';
 import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import states from '../../../templates/catalog/states.json';
-import { bestbpmnModdleExtensions, bestbpmnModule, bestbpmnPropertiesProviderModule, UPDATE_TIMING, type StatusCheck } from '@bestbpmn/bpmn-js-extension';
+import { parseOccurrenceInput, bestbpmnModdleExtensions, bestbpmnModule, bestbpmnPropertiesProviderModule, SET_ANNUAL_OCCURRENCE, UPDATE_TIMING, type StatusCheck } from '@bestbpmn/bpmn-js-extension';
 
 let container: HTMLDivElement;
 let modeler: any;
@@ -149,8 +149,55 @@ describe('Planwerte im Modell', () => {
     expect(text).toContain('Unvollständig');
   });
 
+  it('nimmt am Prozess das jährliche Vorkommen, auch mit Tausenderpunkt, und lässt es rückgängig machen', async () => {
+    await setup();
+    const root = get('canvas').getRootElement();
+    get('selection').select(root);
+    await wait();
+    await open('bestbpmn-timing');
+    const field = input('bestbpmn-timing-annualOccurrence');
+    expect(field.value).toBe('');
+    await type(field, '1.200');
+    expect(root.businessObject.annualOccurrence).toBe('1200');
+    await type(input('bestbpmn-timing-annualOccurrence'), '0,5');
+    expect(root.businessObject.annualOccurrence).toBe('0.5');
+    expect(input('bestbpmn-timing-annualOccurrence').value).toBe('0,5');
+    await type(input('bestbpmn-timing-annualOccurrence'), 'oft');
+    expect(root.businessObject.annualOccurrence).toBe('0.5');
+    expect(container.querySelector('[data-entry-id="bestbpmn-timing-annualOccurrence"]')?.textContent).toContain('Eine Zahl über 0');
+    get('commandStack').undo();
+    expect(root.businessObject.annualOccurrence).toBe('1200');
+    const { xml } = await modeler.saveXML();
+    expect(xml).toContain('bestadd:annualOccurrence="1200"');
+  });
+
+  it('setzt das jährliche Vorkommen an der Kollaboration für alle Pools in einem Schritt', async () => {
+    await setup();
+    const moddle = get('moddle');
+    const processes = [moddle.create('bpmn:Process', { annualOccurrence: '10' }), moddle.create('bpmn:Process', { annualOccurrence: '20' })];
+    const stack = get('commandStack');
+    stack.execute(SET_ANNUAL_OCCURRENCE, { element: get('canvas').getRootElement(), processes, value: '30' });
+    expect(processes.map((p: any) => p.annualOccurrence)).toEqual(['30', '30']);
+    stack.undo();
+    expect(processes.map((p: any) => p.annualOccurrence)).toEqual(['10', '20']);
+  });
+
+  it('liest Eingaben für das jährliche Vorkommen', () => {
+    expect(parseOccurrenceInput('1200')).toBe(1200);
+    expect(parseOccurrenceInput('1.200')).toBe(1200);
+    expect(parseOccurrenceInput('12 000')).toBe(12000);
+    expect(parseOccurrenceInput('0,5')).toBe(0.5);
+    expect(parseOccurrenceInput('1.5')).toBe(1.5);
+    expect(parseOccurrenceInput('0')).toBeUndefined();
+    expect(parseOccurrenceInput('-3')).toBeUndefined();
+    expect(parseOccurrenceInput('oft')).toBeUndefined();
+  });
+
   it('zeigt ohne eingeschaltete Planwerte weder Bereich noch Hinweise (Standard aus)', async () => {
     await setup(template, false);
+    get('selection').select(get('canvas').getRootElement());
+    await wait();
+    expect(container.querySelector('[data-entry-id="bestbpmn-timing-annualOccurrence"]')).toBeNull();
     get('commandStack').execute(UPDATE_TIMING, { element: element('Pruefen'), attribute: 'effort', value: 'PT30M' });
     get('selection').select(element('Pruefen'));
     await wait();

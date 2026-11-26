@@ -83,6 +83,20 @@ export interface HolderEffort {
   minutes: number;
 }
 
+/** Aufwand eines D an einer Aufgabe, Grundlage für den Personalbedarf je Durchführungsverantwortung. */
+export interface ResponsibleTask {
+  elementId: string;
+  name?: string;
+  /** Bei Aufgaben aus Teilprozessen und aufgerufenen Prozessen der Weg dorthin, z. B. `Sub/Task`. */
+  path?: string;
+  /** Der D im Format des Modells, z. B. `role(clerk)`; `null`, wenn die Aufgabe kein D hat. */
+  holder: string | null;
+  /** Aufwand dieses D für eine Ausführung in Minuten: bei Mehrfachinstanzen alle Instanzen, bei mehreren D sein Anteil. */
+  effortPerExecution: number;
+  /** Erwartete Ausführungen je Durchlauf des Prozesses (ungerundet). */
+  executions: number;
+}
+
 export interface ProcessCalculation {
   processId: string;
   name?: string;
@@ -92,6 +106,8 @@ export interface ProcessCalculation {
   /** Durchlaufzeit je Durchlauf in Arbeitsminuten; fehlt, wenn die Simulation abgeschaltet ist. */
   cycleTime?: Percentiles;
   elements: ElementResult[];
+  /** Aufwand der D je Aufgabe, auch aus Teilprozessen und aufgerufenen Prozessen; nur Aufgaben mit Aufwand des D. */
+  responsibleTasks: ResponsibleTask[];
   /** Elemente auf dem kritischen Pfad (in mehr als der Hälfte der Durchläufe), in Reihenfolge des Ablaufs. */
   criticalPath: string[];
   missing: MissingValue[];
@@ -130,6 +146,8 @@ interface NodeInfo {
   sequential: boolean;
   /** Aufwand je Ausführung (alle Instanzen) je Zuständigem. */
   effort: Map<string | null, number>;
+  /** Nur der Aufwand der D je Ausführung. */
+  responsible: { holder: string | null; minutes: number }[];
   /** Innerer Graph bei Teilprozessen und Aufrufaktivitäten. */
   inner?: Model;
 }
@@ -142,6 +160,7 @@ interface Model {
   visits: number[];
   effort: Map<string | null, number>;
   elements: ElementResult[];
+  responsibleTasks: ResponsibleTask[];
   missing: MissingValue[];
 }
 
@@ -178,6 +197,7 @@ export function calculateProcess(process: ModdleElement, options: CalculationOpt
       .map(([holder, minutes]) => ({ holder, minutes: round(minutes) }))
       .sort((a, b) => b.minutes - a.minutes || String(a.holder).localeCompare(String(b.holder))),
     elements: model.elements,
+    responsibleTasks: model.responsibleTasks,
     criticalPath: [],
     missing: model.missing,
     complete: model.missing.length === 0,
@@ -267,6 +287,7 @@ function buildModel(container: El, ctx: Context, lanes: Map<El, El> | undefined,
   const visits = solveVisits(graph, routes);
   const effort = new Map<string | null, number>();
   const elements: ElementResult[] = [];
+  const responsibleTasks: ResponsibleTask[] = [];
   graph.nodes.forEach((node, i) => {
     const nodeInfo = info.get(node)!;
     const v = visits[i]!;
@@ -284,6 +305,22 @@ function buildModel(container: El, ctx: Context, lanes: Map<El, El> | undefined,
         ...(nodeInfo.inner ? {} : { duration: round(nodeInfo.duration) }),
       });
     }
+    for (const { holder, minutes } of nodeInfo.responsible) {
+      responsibleTasks.push({
+        elementId: node.id,
+        ...(node.name ? { name: node.name } : {}),
+        ...(path ? { path: `${path}/${node.id}` } : {}),
+        holder,
+        effortPerExecution: minutes,
+        executions: v,
+      });
+    }
+    // Aufgaben in Teilprozessen und aufgerufenen Prozessen laufen so oft, wie die Aktivität mal ihre Instanzen.
+    if (nodeInfo.inner) {
+      for (const task of nodeInfo.inner.responsibleTasks) {
+        responsibleTasks.push({ ...task, executions: task.executions * v * nodeInfo.instances });
+      }
+    }
     // Teilprozesse: ihre Elemente zählen so oft, wie der Teilprozess läuft.
     if (nodeInfo.inner && node.$type === 'bpmn:SubProcess') {
       for (const inner of nodeInfo.inner.elements) {
@@ -291,7 +328,7 @@ function buildModel(container: El, ctx: Context, lanes: Map<El, El> | undefined,
       }
     }
   });
-  return { graph, info, routes, visits, effort, elements, missing };
+  return { graph, info, routes, visits, effort, elements, responsibleTasks, missing };
 }
 
 export function buildGraph(container: El, ctx: Pick<Context, 'overrides'>): Graph {
@@ -385,7 +422,7 @@ function holderOf(assignee: Assignee): string {
 function nodeInfo(node: El, ctx: Context, lanes: Map<El, El>, path: string, miss: (code: MissingCode, el: El) => void): NodeInfo {
   const effort = new Map<string | null, number>();
   const add = (holder: string | null, minutes: number) => effort.set(holder, (effort.get(holder) ?? 0) + minutes);
-  const result: NodeInfo = { duration: 0, instances: 1, sequential: false, effort };
+  const result: NodeInfo = { duration: 0, instances: 1, sequential: false, effort, responsible: [] };
   const multi = isMultiInstance(node);
   result.sequential = multi && !!node.loopCharacteristics?.isSequential;
 
@@ -419,9 +456,11 @@ function nodeInfo(node: El, ctx: Context, lanes: Map<El, El>, path: string, miss
       const total = dEffort * instances;
       if (!responsible.length) {
         add(null, total);
+        result.responsible.push({ holder: null, minutes: total });
       } else {
         for (const holder of responsible) {
           add(holderOf(holder), total / responsible.length);
+          result.responsible.push({ holder: holderOf(holder), minutes: total / responsible.length });
         }
       }
     }

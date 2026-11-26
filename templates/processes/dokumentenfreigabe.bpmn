@@ -19,6 +19,8 @@
     <bpmn:dataObject id="Prozess" name="Prozess" />
     <bpmn:dataObject id="Dokument" name="Dokument" />
     <bpmn:dataObjectReference id="Ref_Dokument" name="Dokument" dataObjectRef="Dokument" />
+    <bpmn:dataObject id="Dokumentvorlagen" name="Dokumentvorlagen" bestadd:href="https://example.org/wiki/dokumentvorlagen" />
+    <bpmn:dataObjectReference id="Ref_Dokumentvorlagen" name="Dokumentvorlagen" dataObjectRef="Dokumentvorlagen" />
     <bpmn:dataObjectReference id="Ref_InPruefung" name="Prozess [in_review]" dataObjectRef="Prozess">
       <bpmn:dataState id="State_InPruefung" bestadd:key="in_review" name="in_review" />
     </bpmn:dataObjectReference>
@@ -41,9 +43,6 @@
           <bestadd:translation lang="en" name="Create document">Create the document from the current template and fill in all mandatory sections. Attach the link to the document to the case.</bestadd:translation>
         </bestadd:translations>
         <bestadd:attributes>
-          <bestadd:attribute key="links">
-            <bestadd:link href="https://example.org/wiki/dokumentvorlagen" title="Dokumentvorlagen" />
-          </bestadd:attribute>
           <bestadd:attribute key="services">
             <bestadd:serviceRef ref="svc-dms" name="Dokumentenmanagement" />
           </bestadd:attribute>
@@ -51,6 +50,11 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1</bpmn:incoming>
       <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:property id="Prop_Erstellen" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="In_Erstellen_Vorlagen">
+        <bpmn:sourceRef>Ref_Dokumentvorlagen</bpmn:sourceRef>
+        <bpmn:targetRef>Prop_Erstellen</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
       <bpmn:dataOutputAssociation id="Out_Erstellen_Dokument">
         <bpmn:targetRef>Ref_Dokument</bpmn:targetRef>
       </bpmn:dataOutputAssociation>
@@ -156,6 +160,7 @@
       <bpmndi:BPMNShape id="Freigeben_di" bpmnElement="Freigeben"><dc:Bounds x="660" y="200" width="100" height="80" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Ueberarbeiten_di" bpmnElement="Ueberarbeiten"><dc:Bounds x="530" y="340" width="100" height="80" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Ende_di" bpmnElement="Ende"><dc:Bounds x="822" y="222" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ref_Dokumentvorlagen_di" bpmnElement="Ref_Dokumentvorlagen"><dc:Bounds x="130" y="75" width="36" height="50" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Ref_Dokument_di" bpmnElement="Ref_Dokument"><dc:Bounds x="202" y="75" width="36" height="50" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Ref_InPruefung_di" bpmnElement="Ref_InPruefung"><dc:Bounds x="352" y="75" width="36" height="50" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Ref_Geprueft_di" bpmnElement="Ref_Geprueft"><dc:Bounds x="562" y="75" width="36" height="50" /></bpmndi:BPMNShape>
@@ -167,6 +172,7 @@
       <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="580" y="265" /><di:waypoint x="580" y="340" /></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="530" y="380" /><di:waypoint x="450" y="380" /><di:waypoint x="450" y="280" /></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="760" y="240" /><di:waypoint x="822" y="240" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="In_Erstellen_Vorlagen_di" bpmnElement="In_Erstellen_Vorlagen"><di:waypoint x="166" y="118" /><di:waypoint x="250" y="200" /></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Out_Erstellen_Dokument_di" bpmnElement="Out_Erstellen_Dokument"><di:waypoint x="270" y="200" /><di:waypoint x="230" y="125" /></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Out_Erstellen_di" bpmnElement="Out_Erstellen"><di:waypoint x="310" y="200" /><di:waypoint x="358" y="125" /></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="In_Pruefen_di" bpmnElement="In_Pruefen"><di:waypoint x="382" y="125" /><di:waypoint x="430" y="200" /></bpmndi:BPMNEdge>

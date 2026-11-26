@@ -13,15 +13,9 @@ async function element(xml: string, id: string) {
 }
 
 describe('Zusatzattribute', () => {
-  it('liest Links und Services aus der Vorlage', async () => {
+  it('liest Services aus der Vorlage', async () => {
     const { element: task } = await element(template, 'Erstellen');
     expect(readAttributes(task)).toEqual([
-      {
-        key: 'links',
-        value: undefined,
-        links: [{ href: 'https://example.org/wiki/dokumentvorlagen', title: 'Dokumentvorlagen' }],
-        services: [],
-      },
       {
         key: 'services',
         value: undefined,
@@ -44,16 +38,25 @@ describe('Zusatzattribute', () => {
     expect(readDescription(task)).toBeUndefined();
   });
 
+  it('liest Links im alten Attribut „Weiterführende Dokumentation“', async () => {
+    const xml = template.replace(
+      '<bestadd:attribute key="services">',
+      '<bestadd:attribute key="links"><bestadd:link href="https://example.org/wiki" title="Wiki" /></bestadd:attribute>\n          <bestadd:attribute key="services">',
+    );
+    const { element: task } = await element(xml, 'Erstellen');
+    expect(readAttributes(task)[0]).toEqual({ key: 'links', value: undefined, links: [{ href: 'https://example.org/wiki', title: 'Wiki' }], services: [] });
+  });
+
   it('behält unbekannte Attribute beim Speichern', async () => {
     const xml = template.replace(
-      '<bestadd:attribute key="links">',
-      '<bestadd:attribute key="dauer" value="2 Stunden" />\n          <bestadd:attribute key="links">',
+      '<bestadd:attribute key="services">',
+      '<bestadd:attribute key="dauer" value="2 Stunden" />\n          <bestadd:attribute key="services">',
     );
     const moddle = createModdle();
     const { rootElement } = await moddle.fromXML(xml);
     const { xml: saved } = await moddle.toXML(rootElement);
     expect(saved).toContain('<bestadd:attribute key="dauer" value="2 Stunden" />');
     const { element: task } = await element(saved, 'Erstellen');
-    expect(readAttributes(task).map((a) => a.key)).toEqual(['dauer', 'links', 'services']);
+    expect(readAttributes(task).map((a) => a.key)).toEqual(['dauer', 'services']);
   });
 });

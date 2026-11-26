@@ -45,6 +45,9 @@ export const ISSUE_CODES: readonly IssueCode[] = [
   'symbol-not-connected',
   'symbol-invalid-connection',
   'data-at-start-or-end',
+  'document-not-input',
+  'document-ref-and-href',
+  'legacy-links-attribute',
 ];
 
 /**

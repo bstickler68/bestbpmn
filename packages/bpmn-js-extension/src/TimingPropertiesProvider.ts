@@ -13,6 +13,7 @@ import {
   laneMap,
   parseTimeInput,
   parseTimeSpan,
+  readAnnualOccurrence,
   readProbability,
   resolveRaci,
   TIMING_TYPES,
@@ -26,7 +27,7 @@ import {
 } from '@bestbpmn/model';
 import type { BestbpmnConfig } from './attributes';
 import { resolveI18n, type BestbpmnI18n } from './i18n';
-import { UPDATE_TIMING, type UpdateTimingContext } from './timing';
+import { parseOccurrenceInput, SET_ANNUAL_OCCURRENCE, UPDATE_TIMING, type UpdateTimingContext } from './timing';
 import { findProcess, is, type BusinessObject, type DiagramElement } from './util';
 
 const LOW_PRIORITY = 440;
@@ -86,6 +87,14 @@ export default class TimingPropertiesProvider {
       }
       const roots = this.rootProcesses(bo);
       if (roots) {
+        if (roots.length) {
+          // Jährliches Vorkommen; bei mehreren Pools gilt es für alle zusammen, wie „Ausführbar“.
+          groups.push({
+            id: 'bestbpmn-timing',
+            label: t('panel.timing'),
+            entries: [{ id: 'bestbpmn-timing-annualOccurrence', component: AnnualOccurrenceEntry, isEdited: isTextFieldEntryEdited, processes: roots, i18n: this.i18n }],
+          });
+        }
         groups.push({
           id: 'bestbpmn-calculation',
           label: t('panel.calculation'),
@@ -240,6 +249,40 @@ function InstancesEntry(props: { element: DiagramElement; id: string; i18n: Best
         return;
       }
       commandStack.execute(UPDATE_TIMING, { element, attribute: 'instances', value: value?.trim() ? String(number) : '' });
+    },
+  });
+}
+
+/** Jährliches Vorkommen am Prozess; bei Pools mit verschiedenen Werten bleibt das Feld leer, mit Hinweis. */
+function AnnualOccurrenceEntry(props: { element: DiagramElement; id: string; processes: BusinessObject[]; i18n: BestbpmnI18n }) {
+  const { element, id, processes, i18n } = props;
+  const { t } = i18n;
+  const commandStack = useService('commandStack');
+  const debounce = useService('debounceInput');
+  const values = [...new Set(processes.map((p) => String(p.annualOccurrence ?? '')))];
+  const mixed = values.length > 1;
+  return h(TextFieldEntry, {
+    element,
+    id,
+    label: t('panel.annualOccurrence'),
+    description: mixed ? t('panel.annualOccurrenceMixed') : t('panel.annualOccurrenceHint'),
+    debounce,
+    getValue: () => {
+      if (mixed) {
+        return '';
+      }
+      const stored = values[0] ?? '';
+      const number = readAnnualOccurrence(processes[0] as any);
+      // Unlesbare Werte bleiben sichtbar, damit man sie korrigieren kann.
+      return number === undefined || Number.isNaN(number) ? stored : String(number).replace('.', ',');
+    },
+    validate: (value: string) => (!value?.trim() || parseOccurrenceInput(value) !== undefined ? null : t('panel.timingInvalidNumber')),
+    setValue: (value: string) => {
+      const number = value?.trim() ? parseOccurrenceInput(value) : undefined;
+      if (value?.trim() && number === undefined) {
+        return;
+      }
+      commandStack.execute(SET_ANNUAL_OCCURRENCE, { element, processes, value: number === undefined ? '' : String(number) });
     },
   });
 }

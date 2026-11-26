@@ -2,6 +2,7 @@ import { findTiming } from '@bestbpmn/model';
 import type { BusinessObject, DiagramElement } from './util';
 
 export const UPDATE_TIMING = 'bestbpmn.timing.update';
+export const SET_ANNUAL_OCCURRENCE = 'bestbpmn.timing.annualOccurrence';
 
 /** Attribute von `bestadd:timing`; Zeiten als ISO-8601-Dauer, `instances` als Zahl, `valueClass` als Schlüssel. */
 export type TimingAttribute = 'effort' | 'accountableEffort' | 'duration' | 'instances' | 'valueClass';
@@ -82,11 +83,59 @@ export default class UpdateTimingHandler {
   }
 }
 
-/** Registriert den Befehl beim Start des Modellierers. */
+/**
+ * Liest eine Eingabe für das jährliche Vorkommen: `1200`, `1.200`, `1 200` oder `0,5`.
+ * `undefined`, wenn das keine Zahl über 0 ist.
+ */
+export function parseOccurrenceInput(text: string): number | undefined {
+  const value = text.trim().replace(/[\s\u00a0\u202f']+/g, '');
+  // Punkte als Tausendertrennzeichen nur in der Form 1.200 oder 12.000.000.
+  const normalized = /^\d{1,3}(\.\d{3})+$/.test(value) ? value.replace(/\./g, '') : value.replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+    return undefined;
+  }
+  const number = Number(normalized);
+  return number > 0 ? number : undefined;
+}
+
+export interface SetAnnualOccurrenceContext {
+  element: DiagramElement;
+  /** Die Prozesse, die den Wert bekommen: der Prozess selbst, der eines Pools oder alle Pools einer Kollaboration. */
+  processes: BusinessObject[];
+  /** Zahl als Text, z. B. `1200` oder `0.5`; leer entfernt das Attribut. */
+  value?: string;
+}
+
+/** Setzt das jährliche Vorkommen an einem oder mehreren Prozessen in einem Schritt, der sich rückgängig machen lässt. */
+export class SetAnnualOccurrenceHandler {
+  static $inject = ['modeling'];
+
+  constructor(private modeling: any) {}
+
+  preExecute({ element, processes, value }: SetAnnualOccurrenceContext) {
+    const next = value?.trim() || undefined;
+    for (const process of processes) {
+      if ((process.annualOccurrence || undefined) !== next) {
+        this.modeling.updateModdleProperties(element, process, { annualOccurrence: next });
+      }
+    }
+  }
+
+  execute() {
+    return [];
+  }
+
+  revert() {
+    return [];
+  }
+}
+
+/** Registriert die Befehle beim Start des Modellierers. */
 export class TimingCommands {
   static $inject = ['commandStack'];
 
   constructor(commandStack: any) {
     commandStack.registerHandler(UPDATE_TIMING, UpdateTimingHandler);
+    commandStack.registerHandler(SET_ANNUAL_OCCURRENCE, SetAnnualOccurrenceHandler);
   }
 }

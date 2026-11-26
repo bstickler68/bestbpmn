@@ -80,7 +80,7 @@ describe('Oberfläche in zwei Sprachen', () => {
     expect(group.textContent).toContain('Übersetzungen');
     expect(group.textContent).toContain('Name (English)');
     expect(panel.textContent).toContain('Allgemein');
-    expect(panel.textContent).toContain('Weiterführende Dokumentation');
+    expect(panel.textContent).toContain('IT-Services');
   });
 
   it('bietet an der Referenz auf „Prozess“ die Status aus der Statustabelle an', async () => {

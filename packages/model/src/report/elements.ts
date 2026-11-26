@@ -1,6 +1,7 @@
 import { readAttributes, readDescription } from '../attributes/read.js';
 import type { LinkValue, ServiceRefValue } from '../attributes/types.js';
 import type { ModdleElement } from '../states/types.js';
+import { documentsOfActivity, type DocumentInput } from '../documents/read.js';
 import { incoming as incomingFlows, outgoing as outgoingFlows } from './graph.js';
 import { readRuleMarks, type RuleKind } from '../rules/transitions.js';
 import { collectSymbolArtifacts, isAllowedSymbolConnection, symbolKind } from '../interfaces/symbols.js';
@@ -54,7 +55,10 @@ export interface ElementRow {
   name?: string;
   description?: string;
   services: ServiceRefValue[];
+  /** Links im alten Attribut „Weiterführende Dokumentation“. */
   links: LinkValue[];
+  /** Unterlagen: eingehende Datenobjekte mit Verweis auf einen Dokument-Record oder eine Web-Adresse. */
+  documents: DocumentInput[];
   /**
    * Eingehende Daten: Datenobjekte und -speicher über Input-Verknüpfungen, auch „Prozess [Status]“,
    * und am Startereignis die Schnittstellen davor. Text wie im Diagramm.
@@ -267,6 +271,12 @@ export function groupOrder(group: Pick<FlowGroup, 'processes' | 'messageFlows'>,
   );
 }
 
+/** IDs aller Flussknoten des Modells in der Reihenfolge der Elementtabellen, Abläufe nacheinander. */
+export function elementOrder(definitions: ModdleElement): string[] {
+  const where = positions(definitions);
+  return flowGroups(definitions).flatMap((group) => groupOrder(group, where).map((el) => String(el.id ?? '')));
+}
+
 /**
  * Alle Flussknoten eines Prozesses oder Teilprozesses in der Reihenfolge der Elementtabelle; die Knoten eines
  * Teilprozesses folgen direkt auf ihn.
@@ -305,6 +315,7 @@ function numberNodes(
       ...(description ? { description } : {}),
       services: dedupe(attributes.flatMap((a) => a.services), (s) => s.ref || s.name || ''),
       links: dedupe(attributes.flatMap((a) => a.links), (l) => l.href),
+      documents: documentsOfActivity(el).filter((d) => d.documentRef || d.href),
       ...dataFlow(el),
       ...(marks && (marks.kinds.length || marks.description)
         ? { rules: { kinds: marks.kinds, ...(marks.description ? { description: marks.description } : {}) } }

@@ -1,6 +1,10 @@
 import type { TFunction } from '@bestbpmn/i18n';
 import {
+  calculateStaffing,
   catalogLabel,
+  DEFAULT_HOURS_PER_FTE,
+  DEFAULT_WORKING_DAYS_PER_YEAR,
+  describeTimeSpan,
   deriveElementTables,
   deriveProfile,
   deriveRaciMatrices,
@@ -36,6 +40,10 @@ export interface ReportInput {
   svg?: string;
   /** Nur Gesamtdokument: Status und Statuswechsel. */
   statusModels?: StatusModel[];
+  /** Nur Personalbedarf: Jahresarbeitszeit eines VZÄ und woraus sie folgt, für eine eigene Einstellung; Vorgabe 38,5 h × 220 ÷ 5 = 1694 h. */
+  fteBasis?: { weeklyHours: number; workingDaysPerYear: number; workingDaysPerWeek: number; hoursPerFte: number };
+  /** Nur Personalbedarf: Minuten je Arbeitstag für Aufwände in Tagen, Vorgabe 480. */
+  minutesPerDay?: number;
 }
 
 
@@ -48,6 +56,14 @@ const safeHref = (href: string) => /^(https?:|mailto:)/i.test(href.trim());
 function link(value: LinkValue): string {
   const text = escape(value.title || value.href);
   return safeHref(value.href) ? `<a href="${escape(value.href)}">${text}</a>` : text;
+}
+
+/** Eine Unterlage: Web-Adresse als Link, Dokument-Record als Name mit Schlüssel. */
+function documentItem(value: { name?: string; documentRef?: string; href?: string }): string {
+  if (value.documentRef) {
+    return escape(value.name ? `${value.name} (${value.documentRef})` : value.documentRef);
+  }
+  return value.href ? link({ href: value.href, ...(value.name ? { title: value.name } : {}) }) : escape(value.name ?? '');
 }
 
 /** Mehrzeiliger Text mit Absätzen; Markdown bleibt als Text stehen. */
@@ -67,10 +83,10 @@ function title(input: ReportInput): string {
 }
 
 /** Ein ganzes HTML-Dokument mit Kopf, Stil und Fußzeile. */
-function page(input: ReportInput, kind: 'profile' | 'full', body: string): string {
+function page(input: ReportInput, kind: 'profile' | 'full' | 'staffing', body: string): string {
   const { t, language } = input;
   const name = title(input);
-  const heading = t(kind === 'profile' ? 'report.profile' : 'report.full');
+  const heading = t(`report.${kind}`);
   const date = new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(input.now ?? new Date());
   const meta = [t('report.generated', { date }), input.fileName ? t('report.file', { name: input.fileName }) : undefined]
     .filter(Boolean)
@@ -160,7 +176,7 @@ export function profileHtml(input: ReportInput): string {
   const profile = deriveProfile(input.definitions);
   const people = profile.resources.people.map((p) => assigneeName(p, input));
   const documents = [
-    ...profile.resources.documents.map((d) => `<li>${escape(d.name ?? d.id)}</li>`),
+    ...profile.resources.documents.map((d) => `<li>${d.documentRef || d.href ? documentItem(d) : escape(d.name ?? d.id)}</li>`),
     ...profile.resources.links.map((l) => `<li>${link(l)}</li>`),
   ];
   const body = `<main>
@@ -231,7 +247,7 @@ function elementRow(row: ElementRow, t: TFunction): string {
 <td>${dataItems(row.inputs)}</td>
 <td>${dataItems(row.outputs)}</td>
 <td class="description">${paragraphs(row.description)}${rulesText(row, t)}${next}</td>
-<td>${row.links.length ? `<ul>${row.links.map((l) => `<li>${link(l)}</li>`).join('')}</ul>` : ''}</td>
+<td>${row.documents.length || row.links.length ? `<ul>${[...row.documents.map(documentItem), ...row.links.map(link)].map((item) => `<li>${item}</li>`).join('')}</ul>` : ''}</td>
 </tr>`;
 }
 
@@ -327,4 +343,112 @@ ${hasStatuses ? `<section class="status-section"><h2>${escape(t('report.statusTa
 <section class="raci-section"><h2>${escape(t('report.raci'))}</h2>${raciSection(input)}</section>
 </main>`;
   return page(input, 'full', body);
+}
+
+/**
+ * Personalbedarf: je Durchführungsverantwortung (D) der Aufwand des D je Ausführung mal
+ * Ausführungen im Jahr, in Stunden und Vollzeitäquivalenten, auf zwei Nachkommastellen gerundet.
+ */
+export function staffingHtml(input: ReportInput): string {
+  const { t, language } = input;
+  const basis = input.fteBasis ?? { weeklyHours: 38.5, workingDaysPerYear: DEFAULT_WORKING_DAYS_PER_YEAR, workingDaysPerWeek: 5, hoursPerFte: DEFAULT_HOURS_PER_FTE };
+  const report = calculateStaffing(input.definitions, {
+    hoursPerFte: basis.hoursPerFte,
+    ...(input.minutesPerDay ? { minutesPerDay: input.minutesPerDay } : {}),
+  });
+  const fixed = new Intl.NumberFormat(language, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const plain = new Intl.NumberFormat(language, { maximumFractionDigits: 2 });
+  const effort = (minutes: number) => describeTimeSpan({ days: 0, minutes }, { days: t('panel.timingUnitDays'), hours: 'h', minutes: 'min' });
+  const counted = report.processes.filter((p) => p.annualOccurrence !== undefined);
+  const processLabel = (id: string) => {
+    const process = report.processes.find((p) => p.processId === id);
+    return process?.name ?? id;
+  };
+  const num = (value: number, cls = 'num') => `<td class="${cls}">${escape(fixed.format(value))}</td>`;
+
+  const basisRows = report.processes
+    .map(
+      (p) => `<tr><td>${escape(p.name ?? p.processId)}</td><td class="num">${
+        p.annualOccurrence !== undefined ? escape(plain.format(p.annualOccurrence)) : `<span class="none">${escape(t(p.invalidOccurrence ? 'report.staffingInvalidOccurrence' : 'report.none'))}</span>`
+      }</td>${p.annualOccurrence !== undefined ? `${num(p.hours)}${num(p.fte)}` : '<td></td><td></td>'}</tr>`,
+    )
+    .join('');
+  const basisTable = report.processes.length
+    ? `<table class="staffing staffing-basis"><thead><tr>${['process', 'annualOccurrence', 'hoursPerYear', 'fte']
+        .map((c) => `<th scope="col" class="col-${c}${c === 'process' ? '' : ' num'}">${escape(t(`report.col.${c}`))}</th>`)
+        .join('')}</tr></thead><tbody>${basisRows}</tbody></table>`
+    : dash(t);
+
+  let byHolder: string;
+  if (!counted.length) {
+    byHolder = `<p class="none">${escape(t('report.staffingNoOccurrence'))}</p>`;
+  } else if (!report.holders.length) {
+    byHolder = `<p class="none">${escape(t('report.staffingNoEffort'))}</p>`;
+  } else {
+    const head = ['holderTask', 'effortPerExecution', 'executionsPerYear', 'hoursPerYear', 'fte']
+      .map((c) => `<th scope="col" class="col-${c}${c === 'holderTask' ? '' : ' num'}">${escape(t(`report.col.${c}`))}</th>`)
+      .join('');
+    const rows = report.holders
+      .map((holder) => {
+        const label = holder.holder === null ? t('report.staffingUnassigned') : assigneeName(holder.holder, input);
+        const tasks = holder.tasks
+          .map((task) => {
+            const origin = [counted.length > 1 ? processLabel(task.processId) : '', task.path ? task.path.split('/').slice(0, -1).join(' / ') : '']
+              .filter(Boolean)
+              .join(' · ');
+            return `<tr class="task" data-element-id="${escape(task.elementId)}"><td>${escape(task.name ?? task.elementId)}${
+              origin ? ` <span class="kind">(${escape(origin)})</span>` : ''
+            }</td><td class="num">${escape(effort(task.effortPerExecution))}</td><td class="num">${escape(plain.format(task.executionsPerYear))}</td>${num(task.hours)}${num(task.fte)}</tr>`;
+          })
+          .join('');
+        return `<tbody class="holder" data-holder="${escape(holder.holder ?? '')}"><tr class="subtotal"><th scope="rowgroup" colspan="3">${escape(label)}</th>${num(holder.hours)}${num(holder.fte)}</tr>${tasks}</tbody>`;
+      })
+      .join('');
+    byHolder = `<table class="staffing staffing-holders"><thead><tr>${head}</tr></thead>${rows}<tfoot><tr class="total"><th scope="row" colspan="3">${escape(
+      t('report.staffingTotal'),
+    )}</th>${num(report.hours)}${num(report.fte)}</tr></tfoot></table>`;
+  }
+
+  const missing = [
+    ...report.processes.filter((p) => p.annualOccurrence === undefined && counted.length).map((p) => t(p.invalidOccurrence ? 'report.staffingProcessInvalid' : 'report.staffingProcessWithout', { name: p.name ?? p.processId })),
+    ...report.missingEffort.map((m) => t('report.staffingTaskWithoutEffort', { name: taskName(input, m.elementId) })),
+  ];
+  const body = `<main>
+<section class="staffing-basis-section"><h2>${escape(t('report.staffingBasis'))}</h2>${basisTable}
+<p class="meta">${escape(
+    t('report.staffingFte', {
+      hours: plain.format(report.hoursPerFte),
+      weekly: plain.format(basis.weeklyHours),
+      days: plain.format(basis.workingDaysPerYear),
+      perWeek: plain.format(basis.workingDaysPerWeek),
+    }),
+  )}</p></section>
+<section class="staffing-section"><h2>${escape(t('report.staffingByHolder'))}</h2>${byHolder}
+<p class="meta">${escape(t('report.staffingHint'))}</p></section>
+${missing.length ? `<section class="staffing-missing"><h2>${escape(t('report.staffingMissing'))}</h2><ul class="entries">${missing.map((m) => `<li>${escape(m)}</li>`).join('')}</ul></section>` : ''}
+</main>`;
+  return page(input, 'staffing', body);
+}
+
+/** Name einer Aufgabe aus dem Modell, sonst ihre ID. */
+function taskName(input: ReportInput, id: string): string {
+  const find = (container: any): any => {
+    for (const el of (container?.flowElements ?? []) as any[]) {
+      if (el.id === id) {
+        return el;
+      }
+      const inner = el.flowElements ? find(el) : undefined;
+      if (inner) {
+        return inner;
+      }
+    }
+    return undefined;
+  };
+  for (const root of ((input.definitions as any).rootElements ?? []) as any[]) {
+    const found = find(root);
+    if (found) {
+      return found.name || id;
+    }
+  }
+  return id;
 }

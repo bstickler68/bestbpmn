@@ -3,7 +3,7 @@ import { createI18n } from '@bestbpmn/i18n';
 import { createModdle, deriveFromDefinitions } from '@bestbpmn/model';
 import template from '../../../templates/processes/dokumentenfreigabe.bpmn?raw';
 import incident from '../../../templates/processes/incident.bpmn?raw';
-import { fullHtml, profileHtml, referenceText } from '../src/report/report';
+import { fullHtml, profileHtml, referenceText, staffingHtml } from '../src/report/report';
 
 const t = createI18n('de').t;
 const now = new Date('2026-11-01T10:00:00Z');
@@ -81,7 +81,7 @@ describe('Gesamtdokument', () => {
     ]);
     expect(doc.querySelector('.diagram svg')).not.toBeNull();
     const head = [...doc.querySelectorAll('table.elements thead th')].map((th) => th.textContent);
-    expect(head).toEqual(['Nr', 'Objekt', 'Typ', 'Name', 'System', 'Input', 'Output', 'Beschreibung', 'Weiterführende Dokumentation']);
+    expect(head).toEqual(['Nr', 'Objekt', 'Typ', 'Name', 'System', 'Input', 'Output', 'Beschreibung', 'Unterlagen']);
     // Ausgaben auf „Prozess“ stehen in der Spalte Output.
     const outputs = [...doc.querySelectorAll('table.elements tbody tr')].map((tr) => tr.children[6]!.textContent ?? '');
     expect(outputs.some((o) => o.includes('Prozess ['))).toBe(true);
@@ -162,5 +162,47 @@ describe('Prozessketten im Gesamtdokument', () => {
     expect(text).toContain('P-7');
     expect(text).toContain('Anforderung');
     expect(text).toContain('Dokument');
+  });
+});
+
+describe('Personalbedarf', () => {
+  const head = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bestadd="urn:bestadd:schema:1.0" id="D" targetNamespace="t">`;
+  const owner = (assignee: string) =>
+    `<bpmn:potentialOwner><bpmn:resourceAssignmentExpression><bpmn:formalExpression>${assignee}</bpmn:formalExpression></bpmn:resourceAssignmentExpression></bpmn:potentialOwner>`;
+  const task = (id: string, name: string, effort: string, assignee: string) =>
+    `<bpmn:userTask id="${id}" name="${name}"><bpmn:extensionElements><bestadd:timing effort="${effort}" /></bpmn:extensionElements>${owner(assignee)}</bpmn:userTask>`;
+  const model = (occurrence: string) => `${head}<bpmn:process id="P" name="Antrag &lt;b&gt;bearbeiten&lt;/b&gt;"${occurrence}>
+    <bpmn:startEvent id="S" />${task('A', 'Prüfen', 'PT30M', 'role(clerk)')}${task('B', 'Freigeben', 'PT1H', 'role(lead)')}<bpmn:endEvent id="E" />
+    <bpmn:sequenceFlow id="F1" sourceRef="S" targetRef="A" /><bpmn:sequenceFlow id="F2" sourceRef="A" targetRef="B" /><bpmn:sequenceFlow id="F3" sourceRef="B" targetRef="E" />
+  </bpmn:process></bpmn:definitions>`;
+  const roles = [{ id: 'clerk', kind: 'role' as const, name: 'Clerk', translations: { de: 'Sachbearbeitung' } }];
+
+  it('zeigt je D Stunden und VZÄ mit zwei Nachkommastellen', async () => {
+    const doc = parse(staffingHtml({ t, language: 'de', definitions: await definitions(model(' bestadd:annualOccurrence="1200"')), now, roles }));
+    expect(doc.title).toBe('Antrag <b>bearbeiten</b> – Personalbedarf');
+    expect(doc.querySelector('h1 b')).toBeNull();
+    expect([...doc.querySelectorAll('h2')].map((h) => h.textContent)).toEqual(['Jährliches Vorkommen', 'Personalbedarf je Durchführungsverantwortung']);
+    const subtotals = [...doc.querySelectorAll('tr.subtotal')].map((r) => [...r.children].map((c) => c.textContent));
+    expect(subtotals).toEqual([
+      ['lead', '1.200,00', '0,71'],
+      ['Sachbearbeitung', '600,00', '0,35'],
+    ]);
+    const prüfen = [...doc.querySelector('tr[data-element-id="A"]')!.children].map((c) => c.textContent);
+    expect(prüfen).toEqual(['Prüfen', '30 min', '1.200', '600,00', '0,35']);
+    expect([...doc.querySelector('tr.total')!.children].map((c) => c.textContent)).toEqual(['Summe', '1.800,00', '1,06']);
+    expect(doc.body.textContent).toContain('1 VZÄ (FTE) = 1.694 Stunden im Jahr: 38,5 h Wochenarbeitszeit × 220 Arbeitstage pro Jahr ÷ 5 Arbeitstage pro Woche, aufgerundet auf ganze Stunden.');
+  });
+
+  it('rechnet mit einer übergebenen Jahresarbeitszeit', async () => {
+    const doc = parse(staffingHtml({ t, language: 'de', definitions: await definitions(model(' bestadd:annualOccurrence="1200"')), now, fteBasis: { weeklyHours: 40, workingDaysPerYear: 225, workingDaysPerWeek: 5, hoursPerFte: 1800 } }));
+    expect(doc.body.textContent).toContain('1 VZÄ (FTE) = 1.800 Stunden im Jahr: 40 h Wochenarbeitszeit × 225 Arbeitstage');
+    expect([...doc.querySelector('tr.total')!.children].map((c) => c.textContent)).toEqual(['Summe', '1.800,00', '1,00']);
+  });
+
+  it('sagt, wenn kein Prozess ein jährliches Vorkommen hat', async () => {
+    const doc = parse(staffingHtml({ t, language: 'de', definitions: await definitions(model('')), now }));
+    expect(doc.querySelector('table.staffing-holders')).toBeNull();
+    expect(doc.body.textContent).toContain('Kein Prozess hat ein jährliches Vorkommen.');
   });
 });
