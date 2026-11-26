@@ -19,6 +19,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Bekannte Schwachstellen in Abhängigkeiten (OWASP ASVS 14.2.1, siehe docs/sicherheit.md)
+      - run: npm audit --audit-level=high
       # Build zuerst: der Modellierer nutzt die gebauten Typen von @bestbpmn/model.
       - run: npm run build
       - run: npm run typecheck

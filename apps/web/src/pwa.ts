@@ -1,4 +1,5 @@
 import type { TFunction } from '@bestbpmn/i18n';
+import { readText } from './files/limits';
 
 /**
  * Service Worker der installierbaren Web-App. Nur vom Webserver (http/https), nicht in der
@@ -59,7 +60,7 @@ export function handleLaunchedFiles(open: (text: Promise<string>, fileName: stri
   queue?.setConsumer(({ files }) => {
     const handle = files?.[0];
     if (handle) {
-      open(handle.getFile().then((file) => file.text()), handle.name);
+      open(handle.getFile().then((file) => readText(file)), handle.name);
     }
   });
 }

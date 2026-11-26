@@ -1,4 +1,5 @@
 import type { ModdleElement, ModelIssue } from '../states/types.js';
+import { dict } from '../util/dict.js';
 
 /**
  * Planwerte im Modell: Aufwand und Dauer an Aktivitäten und wartenden
@@ -137,7 +138,7 @@ export function readTiming(el: ModdleElement): Timing | undefined {
   if (!container) {
     return undefined;
   }
-  const invalid: Record<string, string> = {};
+  const invalid = dict<string>();
   const span = (name: string, text: string | undefined): TimeSpan | undefined => {
     if (text === undefined || text === '') {
       return undefined;

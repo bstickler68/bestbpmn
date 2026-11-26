@@ -59,7 +59,8 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export function typeIconPath(type: string | undefined): string | undefined {
-  return type ? TYPE_ICONS[type] : undefined;
+  // Nur eigene Einträge: Ein Typ wie `constructor` aus dem Modell trifft nichts Geerbtes.
+  return type && Object.hasOwn(TYPE_ICONS, type) ? TYPE_ICONS[type] : undefined;
 }
 
 /**

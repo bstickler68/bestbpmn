@@ -17,6 +17,7 @@ import { catalogLabel, findStatus, type Catalog } from '../catalog/types.js';
 import { filterIssues } from '../rules/profiles.js';
 import { groupOrder, positions } from '../report/elements.js';
 import type { IssueCode, ModdleElement, Moddle, ModelIssue, ResultLabel, StatusChange, StatusModel } from './types.js';
+import { dict } from '../util/dict.js';
 
 /** Einstellungen der Prüfung. */
 export interface CheckOptions {
@@ -125,7 +126,7 @@ function deriveModel(
     }
   }
 
-  const statusNames: Record<string, string> = {};
+  const statusNames = dict<string>();
   const statusOf = new Map<El, string | undefined>();
   for (const ref of references) {
     const resolved = resolveStatus(ref, issues, catalog);
@@ -192,14 +193,14 @@ function deriveModel(
       continue;
     }
 
-    const outputLabels: Record<string, ResultLabel> = {};
+    const outputLabels = dict<ResultLabel>();
     for (const association of (el.dataOutputAssociations ?? []) as El[]) {
       const key = statusOf.get(association.targetRef as El);
       const label = typeof association.resultLabel === 'string' ? association.resultLabel.trim() : '';
       if (!key || !label || outputLabels[key]) {
         continue;
       }
-      const translations: Record<string, string> = {};
+      const translations = dict<string>();
       for (const [lang, text] of Object.entries(readTranslations(association))) {
         if (text.name?.trim()) {
           translations[lang] = text.name.trim();
@@ -279,10 +280,10 @@ function deriveModel(
   sortByFlow(statuses, changes, pools, root.collaboration, where);
 
   const dataObject = processObjects[0];
-  const statusTranslations: Record<string, Record<string, string>> = {};
+  const statusTranslations = dict<Record<string, string>>();
   for (const object of processObjects) {
     for (const [key, values] of Object.entries(readStateTranslations(object))) {
-      statusTranslations[key] = { ...values, ...statusTranslations[key] };
+      statusTranslations[key] = Object.assign(dict<string>(), values, statusTranslations[key]);
     }
   }
   for (const status of catalog.states ?? []) {
@@ -291,7 +292,7 @@ function deriveModel(
     }
     // Die Statustabelle geht den Übersetzungen im Modell vor.
     statusNames[status.id] = catalogLabel(status, language);
-    statusTranslations[status.id] = { en: status.name, ...(status.translations as Record<string, string>) };
+    statusTranslations[status.id] = Object.assign(dict<string>(), { en: status.name }, status.translations);
   }
 
   return {

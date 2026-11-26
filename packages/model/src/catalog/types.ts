@@ -1,4 +1,5 @@
 import type { Language } from '../i18n/translations.js';
+import { own } from '../util/dict.js';
 
 /**
  * Ein Eintrag der Statustabelle. Der Katalog enthält ID, englischen Namen und Übersetzungen;
@@ -70,7 +71,7 @@ export interface Catalog {
 
 /** Name eines Tabelleneintrags in einer Sprache; ohne Übersetzung der englische Name. */
 export function catalogLabel(entry: { name: string; translations?: Partial<Record<string, string>> }, language: string): string {
-  return entry.translations?.[language] || entry.name;
+  return own(entry.translations, language) || entry.name;
 }
 
 /** Sucht einen Status nach ID oder, als Komfort bei der Eingabe, nach seinem Namen in irgendeiner Sprache. */

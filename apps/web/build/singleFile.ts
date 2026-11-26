@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite';
+import { contentSecurityPolicy, inlineScripts, insertPolicy } from './csp';
 
 /** Macht Inhalt sicher für ein `<script>`- bzw. `<style>`-Element im HTML. */
 export function inlineSafe(code: string, tag: 'script' | 'style'): string {
@@ -19,7 +20,7 @@ export function singleFile(fileName = 'bestbpmn.html'): Plugin {
     name: 'bestbpmn-single-file',
     apply: 'build',
     enforce: 'post',
-    generateBundle(_options, bundle) {
+    async generateBundle(_options, bundle) {
       const page = bundle['index.html'];
       if (!page || page.type !== 'asset') {
         this.error('index.html fehlt im Build.');
@@ -60,7 +61,11 @@ export function singleFile(fileName = 'bestbpmn.html'): Plugin {
       if (rest.length) {
         this.error(`Nicht eingebettete Dateien: ${rest.join(', ')}`);
       }
-      page.source = html;
+      // Zuletzt die Richtlinie: Sie erlaubt genau das eingebettete Skript über seinen Hash.
+      // node:crypto erst hier laden: Die Tests importieren diese Datei auch im Browser.
+      const { createHash } = await import('node:crypto');
+      const hashes = inlineScripts(html).map((code) => createHash('sha256').update(code).digest('base64'));
+      page.source = insertPolicy(html, contentSecurityPolicy(hashes));
       page.fileName = fileName;
     },
   };

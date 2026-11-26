@@ -1,4 +1,5 @@
 import type { TFunction } from '@bestbpmn/i18n';
+import { readText } from './files/limits';
 import {
   isEmptyCatalog,
   parseCatalog,
@@ -186,7 +187,15 @@ export function renderCatalogEditor(container: HTMLElement, options: CatalogEdit
     fileInput.addEventListener('change', async () => {
       const file = fileInput.files?.[0];
       if (file) {
-        const { catalog, errors } = parseCatalog(await file.text());
+        let text: string;
+        try {
+          text = await readText(file);
+        } catch (error) {
+          messages = [t('app.openError', { message: (error as Error).message })];
+          render();
+          return;
+        }
+        const { catalog, errors } = parseCatalog(text);
         if (errors.some((e) => e.code === 'invalid-json' || e.code === 'not-an-object')) {
           messages = errors.map(errorText);
           render();

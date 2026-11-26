@@ -38,6 +38,7 @@ import { renderBanner, renderFilesPanel } from './files/filesPanel';
 import { fullHtml, profileHtml, staffingHtml, type ReportInput } from './report/report';
 import { printHtml } from './report/print';
 import { handleLaunchedFiles, registerServiceWorker } from './pwa';
+import { readText } from './files/limits';
 
 const LANGUAGE_KEY = 'bestbpmn.language';
 const statusPanel = document.querySelector<HTMLElement>('#status')!;
@@ -335,7 +336,15 @@ function showUndoState() {
 /** Ein Modell, das zu keiner Datei im Ordner gehört (neu, hochgeladen, hineingezogen). */
 async function openDetached(xml: string | Promise<string>, fileName?: string) {
   if (await files.detach()) {
-    await open(await xml, fileName);
+    let text: string;
+    try {
+      text = await xml;
+    } catch (error) {
+      // Zu groß oder unlesbar: Das bisherige Modell bleibt stehen.
+      statusPanel.textContent = t('app.openError', { message: (error as Error).message });
+      return;
+    }
+    await open(text, fileName);
   }
 }
 
@@ -393,7 +402,7 @@ document.querySelector<HTMLInputElement>('#open')!.addEventListener('change', as
   const file = input.files?.[0];
   input.value = '';
   if (file) {
-    await openDetached(file.text(), file.name);
+    await openDetached(readText(file), file.name);
   }
 });
 saveButton.addEventListener('click', () => files.save());
@@ -506,7 +515,7 @@ document.addEventListener('drop', (event) => {
   const file = [...(event.dataTransfer?.files ?? [])].find((item) => /\.(bpmn|xml)$/i.test(item.name));
   if (file) {
     event.preventDefault();
-    void openDetached(file.text(), file.name);
+    void openDetached(readText(file), file.name);
   }
 });
 
