@@ -1,5 +1,6 @@
 import type { Service } from '../attributes/types.js';
 import type { Catalog, RoleDefinition, StatusDefinition } from './types.js';
+import { dict } from '../util/dict.js';
 
 /**
  * Inhalt einer Katalog-Datei: eine JSON-Datei mit den Tabellen, die der Modellierer kennt.
@@ -96,7 +97,7 @@ function translations(value: unknown): Record<string, string> | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return undefined;
   }
-  const result: Record<string, string> = {};
+  const result = dict<string>();
   for (const [language, name] of Object.entries(value)) {
     const clean = text(name);
     if (clean) {

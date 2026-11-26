@@ -217,6 +217,9 @@ npm run typecheck
 npm test        # Browser-Tests brauchen Chromium: npx playwright install chromium
 ```
 
+Die Prüfung nach OWASP ASVS Level 2 (Content Security Policy, Maskierung in Berichten,
+Größengrenze, Abhängigkeiten) steht in [docs/sicherheit.md](docs/sicherheit.md).
+
 ## Etappen
 
 0. Start: leeres Repository mit README und Lizenz

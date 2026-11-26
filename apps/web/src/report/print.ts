@@ -7,6 +7,9 @@ export function printHtml(html: string, title: string): Promise<void> {
   return new Promise((resolve) => {
     const frame = document.createElement('iframe');
     frame.setAttribute('aria-hidden', 'true');
+    // Ohne `allow-scripts` läuft im Bericht kein Skript, auch nicht mit dem Ursprung der App.
+    // `allow-same-origin` braucht die App, um den Druck anzustoßen; `allow-modals` erlaubt den Druckdialog.
+    frame.setAttribute('sandbox', 'allow-same-origin allow-modals');
     frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
     const previousTitle = document.title;
     const done = () => {

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
+import { csp } from './build/csp';
 import { pwa } from './build/pwa';
 import { singleFile } from './build/singleFile';
 
@@ -20,7 +21,7 @@ export default defineConfig(({ mode }) => {
       __BESTBPMN_VERSION__: JSON.stringify(version),
     },
     publicDir: single ? false : 'public',
-    plugins: single ? [singleFile()] : [pwa()],
+    plugins: single ? [singleFile()] : [pwa(), csp()],
     build: {
       outDir: single ? 'dist/single' : 'dist/web',
       emptyOutDir: true,

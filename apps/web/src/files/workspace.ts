@@ -1,4 +1,5 @@
 /// <reference path="./fs-access.d.ts" />
+import { readText } from './limits';
 
 /** Eine Datei im Arbeitsverzeichnis. */
 export interface FileEntry {
@@ -51,7 +52,7 @@ export class BrowserWorkspace implements Workspace {
   async read(name: string): Promise<FileContent | undefined> {
     try {
       const file = await (await this.handle.getFileHandle(name)).getFile();
-      return { text: await file.text(), lastModified: file.lastModified };
+      return { text: await readText(file), lastModified: file.lastModified };
     } catch (error) {
       if ((error as DOMException).name === 'NotFoundError') {
         return undefined;

@@ -1,4 +1,5 @@
 import type { ModdleElement } from '../states/types.js';
+import { dict, own } from '../util/dict.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -34,12 +35,12 @@ export function readTranslations(element: ModdleElement): Record<string, Transla
  */
 export function readStateTranslations(dataObject: ModdleElement | undefined): Record<string, Record<string, string>> {
   const container = extensionValues(dataObject).find((v) => v.$type === 'bestadd:States');
-  const result: Record<string, Record<string, string>> = {};
+  const result = dict<Record<string, string>>();
   for (const state of (container?.states ?? []) as El[]) {
     if (!state.key) {
       continue;
     }
-    const names: Record<string, string> = {};
+    const names = dict<string>();
     for (const [lang, text] of Object.entries(toRecord((state.translations ?? []) as El[]))) {
       if (text.name) {
         names[lang] = text.name;
@@ -59,11 +60,11 @@ export function localize(
   translations: Record<string, string | undefined> | undefined,
   language: Language,
 ): string | undefined {
-  return translations?.[language] || original;
+  return own(translations, language) || original;
 }
 
 function toRecord(translations: El[]): Record<string, TranslatedText> {
-  const result: Record<string, TranslatedText> = {};
+  const result = dict<TranslatedText>();
   for (const t of translations) {
     if (!t.lang) {
       continue;
@@ -81,5 +82,5 @@ export function pickText(text: string | Record<string, string> | undefined, lang
   if (text === undefined || typeof text === 'string') {
     return text;
   }
-  return text[language] ?? text[DEFAULT_LANGUAGE] ?? Object.values(text)[0];
+  return own(text, language) ?? own(text, DEFAULT_LANGUAGE) ?? Object.values(text)[0];
 }

@@ -3,6 +3,7 @@ import { formatAssignee } from './assignees.js';
 import { findParticipant, laneMap, resolveRaci } from './check.js';
 import { RACI_ROLES, type Raci, type RaciRole } from './read.js';
 import { flowGroups, groupOrder, positions, type FlowGroup } from '../report/elements.js';
+import { dict } from '../util/dict.js';
 
 type El = ModdleElement & Record<string, any>;
 
@@ -72,7 +73,7 @@ function deriveMatrix(definitions: ModdleElement, group: FlowGroup, where: Map<s
   }
   for (const el of activities(group, where)) {
     const { responsibleFromLane, laneResponsible, ...raci } = resolveRaci(el, lanesOf.get(el)!);
-    const cells: Record<string, RaciRole[]> = {};
+    const cells = dict<RaciRole[]>();
     for (const role of RACI_ROLES) {
       for (const assignee of raci[role]) {
         const column = formatAssignee(assignee);

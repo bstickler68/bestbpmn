@@ -47,6 +47,13 @@ export interface ReportInput {
 }
 
 
+/**
+ * Berichte enthalten nur Text, Tabellen, Stil und die Grafik des Diagramms. Die Richtlinie verbietet
+ * Skripte, Nachladen, Formulare und eingebettete Seiten, auch in der gespeicherten HTML-Datei: Gerät
+ * doch einmal Markup aus dem Modell in den Bericht, bleibt es wirkungslos (OWASP ASVS 4.0.3, 14.4.3).
+ */
+export const REPORT_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'";
+
 export const escape = (text: string) =>
   text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -96,6 +103,7 @@ function page(input: ReportInput, kind: 'profile' | 'full' | 'staffing', body: s
 <html lang="${escape(language)}">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${REPORT_CSP}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="bestbpmn">
 <title>${escape(`${name} – ${heading}`)}</title>
